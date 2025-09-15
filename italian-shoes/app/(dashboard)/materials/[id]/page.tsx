@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Plus, RefreshCcw, Save, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
+import { ColorsCard } from "./colors-card";
 
 
 type Material = {
