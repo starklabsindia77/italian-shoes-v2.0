@@ -64,7 +64,7 @@ export default function SizeCreatePage() {
     toast.promise(p, { loading: "Creating…", success: "Size created", error: "Failed to create" });
     try {
       const created = await p;
-      router.push(`/sizes/${created.id}`);
+      router.push(`/sizes`);
     } finally {
       setSaving(false);
     }
@@ -91,13 +91,13 @@ export default function SizeCreatePage() {
           <CardDescription>Define the size slug, display name, region, and equivalents.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-2">
-          <Field label="Size ID (slug)">
+          {/* <Field label="Size ID (slug)">
             <Input
               placeholder="us-8"
               value={form.sizeId}
               onChange={(e) => setForm((f) => ({ ...f, sizeId: e.target.value }))}
             />
-          </Field>
+          </Field> */}
           <Field label="Display Name">
             <Input
               placeholder="US 8"

@@ -13,11 +13,30 @@ export async function GET(req: Request) {
       : {};
 
     const [items, total] = await Promise.all([
-      prisma.sole.findMany({ where, skip, take: limit, orderBy: { createdAt: "desc" } }),
-      prisma.sole.count({ where })
+      prisma.sole.findMany({ 
+        where: q
+          ? { OR: [
+                { name: { contains: q, mode: "insensitive" as const } }, 
+                { soleId: { contains: q, mode: "insensitive" as const } }
+              ] }
+          : undefined,
+        skip, 
+        take: limit, 
+        orderBy: { createdAt: "desc" }
+      }),
+      prisma.sole.count({
+        where: q
+          ? { OR: [
+                { name: { contains: q, mode: "insensitive" as const } }, 
+                { soleId: { contains: q, mode: "insensitive" as const } }
+              ] }
+          : undefined
+      })
     ]);
     return ok({ items, total, limit });
-  } catch (e) { return server(e); }
+  } catch (e) { 
+    return server(e); 
+  }
 }
 
 export async function POST(req: Request) {
@@ -27,7 +46,12 @@ export async function POST(req: Request) {
     const parsed = SoleCreateSchema.safeParse(body);
     if (!parsed.success) return bad(parsed.error.message);
 
-    const created = await prisma.sole.create({ data: parsed.data });
+    // Ensure soleId is always a string (not undefined) to satisfy Prisma type
+    const data = { ...parsed.data };
+  
+
+
+    const created = await prisma.sole.create({ data: data as any });
     return ok(created, 201);
   } catch (e) { return server(e); }
 }

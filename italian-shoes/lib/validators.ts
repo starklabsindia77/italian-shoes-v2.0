@@ -25,7 +25,6 @@ export const ProductUpdateSchema = ProductCreateSchema.partial();
 
 // Material & Color
 export const MaterialCreateSchema = z.object({
-  materialId: z.string().min(1),
   name: z.string(),
   description: z.string().optional(),
   category: z.string(),
@@ -43,7 +42,6 @@ export const MaterialColorCreateSchema = z.object({
 
 // Style / Sole
 export const StyleCreateSchema = z.object({
-  styleId: z.string(),
   name: z.string(),
   description: z.string().optional(),
   category: z.string().optional(),
@@ -54,11 +52,20 @@ export const StyleCreateSchema = z.object({
   assets: z.any().optional(),
   isActive: z.boolean().optional()
 });
-export const SoleCreateSchema = StyleCreateSchema.extend({ soleId: z.string() });
+export const SoleCreateSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  category: z.string().optional(),
+  imageUrl: z.string().optional(),
+  glbUrl: z.string().optional(),
+  lighting: z.any().optional(),
+  environment: z.any().optional(),
+  assets: z.any().optional(),
+  isActive: z.boolean().optional()
+});
 
 // Size
 export const SizeCreateSchema = z.object({
-  sizeId: z.string(),
   name: z.string(),
   region: z.enum(["US","EU","UK"]),
   value: z.number(),
@@ -70,7 +77,6 @@ export const SizeCreateSchema = z.object({
 
 // Panel
 export const PanelCreateSchema = z.object({
-  panelId: z.string(),
   name: z.string(),
   group: z.enum(["FRONT","SIDE","BACK","TOP","SOLE","LINING"]).optional(),
   sortOrder: z.number().int().optional(),

@@ -18,7 +18,6 @@ type Region = "US" | "EU" | "UK";
 
 type SizeItem = {
   id: string;
-  sizeId: string;
   name: string;
   region: Region;
   value: number;
@@ -30,7 +29,6 @@ type SizeItem = {
 
 const FALLBACK_SIZE: SizeItem = {
   id: "size_us8",
-  sizeId: "us-8",
   name: "US 8",
   region: "US",
   value: 8,
@@ -70,7 +68,6 @@ export default function SizeEditPage() {
       const res = await fetch(`/api/sizes/${size.id}`, {
         method: "PUT",
         body: JSON.stringify({
-          sizeId: size.sizeId,
           name: size.name,
           region: size.region,
           value: size.value,
@@ -100,7 +97,7 @@ export default function SizeEditPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">{size.name}</h1>
-            <p className="text-sm text-muted-foreground">Slug: {size.sizeId}</p>
+            {/* <p className="text-sm text-muted-foreground">Slug: {size.sizeId}</p> */}
           </div>
         </div>
         <div className="flex gap-2">
@@ -115,9 +112,9 @@ export default function SizeEditPage() {
           <CardDescription>Update this size and equivalents.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-2">
-          <Field label="Size ID (slug)">
+          {/* <Field label="Size ID (slug)">
             <Input value={size.sizeId} onChange={(e) => setSize({ ...size, sizeId: e.target.value })} />
-          </Field>
+          </Field> */}
           <Field label="Display Name">
             <Input value={size.name} onChange={(e) => setSize({ ...size, name: e.target.value })} />
           </Field>

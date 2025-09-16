@@ -57,7 +57,7 @@ export default function SoleCreatePage() {
     toast.promise(p, { loading: "Creating…", success: "Sole created", error: "Failed to create" });
     try {
       const created = await p;
-      router.push(`/soles/${created.id}`);
+      router.push(`/soles`);
     } finally {
       setSaving(false);
     }

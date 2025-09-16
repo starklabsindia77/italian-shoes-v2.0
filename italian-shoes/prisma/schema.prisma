@@ -157,8 +157,7 @@ model VerificationToken {
  * ============================
  */
 model Material {
-  id          String  @id @default(cuid())
-  materialId  String  @unique // slug/code e.g. "leather"
+  id          String  @id @default(cuid()) @unique
   name        String
   description String?
   category    String // leather | suede | fabric | etc.
@@ -193,8 +192,7 @@ model MaterialColor {
 }
 
 model Style {
-  id          String  @id @default(cuid())
-  styleId     String  @unique
+  id          String  @id @default(cuid()) @unique
   name        String
   description String?
   category    String?
@@ -216,8 +214,7 @@ model Style {
 }
 
 model Sole {
-  id          String  @id @default(cuid())
-  soleId      String  @unique
+  id          String  @id @default(cuid()) @unique  
   name        String
   description String?
   category    String?
@@ -239,8 +236,7 @@ model Sole {
 }
 
 model Size {
-  id           String  @id @default(cuid())
-  sizeId       String  @unique // e.g., "us-8"
+  id           String  @id @default(cuid()) @unique
   name         String // display "8"
   region       Region
   value        Float
