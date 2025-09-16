@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Save } from "lucide-react";
 
-type PanelGroup = "front" | "side" | "back" | "top" | "sole" | "lining";
+type PanelGroup = "FRONT" | "SIDE" | "BACK" | "TOP" | "SOLE" | "LINING";
 
 type PanelCreate = {
   panelId: string;
@@ -29,7 +29,7 @@ export default function PanelCreatePage() {
   const [form, setForm] = React.useState<PanelCreate>({
     panelId: "",
     name: "",
-    group: "front",
+    group: "FRONT",
     description: "",
     position: 0,
     isActive: true,
@@ -51,7 +51,7 @@ export default function PanelCreatePage() {
     toast.promise(p, { loading: "Creating…", success: "Panel created", error: "Failed to create" });
     try {
       const created = await p;
-      router.push(`/panels/${created.id}`);
+      router.push(`/panels`);
     } finally {
       setSaving(false);
     }
@@ -88,12 +88,12 @@ export default function PanelCreatePage() {
             <Select value={form.group} onValueChange={(v: PanelGroup) => setForm((f) => ({ ...f, group: v }))}>
               <SelectTrigger><SelectValue placeholder="Group" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="front">front</SelectItem>
-                <SelectItem value="side">side</SelectItem>
-                <SelectItem value="back">back</SelectItem>
-                <SelectItem value="top">top</SelectItem>
-                <SelectItem value="sole">sole</SelectItem>
-                <SelectItem value="lining">lining</SelectItem>
+                <SelectItem value="FRONT">front</SelectItem>
+                <SelectItem value="SIDE">side</SelectItem>
+                <SelectItem value="BACK">back</SelectItem>
+                <SelectItem value="TOP">top</SelectItem>
+                <SelectItem value="SOLE">sole</SelectItem>
+                <SelectItem value="LINING">lining</SelectItem>
               </SelectContent>
             </Select>
           </Field>

@@ -77,6 +77,7 @@ export const SizeCreateSchema = z.object({
 
 // Panel
 export const PanelCreateSchema = z.object({
+  panelId: z.string().optional(),
   name: z.string(),
   group: z.enum(["FRONT","SIDE","BACK","TOP","SOLE","LINING"]).optional(),
   sortOrder: z.number().int().optional(),

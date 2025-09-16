@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RefreshCcw, Plus, Edit3, ToggleLeft, ToggleRight, ArrowUpDown } from "lucide-react";
 
-type PanelGroup = "front" | "side" | "back" | "top" | "sole" | "lining";
+type PanelGroup = "FRONT" | "SIDE" | "BACK" | "TOP" | "SOLE" | "LINING";
 
 type PanelItem = {
   id: string;
@@ -28,9 +28,9 @@ type PanelItem = {
 };
 
 const FALLBACK: PanelItem[] = [
-  { id: "p_toe", panelId: "toe-cap", name: "Toe Cap", group: "front", position: 10, isActive: true },
-  { id: "p_upper", panelId: "upper", name: "Upper", group: "side", position: 20, isActive: true },
-  { id: "p_quarter", panelId: "quarter", name: "Quarter", group: "side", position: 30, isActive: true },
+  { id: "p_toe", panelId: "toe-cap", name: "Toe Cap", group: "FRONT", position: 10, isActive: true },
+  { id: "p_upper", panelId: "upper", name: "Upper", group: "SIDE", position: 20, isActive: true },
+  { id: "p_quarter", panelId: "quarter", name: "Quarter", group: "SIDE", position: 30, isActive: true },
 ];
 
 export default function PanelsListPage() {
