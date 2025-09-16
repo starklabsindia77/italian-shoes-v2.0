@@ -18,7 +18,6 @@ import { ArrowLeft, Save } from "lucide-react";
 type Region = "US" | "EU" | "UK";
 
 type SizeCreate = {
-  sizeId: string;         // slug e.g., "us-8"
   name: string;           // "US 8"
   region: Region;
   value: number;
@@ -31,7 +30,6 @@ type SizeCreate = {
 export default function SizeCreatePage() {
   const router = useRouter();
   const [form, setForm] = React.useState<SizeCreate>({
-    sizeId: "",
     name: "",
     region: "US",
     value: 0,
@@ -43,10 +41,6 @@ export default function SizeCreatePage() {
   const [saving, setSaving] = React.useState(false);
 
   const onSubmit = async () => {
-    if (!form.sizeId.trim() || !form.name.trim()) {
-      toast.error("sizeId and name are required");
-      return;
-    }
     setSaving(true);
     const run = async (): Promise<{ id: string }> => {
       const res = await fetch("/api/sizes", {

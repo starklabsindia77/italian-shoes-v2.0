@@ -16,8 +16,7 @@ export async function GET(req: Request) {
       prisma.sole.findMany({ 
         where: q
           ? { OR: [
-                { name: { contains: q, mode: "insensitive" as const } }, 
-                { soleId: { contains: q, mode: "insensitive" as const } }
+                { name: { contains: q, mode: "insensitive" as const } }
               ] }
           : undefined,
         skip, 
@@ -27,8 +26,7 @@ export async function GET(req: Request) {
       prisma.sole.count({
         where: q
           ? { OR: [
-                { name: { contains: q, mode: "insensitive" as const } }, 
-                { soleId: { contains: q, mode: "insensitive" as const } }
+                { name: { contains: q, mode: "insensitive" as const } }
               ] }
           : undefined
       })

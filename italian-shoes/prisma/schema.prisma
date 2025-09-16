@@ -256,8 +256,7 @@ model Size {
 }
 
 model Panel {
-  id        String      @id @default(cuid())
-  panelId   String      @unique // e.g., "toe-cap"
+  id        String      @id @default(cuid()) @unique // e.g., "toe-cap"
   name      String
   group     PanelGroup?
   sortOrder Int         @default(0)
