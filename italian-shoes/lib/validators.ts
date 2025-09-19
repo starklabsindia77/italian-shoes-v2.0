@@ -19,7 +19,27 @@ export const ProductCreateSchema = z.object({
   currency: z.enum(["USD","EUR","GBP"]).default("USD"),
   compareAtPrice: z.number().int().optional(),
   assets: z.any().optional(),
-  isActive: z.boolean().optional()
+  isActive: z.boolean().optional(),
+  selectedMaterials: z.array(z.object({
+    materialId: z.string(),
+    materialName: z.string(),
+    selectedColorIds: z.array(z.string()),
+    selectAllColors: z.boolean()
+  })).optional(),
+  selectedStyles: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().nullable().optional(),
+    category: z.string().nullable().optional(),
+    imageUrl: z.string().nullable().optional()
+  })).optional(),
+  selectedSoles: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().nullable().optional(),
+    category: z.string().nullable().optional(),
+    imageUrl: z.string().nullable().optional()
+  })).optional()
 });
 export const ProductUpdateSchema = ProductCreateSchema.partial();
 

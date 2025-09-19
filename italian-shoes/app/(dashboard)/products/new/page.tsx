@@ -26,6 +26,8 @@ import {
 import { ProductCreateSchema as ServerProductCreateSchema } from "@/lib/validators";
 import { ArrowLeft, Save, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { MaterialSelection, Material, SelectedMaterial } from "@/components/material-selection";
+import { StyleSoleSelection, Style, Sole, SelectedItem } from "@/components/style-sole-selection";
 
 /** -------- Local UI schema (compatible with server) -------- */
 const ProductCreateSchema = ServerProductCreateSchema.extend({
@@ -59,6 +61,7 @@ const DEFAULTS: Partial<FormValues> = {
   glbUrl: "/ShoeSoleFixed.glb",
   glbLighting: "directional",
   glbEnvironment: "studio",
+  selectedMaterials: [],
 };
 
 export default function ProductNewPage() {
@@ -73,6 +76,21 @@ export default function ProductNewPage() {
   const watchTitle = form.watch("title");
   const watchProductId = form.watch("productId");
 
+  // Material selection state
+  const [materials, setMaterials] = React.useState<Material[]>([]);
+  const [materialsLoading, setMaterialsLoading] = React.useState(true);
+  const [selectedMaterials, setSelectedMaterials] = React.useState<SelectedMaterial[]>([]);
+
+  // Style selection state
+  const [styles, setStyles] = React.useState<Style[]>([]);
+  const [stylesLoading, setStylesLoading] = React.useState(true);
+  const [selectedStyles, setSelectedStyles] = React.useState<SelectedItem[]>([]);
+
+  // Sole selection state
+  const [soles, setSoles] = React.useState<Sole[]>([]);
+  const [solesLoading, setSolesLoading] = React.useState(true);
+  const [selectedSoles, setSelectedSoles] = React.useState<SelectedItem[]>([]);
+
   // Auto-generate productId from title if empty
   React.useEffect(() => {
     if (!watchProductId && watchTitle) {
@@ -80,6 +98,76 @@ export default function ProductNewPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchTitle]);
+
+  // Load materials
+  React.useEffect(() => {
+    const loadMaterials = async () => {
+      try {
+        const response = await fetch("/api/materials/with-colors");
+        if (response.ok) {
+          const data = await response.json();
+          setMaterials(data.materials || []);
+        }
+      } catch (error) {
+        console.error("Failed to load materials:", error);
+      } finally {
+        setMaterialsLoading(false);
+      }
+    };
+
+    loadMaterials();
+  }, []);
+
+  // Load styles
+  React.useEffect(() => {
+    const loadStyles = async () => {
+      try {
+        const response = await fetch("/api/styles/active");
+        if (response.ok) {
+          const data = await response.json();
+          setStyles(data.styles || []);
+        }
+      } catch (error) {
+        console.error("Failed to load styles:", error);
+      } finally {
+        setStylesLoading(false);
+      }
+    };
+
+    loadStyles();
+  }, []);
+
+  // Load soles
+  React.useEffect(() => {
+    const loadSoles = async () => {
+      try {
+        const response = await fetch("/api/soles/active");
+        if (response.ok) {
+          const data = await response.json();
+          setSoles(data.soles || []);
+        }
+      } catch (error) {
+        console.error("Failed to load soles:", error);
+      } finally {
+        setSolesLoading(false);
+      }
+    };
+
+    loadSoles();
+  }, []);
+
+  // Update form when selections change
+  React.useEffect(() => {
+    form.setValue("selectedMaterials", selectedMaterials);
+  }, [selectedMaterials, form]);
+
+  React.useEffect(() => {
+    form.setValue("selectedStyles", selectedStyles);
+  }, [selectedStyles, form]);
+
+  React.useEffect(() => {
+    form.setValue("selectedSoles", selectedSoles);
+  }, [selectedSoles, form]);
 
   const onSubmit = async (values: FormValues) => {
     const payload = {
@@ -101,6 +189,9 @@ export default function ProductNewPage() {
       compareAtPrice: values.compareAtPrice ? Number(values.compareAtPrice) : null,
       isActive: values.isActive ?? true,
       assets: buildAssets(values),
+      selectedMaterials: selectedMaterials,
+      selectedStyles: selectedStyles,
+      selectedSoles: selectedSoles,
     };
 
     const run = async () => {
@@ -475,6 +566,36 @@ export default function ProductNewPage() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Material Selection */}
+            <MaterialSelection
+              materials={materials}
+              selectedMaterials={selectedMaterials}
+              onSelectionChange={setSelectedMaterials}
+              loading={materialsLoading}
+            />
+
+            {/* Style Selection */}
+            <StyleSoleSelection
+              items={styles}
+              selectedItems={selectedStyles}
+              onSelectionChange={setSelectedStyles}
+              loading={stylesLoading}
+              title="Style Selection"
+              description="Select available styles for this product."
+              emptyMessage="No styles available. Create styles first in the Styles section."
+            />
+
+            {/* Sole Selection */}
+            <StyleSoleSelection
+              items={soles}
+              selectedItems={selectedSoles}
+              onSelectionChange={setSelectedSoles}
+              loading={solesLoading}
+              title="Sole Selection"
+              description="Select available soles for this product."
+              emptyMessage="No soles available. Create soles first in the Soles section."
+            />
 
             <div className="flex gap-2">
               <Button className="flex-1" onClick={form.handleSubmit(onSubmit)}>
