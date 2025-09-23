@@ -23,6 +23,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   try {
     await requireAdmin();
+    console.log("DELETE color API called with:", params);
     await prisma.material.delete({ where: { id: params.id } });
     return ok({ ok: true });
   } catch (e: any) {
@@ -30,3 +31,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
     return server(e);
   }
 }
+
+
+
+

@@ -132,12 +132,13 @@ export default function MaterialCreatePage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-2">
-          <Field label="Name">
+          <Field label="Name" required>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             />
           </Field>
+
           <Field label="Category (slug)">
             <Input
               placeholder="leather, suede, fabric…"
@@ -179,13 +180,17 @@ export default function MaterialCreatePage() {
 function Field({
   label,
   children,
+  required = false,
 }: {
   label: string;
   children: React.ReactNode;
+  required?: boolean;
 }) {
   return (
     <div className="grid gap-2">
-      <Label className="text-sm">{label}</Label>
+      <Label className="text-sm">
+        {label} {required && <span className="text-red-500">*</span>}
+      </Label>
       {children}
     </div>
   );
