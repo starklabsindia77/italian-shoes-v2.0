@@ -5,12 +5,21 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -29,8 +38,22 @@ type Material = {
 };
 
 const FALLBACK: Material[] = [
-  { id: "mat_leather", name: "Leather", category: "leather", isActive: true, description: "Full-grain", _colorsCount: 5 },
-  { id: "mat_suede", name: "Suede", category: "suede", isActive: true, description: "Soft touch", _colorsCount: 2 },
+  {
+    id: "mat_leather",
+    name: "Leather",
+    category: "leather",
+    isActive: true,
+    description: "Full-grain",
+    _colorsCount: 5,
+  },
+  {
+    id: "mat_suede",
+    name: "Suede",
+    category: "suede",
+    isActive: true,
+    description: "Soft touch",
+    _colorsCount: 2,
+  },
 ];
 
 export default function MaterialsListPage() {
@@ -42,7 +65,12 @@ export default function MaterialsListPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/materials?limit=100${query ? `&q=${encodeURIComponent(query)}` : ""}`, { cache: "no-store" });
+      const res = await fetch(
+        `/api/materials?limit=100${
+          query ? `&q=${encodeURIComponent(query)}` : ""
+        }`,
+        { cache: "no-store" }
+      );
       const data = await res.json();
       setItems(data.items ?? data ?? []);
     } catch {
@@ -52,23 +80,36 @@ export default function MaterialsListPage() {
     }
   };
 
-  React.useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  React.useEffect(() => {
+    load(); /* eslint-disable-next-line */
+  }, []);
 
   const toggleActive = async (m: Material) => {
     // optimistic
-    setItems((prev) => prev.map((x) => (x.id === m.id ? { ...x, isActive: !x.isActive } : x)));
+    setItems((prev) =>
+      prev.map((x) => (x.id === m.id ? { ...x, isActive: !x.isActive } : x))
+    );
     try {
       const run = async () => {
-        const res = await fetch(`/api/materials/${m.id}`, { method: "PUT", body: JSON.stringify({ isActive: !m.isActive }) });
+        const res = await fetch(`/api/materials/${m.id}`, {
+          method: "PUT",
+          body: JSON.stringify({ isActive: !m.isActive }),
+        });
         if (!res.ok) throw new Error(await res.text());
         return res.json();
       };
       const p = run();
-      toast.promise(p, { loading: "Updating…", success: "Updated", error: "Failed to update" });
+      toast.promise(p, {
+        loading: "Updating…",
+        success: "Updated",
+        error: "Failed to update",
+      });
       await p;
     } catch {
       // revert on failure
-      setItems((prev) => prev.map((x) => (x.id === m.id ? { ...x, isActive: m.isActive } : x)));
+      setItems((prev) =>
+        prev.map((x) => (x.id === m.id ? { ...x, isActive: m.isActive } : x))
+      );
     }
   };
 
@@ -77,11 +118,23 @@ export default function MaterialsListPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Materials</h1>
-          <p className="text-sm text-muted-foreground">Manage material families and their color variants.</p>
+          <p className="text-sm text-muted-foreground">
+            Manage material families and their color variants.
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={load}><RefreshCcw className="mr-2 size-4" />Refresh</Button>
-          <Button asChild><Link href="/materials/new"><Plus className="mr-2 size-4" />New Material</Link></Button>
+          <Button variant="outline" onClick={load} disabled={loading}>
+            <RefreshCcw
+              className={`mr-2 size-4 ${loading ? "animate-spin" : ""}`}
+            />
+            {loading ? "Refreshing…" : "Refresh"}
+          </Button>
+          <Button asChild>
+            <Link href="/materials/new">
+              <Plus className="mr-2 size-4" />
+              New Material
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -96,7 +149,9 @@ export default function MaterialsListPage() {
               placeholder="Search materials…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") load(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") load();
+              }}
             />
             <Button onClick={load}>Search</Button>
           </div>
@@ -118,23 +173,49 @@ export default function MaterialsListPage() {
                 {items.map((m) => (
                   <TableRow key={m.id}>
                     <TableCell className="font-medium">{m.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{m.category}</TableCell>
-                    <TableCell>{typeof m._colorsCount === "number" ? m._colorsCount : "—"}</TableCell>
-                    <TableCell>{m.isActive ? <Badge>Active</Badge> : <Badge variant="secondary">Disabled</Badge>}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {m.category}
+                    </TableCell>
+                    <TableCell>
+                      {typeof m._colorsCount === "number"
+                        ? m._colorsCount
+                        : "—"}
+                    </TableCell>
+                    <TableCell>
+                      {m.isActive ? (
+                        <Badge>Active</Badge>
+                      ) : (
+                        <Badge variant="secondary">Disabled</Badge>
+                      )}
+                    </TableCell>
                     <TableCell className="flex justify-end gap-2">
-                      <Button size="sm" variant="outline" onClick={() => toggleActive(m)}>
-                        {m.isActive ? <ToggleLeft className="mr-2 size-4" /> : <ToggleRight className="mr-2 size-4" />}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => toggleActive(m)}
+                      >
+                        {m.isActive ? (
+                          <ToggleLeft className="mr-2 size-4" />
+                        ) : (
+                          <ToggleRight className="mr-2 size-4" />
+                        )}
                         {m.isActive ? "Disable" : "Enable"}
                       </Button>
                       <Button size="sm" asChild>
-                        <Link href={`/materials/${m.id}`}><Edit3 className="mr-2 size-4" />Edit</Link>
+                        <Link href={`/materials/${m.id}`}>
+                          <Edit3 className="mr-2 size-4" />
+                          Edit
+                        </Link>
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))}
                 {items.length === 0 && !loading && (
                   <TableRow>
-                    <TableCell colSpan={5} className="py-6 text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={5}
+                      className="py-6 text-center text-sm text-muted-foreground"
+                    >
                       No materials found.
                     </TableCell>
                   </TableRow>
