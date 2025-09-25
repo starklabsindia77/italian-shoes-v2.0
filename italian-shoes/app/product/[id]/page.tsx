@@ -1,8 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import React, { useState, useEffect } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
 import { Heart, Share2, X, Edit2, ChevronLeft } from "lucide-react";
 import {
   Product,
@@ -13,7 +11,7 @@ import {
   Color,
   Panel,
   ProductVariant,
-} from "../../../../types/product";
+} from "@/types/product_type";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
@@ -189,21 +187,21 @@ const ProductPage = () => {
     null
   );
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const response = await fetch(`/api/product/${productId}`);
-        const data = await response.json();
-        console.log("Product Data:", data);
-        setProduct(data);
-        // setCurrentVariant(data.variants[0]); // Default variant
-        setSelectedImage(data.imageUrl);
-      } catch (error) {
-        console.error("Error fetching product:", error);
-      }
-    };
-    fetchProduct();
-  }, []);
+  // useEffect(() => {
+  //   const fetchProduct = async () => {
+  //     try {
+  //       const response = await fetch(`/api/product/${productId}`);
+  //       const data = await response.json();
+  //       console.log("Product Data:", data);
+  //       setProduct(data);
+  //       // setCurrentVariant(data.variants[0]); // Default variant
+  //       setSelectedImage(data.imageUrl);
+  //     } catch (error) {
+  //       console.error("Error fetching product:", error);
+  //     }
+  //   };
+  //   fetchProduct();
+  // }, []);
 
   const CloseEditor = () => {
     setIsDesignEditorOpen(false);
@@ -244,9 +242,9 @@ const ProductPage = () => {
     }
   };
 
-  if (!product) {
-    return <div className="text-center py-10">Loading product...</div>;
-  }
+  // if (!product) {
+  //   return <div className="text-center py-10">Loading product...</div>;
+  // }
 
   const NavTabs = () => (
     <div className="flex space-x-2 bg-gray-100 rounded-lg p-1">
