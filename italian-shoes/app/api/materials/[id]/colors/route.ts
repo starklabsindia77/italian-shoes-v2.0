@@ -15,7 +15,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await requireAdmin();
     const body = await req.json();
     const { id } = await params;
-    const p = MaterialColorCreateSchema.safeParse({ ...body, materialId: id });
+    console.log('body is', body);
+    const data = {
+      materialId: id,
+      name: body.name,
+      family: body.family,
+      colorCode: body.colorCode,
+      imageUrl: body.imageUrl ? body.imageUrl : '',
+      isActive: body.isActive,
+    }
+    const p = MaterialColorCreateSchema.safeParse(data);
+    console.log('p is', p);
     if (!p.success) return bad(p.error.message);
     const c = await prisma.materialColor.create({ data: p.data });
     return ok(c, 201);

@@ -55,7 +55,6 @@ export const MaterialColorCreateSchema = z.object({
   name: z.string(),
   family: z.string().optional(),
   colorCode: z.string().optional(),
-  hexCode: z.string().optional(),
   imageUrl: z.string().optional(),
   isActive: z.boolean().optional(),
 });
