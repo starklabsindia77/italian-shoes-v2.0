@@ -140,7 +140,10 @@ const predefinedColors = [
 const ProductPage = () => {
   const params = useParams();
   const productId = params.id;
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<Product | null>({
+    title: "Test Product",
+    variants: []
+  });
   const [selectedTab, setSelectedTab] = useState("Materials");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<any | null>(null);
