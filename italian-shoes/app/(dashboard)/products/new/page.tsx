@@ -54,8 +54,8 @@ const DEFAULTS: Partial<FormValues> = {
   metaImageDescription: "",
   metaImageWidth: 1000,
   metaImageHeight: 1000,
-  price: 0, // cents
-  currency: "USD",
+  price: 0, // rupees
+  currency: "INR",
   compareAtPrice: undefined,
   isActive: true,
   // UI helpers
@@ -231,7 +231,7 @@ export default function ProductNewPage() {
       metaImageAlt: values.metaImageAlt || null,
       metaImageTitle: values.metaImageTitle || null,
       metaImageDescription: values.metaImageDescription || null,
-      price: Number(values.price) || 0, // cents
+      price: Number(values.price) || 0, // rupees
       currency: values.currency,
       compareAtPrice: values.compareAtPrice ? Number(values.compareAtPrice) : null,
       isActive: values.isActive ?? true,
@@ -510,7 +510,7 @@ export default function ProductNewPage() {
                   <Card className="rounded-2xl">
                     <CardHeader className="pb-3">
                       <CardTitle>Pricing</CardTitle>
-                      <CardDescription>Amounts are in <strong>cents</strong>.</CardDescription>
+                      <CardDescription>Amounts are in <strong>Rupees</strong>.</CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-4">
                       <div className="grid gap-4 md:grid-cols-2">
@@ -519,7 +519,7 @@ export default function ProductNewPage() {
                           name="price"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Price (cents)</FormLabel>
+                              <FormLabel>Price (rupees)</FormLabel>
                               <FormControl>
                                 <Input
                                   type="number"
@@ -541,7 +541,7 @@ export default function ProductNewPage() {
                           name="compareAtPrice"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Compare at (cents)</FormLabel>
+                              <FormLabel>Compare at (rupees)</FormLabel>
                               <FormControl>
                                 <Input
                                   type="number"
@@ -566,9 +566,10 @@ export default function ProductNewPage() {
                               <Select value={field.value} onValueChange={field.onChange}>
                                 <SelectTrigger><SelectValue placeholder="Select currency" /></SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="USD">USD</SelectItem>
-                                  <SelectItem value="EUR">EUR</SelectItem>
-                                  <SelectItem value="GBP">GBP</SelectItem>
+                          <SelectItem value="INR">INR</SelectItem>
+                          <SelectItem value="USD">USD</SelectItem>
+                          <SelectItem value="EUR">EUR</SelectItem>
+                          <SelectItem value="GBP">GBP</SelectItem>
                                 </SelectContent>
                               </Select>
                             </FormControl>

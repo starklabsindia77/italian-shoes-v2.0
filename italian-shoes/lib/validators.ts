@@ -16,7 +16,7 @@ export const ProductCreateSchema = z.object({
   metaImageTitle: z.string().optional(),
   metaImageDescription: z.string().optional(),
   price: z.number().int().nonnegative(),
-  currency: z.enum(["USD","EUR","GBP"]).default("USD"),
+  currency: z.enum(["USD","EUR","GBP","INR"]).default("INR"),
   compareAtPrice: z.number().int().optional(),
   assets: z.any().optional(),
   isActive: z.boolean().optional(),
@@ -166,7 +166,7 @@ export const OrderCreateSchema = z.object({
   shippingAmount: z.number().int(),
   discount: z.number().int(),
   total: z.number().int(),
-  currency: z.enum(["USD","EUR","GBP"]).default("USD"),
+  currency: z.enum(["USD","EUR","GBP","INR"]).default("INR"),
   items: z.array(z.object({
     productId: z.string().optional(),
     productTitle: z.string(),

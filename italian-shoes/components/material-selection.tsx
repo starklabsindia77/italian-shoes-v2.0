@@ -66,12 +66,12 @@ export function MaterialSelection({
       // Remove material
       onSelectionChange(selectedMaterials.filter(sm => sm.materialId !== material.id));
     } else {
-      // Add material with all colors selected by default
+      // Add material with no colors selected by default
       const newSelection: SelectedMaterial = {
         materialId: material.id,
         materialName: material.name,
-        selectedColorIds: material.colors.filter(c => c.isActive).map(c => c.id),
-        selectAllColors: true
+        selectedColorIds: [],
+        selectAllColors: false
       };
       onSelectionChange([...selectedMaterials, newSelection]);
     }
@@ -232,7 +232,7 @@ export function MaterialSelection({
                             >
                               <Checkbox
                                 checked={isColorSelected}
-                                onChange={() => {}} // Handled by parent div click
+                                onCheckedChange={() => toggleColorSelection(material.id, color.id)}
                               />
                               <div className="flex-1 flex items-center space-x-2">
                                 {color.hexCode && (
