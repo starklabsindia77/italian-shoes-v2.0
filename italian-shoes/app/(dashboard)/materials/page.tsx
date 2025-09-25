@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { RefreshCcw, Plus, Edit3, ToggleLeft, ToggleRight } from "lucide-react";
+import { RefreshCcw, Plus, Edit3, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
 
 type Material = {
   id: string;
@@ -34,26 +34,12 @@ type Material = {
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
-  _colorsCount?: number; // if your API sends a count
+  _colorsCount?: number;
 };
 
 const FALLBACK: Material[] = [
-  {
-    id: "mat_leather",
-    name: "Leather",
-    category: "leather",
-    isActive: true,
-    description: "Full-grain",
-    _colorsCount: 5,
-  },
-  {
-    id: "mat_suede",
-    name: "Suede",
-    category: "suede",
-    isActive: true,
-    description: "Soft touch",
-    _colorsCount: 2,
-  },
+  { id: "mat_leather", name: "Leather", category: "leather", isActive: true, description: "Full-grain", _colorsCount: 5 },
+  { id: "mat_suede", name: "Suede", category: "suede", isActive: true, description: "Soft touch", _colorsCount: 2 },
 ];
 
 export default function MaterialsListPage() {
@@ -65,12 +51,7 @@ export default function MaterialsListPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch(
-        `/api/materials?limit=100${
-          query ? `&q=${encodeURIComponent(query)}` : ""
-        }`,
-        { cache: "no-store" }
-      );
+      const res = await fetch(`/api/materials?limit=100${query ? `&q=${encodeURIComponent(query)}` : ""}`, { cache: "no-store" });
       const data = await res.json();
       setItems(data.items ?? data ?? []);
     } catch {
@@ -80,36 +61,33 @@ export default function MaterialsListPage() {
     }
   };
 
-  React.useEffect(() => {
-    load(); /* eslint-disable-next-line */
-  }, []);
+  React.useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
   const toggleActive = async (m: Material) => {
-    // optimistic
-    setItems((prev) =>
-      prev.map((x) => (x.id === m.id ? { ...x, isActive: !x.isActive } : x))
-    );
+    setItems(prev => prev.map(x => x.id === m.id ? { ...x, isActive: !x.isActive } : x));
     try {
-      const run = async () => {
-        const res = await fetch(`/api/materials/${m.id}`, {
-          method: "PUT",
-          body: JSON.stringify({ isActive: !m.isActive }),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
-      };
-      const p = run();
-      toast.promise(p, {
-        loading: "Updating…",
-        success: "Updated",
-        error: "Failed to update",
-      });
-      await p;
+      const res = await fetch(`/api/materials/${m.id}`, { method: "PUT", body: JSON.stringify({ isActive: !m.isActive }) });
+      if (!res.ok) throw new Error(await res.text());
+      toast.success("Status updated");
     } catch {
-      // revert on failure
-      setItems((prev) =>
-        prev.map((x) => (x.id === m.id ? { ...x, isActive: m.isActive } : x))
-      );
+      setItems(prev => prev.map(x => x.id === m.id ? { ...x, isActive: m.isActive } : x));
+      toast.error("Failed to update status");
+    }
+  };
+
+  // Delete material
+  const deleteMaterial = async (m: Material) => {
+    // Optimistically remove from UI
+    setItems(prev => prev.filter(x => x.id !== m.id));
+
+    try {
+      const res = await fetch(`/api/materials/${m.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(await res.text());
+      toast.success("Material deleted successfully");
+    } catch (err) {
+      toast.error("Failed to delete material");
+      // Revert UI if deletion fails
+      setItems(prev => [...prev, m]);
     }
   };
 
@@ -118,22 +96,15 @@ export default function MaterialsListPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Materials</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage material families and their color variants.
-          </p>
+          <p className="text-sm text-muted-foreground">Manage material families and their color variants.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={load} disabled={loading}>
-            <RefreshCcw
-              className={`mr-2 size-4 ${loading ? "animate-spin" : ""}`}
-            />
+            <RefreshCcw className={`mr-2 size-4 ${loading ? "animate-spin" : ""}`} />
             {loading ? "Refreshing…" : "Refresh"}
           </Button>
           <Button asChild>
-            <Link href="/materials/new">
-              <Plus className="mr-2 size-4" />
-              New Material
-            </Link>
+            <Link href="/materials/new"><Plus className="mr-2 size-4" />New Material</Link>
           </Button>
         </div>
       </div>
@@ -141,17 +112,15 @@ export default function MaterialsListPage() {
       <Card className="rounded-2xl">
         <CardHeader className="pb-3">
           <CardTitle>All Materials</CardTitle>
-          <CardDescription>Search, toggle status, and edit.</CardDescription>
+          <CardDescription>Search, toggle status, edit, or delete.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
             <Input
               placeholder="Search materials…"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") load();
-              }}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") load(); }}
             />
             <Button onClick={load}>Search</Button>
           </div>
@@ -170,52 +139,29 @@ export default function MaterialsListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((m) => (
+                {items.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="font-medium">{m.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {m.category}
-                    </TableCell>
-                    <TableCell>
-                      {typeof m._colorsCount === "number"
-                        ? m._colorsCount
-                        : "—"}
-                    </TableCell>
-                    <TableCell>
-                      {m.isActive ? (
-                        <Badge>Active</Badge>
-                      ) : (
-                        <Badge variant="secondary">Disabled</Badge>
-                      )}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground">{m.category}</TableCell>
+                    <TableCell>{typeof m._colorsCount === "number" ? m._colorsCount : "—"}</TableCell>
+                    <TableCell>{m.isActive ? <Badge>Active</Badge> : <Badge variant="secondary">Disabled</Badge>}</TableCell>
                     <TableCell className="flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => toggleActive(m)}
-                      >
-                        {m.isActive ? (
-                          <ToggleLeft className="mr-2 size-4" />
-                        ) : (
-                          <ToggleRight className="mr-2 size-4" />
-                        )}
+                      <Button size="sm" variant="outline" onClick={() => toggleActive(m)}>
+                        {m.isActive ? <ToggleLeft className="mr-2 size-4" /> : <ToggleRight className="mr-2 size-4" />}
                         {m.isActive ? "Disable" : "Enable"}
                       </Button>
                       <Button size="sm" asChild>
-                        <Link href={`/materials/${m.id}`}>
-                          <Edit3 className="mr-2 size-4" />
-                          Edit
-                        </Link>
+                        <Link href={`/materials/${m.id}`}><Edit3 className="mr-2 size-4" />Edit</Link>
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => deleteMaterial(m)}>
+                        <Trash2 className="mr-2 size-4" />Delete
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))}
                 {items.length === 0 && !loading && (
                   <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="py-6 text-center text-sm text-muted-foreground"
-                    >
+                    <TableCell colSpan={5} className="py-6 text-center text-sm text-muted-foreground">
                       No materials found.
                     </TableCell>
                   </TableRow>
