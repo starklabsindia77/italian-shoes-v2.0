@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { RefreshCcw, Plus, Edit3, ToggleLeft, ToggleRight } from "lucide-react";
+import { RefreshCcw, Plus, Edit3, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
 
 type StyleModelConfig = {
   glbUrl?: string | null;
@@ -31,7 +31,7 @@ type StyleItem = {
   modelConfig?: StyleModelConfig | null;
   createdAt?: string;
   updatedAt?: string;
-  _productsCount?: number; // optional count if your API returns it
+  _productsCount?: number;
 };
 
 const FALLBACK: StyleItem[] = [
@@ -83,6 +83,22 @@ export default function StylesListPage() {
     }
   };
 
+  // Delete function
+  const deleteStyle = async (s: StyleItem) => {
+    // Optimistically remove the style from UI
+    setItems((prev) => prev.filter((x) => x.id !== s.id));
+
+    try {
+      const res = await fetch(`/api/styles/${s.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(await res.text());
+      toast.success("Style deleted successfully");
+    } catch (err) {
+      toast.error("Failed to delete style");
+      // Revert UI if deletion fails
+      setItems((prev) => [...prev, s]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -99,7 +115,7 @@ export default function StylesListPage() {
       <Card className="rounded-2xl">
         <CardHeader className="pb-3">
           <CardTitle>All Styles</CardTitle>
-          <CardDescription>Search, toggle status, and edit.</CardDescription>
+          <CardDescription>Search, toggle status, edit, or delete.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -131,9 +147,7 @@ export default function StylesListPage() {
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">{s.name}</TableCell>
                     <TableCell className="text-muted-foreground">{s.category}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {s.modelConfig?.glbUrl ? "Yes" : "—"}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground">{s.modelConfig?.glbUrl ? "Yes" : "—"}</TableCell>
                     <TableCell>{typeof s._productsCount === "number" ? s._productsCount : "—"}</TableCell>
                     <TableCell>{s.isActive ? <Badge>Active</Badge> : <Badge variant="secondary">Disabled</Badge>}</TableCell>
                     <TableCell className="flex justify-end gap-2">
@@ -141,8 +155,13 @@ export default function StylesListPage() {
                         {s.isActive ? <ToggleLeft className="mr-2 size-4" /> : <ToggleRight className="mr-2 size-4" />}
                         {s.isActive ? "Disable" : "Enable"}
                       </Button>
+
                       <Button size="sm" asChild>
                         <Link href={`/styles/${s.id}`}><Edit3 className="mr-2 size-4" />Edit</Link>
+                      </Button>
+
+                      <Button size="sm" variant="destructive" onClick={() => deleteStyle(s)}>
+                        <Trash2 className="mr-2 size-4" />Delete
                       </Button>
                     </TableCell>
                   </TableRow>
