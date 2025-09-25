@@ -5,21 +5,29 @@ import { ProductPanelUpsertSchema, ProductPanelColorsSetSchema } from "@/lib/val
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
     const product = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id: params.id }, // ✅ string ID is correct for your schema
       include: {
         panels: {
           include: {
             panel: true,
             defaultMaterialColor: true,
-            allowedColors: { include: { materialColor: true } }
+            allowedColors: { include: { materialColor: true } },
           },
-          orderBy: { panel: { sortOrder: "asc" } }
-        }
-      }
+          orderBy: { panel: { sortOrder: "asc" } },
+        },
+      },
     });
-    return product ? ok(product.panels) : notFound();
-  } catch (e) { return server(e); }
+
+    // If product exists but has no panels → return empty array instead of 404
+    if (!product) return notFound("Product not found");
+
+    return ok(product.panels ?? []);
+  } catch (e) {
+    return server(e);
+  }
 }
+
+
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   // Upsert one panel (meta only: customizable, modelUrl, default color)

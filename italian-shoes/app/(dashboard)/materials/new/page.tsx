@@ -34,6 +34,7 @@ export default function MaterialCreatePage() {
     isActive: true,
   });
   const [saving, setSaving] = React.useState(false);
+  const [colors, setColors] = React.useState<any[]>([]);
 
   const onSubmit = async () => {
     // show popup if either field missing
@@ -83,6 +84,10 @@ export default function MaterialCreatePage() {
 
       // success
       toast.success("Material created");
+
+      // always go back to list page
+      router.push("/materials");
+
       // server should return created.id
       const id = data?.id;
       if (id) {

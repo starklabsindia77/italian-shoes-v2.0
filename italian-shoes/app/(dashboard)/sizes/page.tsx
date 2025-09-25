@@ -19,10 +19,10 @@ type Region = "US" | "EU" | "UK";
 
 type SizeItem = {
   id: string;
-  sizeId: string;          // slug like "us-8"
-  name: string;            // "US 8"
-  region: Region;          // US/EU/UK
-  value: number;           // 8
+  sizeId: string;
+  name: string;
+  region: Region;
+  value: number;
   euEquivalent?: string | null;
   ukEquivalent?: string | null;
   sortOrder: number;
@@ -55,17 +55,40 @@ export default function SizesListPage() {
     }
   };
 
-  React.useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  React.useEffect(() => { load(); }, []);
 
   const toggleActive = async (s: SizeItem) => {
     setItems((prev) => prev.map((x) => (x.id === s.id ? { ...x, isActive: !x.isActive } : x)));
     try {
-      const p = fetch(`/api/sizes/${s.id}`, { method: "PUT", body: JSON.stringify({ isActive: !s.isActive }) })
-        .then(async (r) => { if (!r.ok) throw new Error(await r.text()); return r.json(); });
-      toast.promise(p, { loading: "Updating…", success: "Updated", error: "Failed to update" });
-      await p;
+      const req = fetch(`/api/sizes/${s.id}`, { method: "PUT", body: JSON.stringify({ isActive: !s.isActive }) });
+      toast.promise(req, { loading: "Updating…", success: "Updated", error: "Failed to update" });
+      await req;
     } catch {
       setItems((prev) => prev.map((x) => (x.id === s.id ? { ...x, isActive: s.isActive } : x)));
+    }
+  };
+
+  // ✅ Implement delete function inside the component
+  const deleteSize = async (s: SizeItem) => {
+    // Optimistic UI update
+    setItems((prev) => prev.filter((x) => x.id !== s.id));
+
+    try {
+      const req = fetch(`/api/sizes/${s.id}`, { method: "DELETE" }).then(async (r) => {
+        if (!r.ok) throw new Error(await r.text());
+        return r.json();
+      });
+
+      toast.promise(req, {
+        loading: "Deleting…",
+        success: "Deleted",
+        error: "Failed to delete",
+      });
+
+      await req;
+    } catch {
+      // Rollback if delete failed
+      setItems((prev) => [...prev, s]);
     }
   };
 
@@ -91,7 +114,7 @@ export default function SizesListPage() {
       <Card className="rounded-2xl">
         <CardHeader className="pb-3">
           <CardTitle>All Sizes</CardTitle>
-          <CardDescription>Search, toggle status, edit, and reorder.</CardDescription>
+          <CardDescription>Search, toggle status, edit, delete, and reorder.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -142,6 +165,8 @@ export default function SizesListPage() {
                       <Button size="sm" asChild>
                         <Link href={`/sizes/${s.id}`}><Edit3 className="mr-2 size-4" />Edit</Link>
                       </Button>
+                      {/* ✅ Delete button */}
+                      <Button size="sm" variant="destructive" onClick={() => deleteSize(s)}>Delete</Button>
                     </TableCell>
                   </TableRow>
                 ))}
