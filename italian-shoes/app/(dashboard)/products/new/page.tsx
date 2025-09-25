@@ -444,7 +444,25 @@ export default function ProductNewPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Price (cents)</FormLabel>
-                        <FormControl><Input type="number" min={0} step={1} {...field} /></FormControl>
+                        <FormControl>
+                          {/*
+                            Fix: HTML number inputs produce string values on change, which
+                            causes zod (expecting a number) to flag "invalid input".
+                            Convert to Number before calling field.onChange and keep value
+                            controlled to avoid mixed string/number types.
+                          */}
+                          <Input
+                            type="number"
+                            min={0}
+                            step={1}
+                            value={field.value ?? ""}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              // Always pass a number to RHF so zod validation gets a number
+                              field.onChange(v === "" ? 0 : Number(v));
+                            }}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
