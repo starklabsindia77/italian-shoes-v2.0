@@ -146,9 +146,11 @@ export default function SolesListPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={load}>
-            <RefreshCcw className="mr-2 size-4" />
-            Refresh
+          <Button variant="outline" onClick={load} disabled={loading}>
+            <RefreshCcw
+              className={`mr-2 size-4 ${loading ? "animate-spin" : ""}`}
+            />
+            {loading ? "Refreshing…" : "Refresh"}
           </Button>
           <Button asChild>
             <Link href="/soles/new">
