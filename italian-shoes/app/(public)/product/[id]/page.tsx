@@ -89,6 +89,8 @@ export default function DerbyBuilderClean() {
   // State for API data
   const { id } = useParams<{ id: string }>();
   const [productData, setProductData] = useState<any>(null);
+  const [sizesData, setSizesData] = useState<any>(null);
+  const [panelsData, setPanelsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -104,53 +106,81 @@ export default function DerbyBuilderClean() {
   const [inscription, setInscription] = useState({ toe: "", tongue: "" });
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  // Fetch product data from API
+  // Fetch all data from APIs
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchAllData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/products/${id}`);
         
-        if (!response.ok) {
+        // Fetch data from all three APIs in parallel
+        const [productResponse, sizesResponse, panelsResponse] = await Promise.all([
+          fetch(`/api/products/${id}`),
+          fetch('/api/sizes'),
+          fetch('/api/panels')
+        ]);
+        
+        // Check if all requests were successful
+        if (!productResponse.ok) {
           throw new Error('Failed to fetch product');
         }
+        if (!sizesResponse.ok) {
+          throw new Error('Failed to fetch sizes');
+        }
+        if (!panelsResponse.ok) {
+          throw new Error('Failed to fetch panels');
+        }
         
-        const data = await response.json();
-        setProductData(data);
+        // Parse all responses
+        const [productData, sizesData, panelsData] = await Promise.all([
+          productResponse.json(),
+          sizesResponse.json(),
+          panelsResponse.json()
+        ]);
+        
+        // Set all data
+        setProductData(productData);
+        setSizesData(sizesData);
+        setPanelsData(panelsData);
         
         // Initialize UI state with first available options
-        if (data.panels && data.panels.length > 0) {
-          setActivePanel(data.panels[0].id);
-          setAppliedTextures(Object.fromEntries(data.panels.map((p: any) => [p.id, null])));
+        if (panelsData.items && panelsData.items.length > 0) {
+          setActivePanel(panelsData.items[0].panelId);
+          setAppliedTextures(Object.fromEntries(panelsData.items.map((p: any) => [p.panelId, null])));
         }
-        if (data.styles && data.styles.length > 0) {
-          setSelectedStyle(data.styles[0].id);
+        if (productData.styles && productData.styles.length > 0) {
+          setSelectedStyle(productData.styles[0].id);
         }
-        if (data.sizes && data.sizes.length > 0) {
-          setSelectedSize(data.sizes[0].id);
+        if (sizesData.items && sizesData.items.length > 0) {
+          setSelectedSize(sizesData.items[0].id);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
-        console.error('Error fetching product:', err);
+        console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProduct();
+    fetchAllData();
   }, [id]);
 
   // Transform API data to match UI expectations
-  const transformApiData = (apiData: any) => {
-    if (!apiData) return product;
+  const transformApiData = (productApiData: any, sizesApiData: any, panelsApiData: any) => {
+    if (!productApiData) return product;
     
     return {
-      ...apiData,
+      ...productApiData,
       // Add default images if not present
-      images: apiData.images || ["/placeholder/shoe-1.jpg", "/placeholder/shoe-2.jpg", "/placeholder/shoe-3.jpg"],
+      images: productApiData.images || ["/placeholder/shoe-1.jpg", "/placeholder/shoe-2.jpg", "/placeholder/shoe-3.jpg"],
       
-      // Transform panels from API data or use defaults
-      panels: apiData.panels || [
+      // Transform panels from panels API data or use defaults
+      panels: panelsApiData?.items ? panelsApiData.items.map((panel: any) => ({
+        id: panel.panelId,
+        name: panel.name,
+        meshName: `${panel.name.replace(/\s+/g, '_')}_Mesh`,
+        thumbnail: `/placeholder/panel-${panel.panelId}.jpg`,
+        group: panel.group
+      })) : [
         { id: "upper", name: "Upper", meshName: "Upper_Mesh", thumbnail: "/placeholder/panel-upper.jpg" },
         { id: "toe", name: "Toe", meshName: "Toe_Mesh", thumbnail: "/placeholder/panel-toe.jpg" },
         { id: "quarter", name: "Quarter", meshName: "Quarter_Mesh", thumbnail: "/placeholder/panel-quarter.jpg" },
@@ -158,34 +188,39 @@ export default function DerbyBuilderClean() {
       ],
       
       // Transform materials from API data or use defaults
-      materials: apiData.materials || [
+      materials: productApiData.materials || [
         { id: "calf", name: "Calf Leather", thumbnail: "/placeholder/material-calf.jpg", description: "Premium Italian calf." },
         { id: "suede", name: "Suede", thumbnail: "/placeholder/material-suede.jpg", description: "Soft brushed finish." },
         { id: "patent", name: "Patent", thumbnail: "/placeholder/material-patent.jpg", description: "High shine finish." },
       ],
       
       // Transform styles from API data or use defaults
-      styles: apiData.styles || [
+      styles: productApiData.styles || [
         { id: "derby", name: "Derby", thumbnail: "/placeholder/style-derby.jpg", glb: "/glb/derby.glb" },
         { id: "oxford", name: "Oxford", thumbnail: "/placeholder/style-oxford.jpg", glb: "/glb/oxford.glb" },
       ],
       
       // Transform soles from API data or use defaults
-      soles: apiData.soles || [
+      soles: productApiData.soles || [
         { id: "leather", name: "Leather Sole", thumbnail: "/placeholder/sole-leather.jpg", height: "2.0 cm" },
         { id: "rubber", name: "Rubber Sole", thumbnail: "/placeholder/sole-rubber.jpg", height: "2.5 cm" },
       ],
       
       // Transform colors from API data or use defaults
-      colors: apiData.colors || [
+      colors: productApiData.colors || [
         { id: "black", name: "Black", textureUrl: "/leather/black.jpg" },
         { id: "brown", name: "Brown", textureUrl: "/leather/brown.jpg" },
         { id: "dark-red", name: "Dark Red", textureUrl: "/leather/dark-red.png" },
         { id: "grey", name: "Grey", textureUrl: "/leather/grey.png" },
       ],
       
-      // Transform sizes from API data or use defaults
-      sizes: apiData.sizes || [
+      // Transform sizes from sizes API data or use defaults
+      sizes: sizesApiData?.items ? sizesApiData.items.map((size: any) => ({
+        id: size.id,
+        label: `${size.region} ${size.name}${size.euEquivalent ? ` / EU ${size.euEquivalent}` : ''}${size.ukEquivalent ? ` / UK ${size.ukEquivalent}` : ''}`,
+        value: size.value,
+        region: size.region
+      })) : [
         { id: "42", label: "EU 42 / UK 8 / US 9" },
         { id: "43", label: "EU 43 / UK 9 / US 10" },
         { id: "44", label: "EU 44 / UK 9.5 / US 10.5" },
@@ -194,7 +229,7 @@ export default function DerbyBuilderClean() {
   };
 
   // Use transformed API data or fallback to mock data
-  const cfg = transformApiData(productData);
+  const cfg = transformApiData(productData, sizesData, panelsData);
 
   const actionsCount = useMemo(
     () => [selectedMaterial, selectedStyle, selectedSole, selectedColor, ...Object.values(appliedTextures)].filter(Boolean).length,
