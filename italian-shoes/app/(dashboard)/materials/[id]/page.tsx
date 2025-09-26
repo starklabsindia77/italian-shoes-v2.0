@@ -69,7 +69,8 @@ export default function MaterialEditPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`/api/materials/${id}?include=colors`, { cache: "no-store" });
+      const r = await fetch(`/api/materials/${id}?include=colors`,
+         { cache: "no-store" });
       if (!r.ok) throw new Error();
       const data = await r.json();
       setMaterial(data ?? FALLBACK_MATERIAL);
