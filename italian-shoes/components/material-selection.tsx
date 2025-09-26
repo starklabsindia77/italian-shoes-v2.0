@@ -47,7 +47,8 @@ export function MaterialSelection({
 }: MaterialSelectionProps) {
   const [expandedMaterials, setExpandedMaterials] = React.useState<Set<string>>(new Set());
 
-  const toggleMaterialExpansion = (materialId: string) => {
+  const toggleMaterialExpansion = (e: React.MouseEvent<HTMLButtonElement>, materialId: string) => {
+    e.preventDefault();
     setExpandedMaterials(prev => {
       const newSet = new Set(prev);
       if (newSet.has(materialId)) {
@@ -192,7 +193,7 @@ export function MaterialSelection({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => toggleMaterialExpansion(material.id)}
+                      onClick={(e) => toggleMaterialExpansion(e, material.id)}
                       disabled={!isSelected}
                     >
                       {isExpanded ? "Hide" : "Show"} Colors
