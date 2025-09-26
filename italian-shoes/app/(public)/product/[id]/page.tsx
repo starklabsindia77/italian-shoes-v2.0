@@ -328,18 +328,18 @@ export default function DerbyBuilderClean() {
   return (
     <div className="min-h-screen bg-white text-gray-800">
       {/* Header with back button and title */}
-      <header className="border-b bg-white">
+      <header className="bg-white mt-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 mb-2">
+          {/* <div className="flex items-center gap-4 mb-2">
             <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
               <ArrowLeft className="w-4 h-4" />
               <span className="text-sm">Back to list</span>
             </button>
-          </div>
+          </div> */}
           <div className="text-sm text-gray-500 mb-1">
             Home &gt; Create Design &gt; Create Men's Shoes &gt; {cfg.title || 'Men\'s Luxury Dress Shoes'}
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">{cfg.title || 'Men\'s Luxury Dress Shoes'}</h1>
+          
         </div>
       </header>
 
@@ -381,33 +381,7 @@ export default function DerbyBuilderClean() {
             </div>
 
             {/* Thumbnail Gallery */}
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {(cfg.images || []).map((src: string, i: number) => (
-                <button
-                  key={src}
-                  onClick={() => setImageIndex(i)}
-                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${imageIndex === i ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"
-                    }`}
-                >
-                  <img src={src} alt={`View ${i + 1}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-
-              {/* 360° View Button */}
-              <button className="flex-shrink-0 w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-gray-400 transition-colors">
-                <span className="text-xs font-medium text-gray-500">360°</span>
-              </button>
-
-              {/* Color Variants */}
-              {(cfg.colorVariants || []).map((variant: any) => (
-                <button
-                  key={variant.id}
-                  className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-gray-300 transition-colors"
-                >
-                  <img src={variant.image} alt={variant.name} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
+            
 
             {/* Order Status */}
             <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -421,6 +395,7 @@ export default function DerbyBuilderClean() {
           <div className="space-y-8">
             {/* Pricing Section */}
             <div>
+            <h1 className="text-2xl font-bold text-gray-900">{cfg.title || 'Men\'s Luxury Dress Shoes'}</h1>
               <div className="flex items-baseline gap-3 mb-4">
                 <div className="text-3xl font-bold text-gray-900">${cfg.price || 329}</div>
                 <div className="text-lg text-gray-500 line-through">${cfg.compareAtPrice || 519}</div>
