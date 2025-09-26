@@ -5,8 +5,6 @@ import { ProductCreateSchema } from "@/lib/validators";
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
-    const url = new URL(req.url);
- 
 
     // Find the product
     const product = await prisma.product.findUnique({
@@ -71,6 +69,40 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     return ok(updated);
   } catch (e: any) {
     console.error("PUT product error:", e);
+    if (e?.code === 401 || e?.code === 403) return bad(e.message, e.code);
+    return server(e);
+  }
+}
+
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+  try {
+    await requireAdmin();
+    const { id } = params;
+
+    // Check if product exists
+    const existingProduct = await prisma.product.findUnique({
+      where: { id }
+    });
+    if (!existingProduct) {
+      return bad("Product not found", 404);
+    }
+
+    // Check if product is referenced in any orders
+    const orderItems = await prisma.orderItem.findFirst({
+      where: { productId: id }
+    });
+    if (orderItems) {
+      return bad("Cannot delete product that is referenced in orders. Consider deactivating it instead.", 400);
+    }
+
+    // Delete the product
+    await prisma.product.delete({
+      where: { id }
+    });
+
+    return ok({ message: "Product deleted successfully" });
+  } catch (e: any) {
+    console.error("DELETE product error:", e);
     if (e?.code === 401 || e?.code === 403) return bad(e.message, e.code);
     return server(e);
   }

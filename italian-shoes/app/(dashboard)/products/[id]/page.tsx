@@ -70,6 +70,9 @@ type Product = {
   metaImageAlt?: string | null;
   metaImageTitle?: string | null;
   metaImageDescription?: string | null;
+  selectedMaterials?: any;
+  selectedStyles?: any;
+  selectedSoles?: any;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -126,6 +129,9 @@ const FALLBACK_PRODUCT: Product = {
   metaImageAlt: "Premium Oxford Shoes",
   metaImageTitle: "Premium Oxford Shoes",
   metaImageDescription: "Premium Oxford Shoes social",
+  selectedMaterials: [],
+  selectedStyles: [],
+  selectedSoles: [],
 };
 
 export default function ProductEditPage() {
@@ -228,6 +234,76 @@ export default function ProductEditPage() {
     };
   }, []);
 
+  // Helper function to map product data to form format
+  const mapProductToForm = React.useCallback((product: Product) => {
+    // Map selected materials
+    const mappedMaterials: SelectedMaterial[] = [];
+    if (product.selectedMaterials && Array.isArray(product.selectedMaterials)) {
+      product.selectedMaterials.forEach((material: any) => {
+        if (material && typeof material === 'object') {
+          mappedMaterials.push({
+            materialId: material.materialId || material.id || '',
+            materialName: material.materialName || material.name || '',
+            selectedColorIds: material.selectedColorIds || [],
+            selectAllColors: material.selectAllColors || false
+          });
+        }
+      });
+    }
+
+    // Map selected styles
+    const mappedStyles: SelectedItem[] = [];
+    if (product.selectedStyles && Array.isArray(product.selectedStyles)) {
+      product.selectedStyles.forEach((style: any) => {
+        if (style && typeof style === 'object') {
+          mappedStyles.push({
+            id: style.id || '',
+            name: style.name || '',
+            description: style.description || null,
+            category: style.category || null,
+            imageUrl: style.imageUrl || null
+          });
+        }
+      });
+    }
+
+    // Map selected soles
+    const mappedSoles: SelectedItem[] = [];
+    if (product.selectedSoles && Array.isArray(product.selectedSoles)) {
+      product.selectedSoles.forEach((sole: any) => {
+        if (sole && typeof sole === 'object') {
+          mappedSoles.push({
+            id: sole.id || '',
+            name: sole.name || '',
+            description: sole.description || null,
+            category: sole.category || null,
+            imageUrl: sole.imageUrl || null
+          });
+        }
+      });
+    }
+
+    return {
+      productId: product.productId,
+      title: product.title,
+      vendor: product.vendor || "",
+      description: product.description,
+      metaTitle: product.metaTitle,
+      metaDescription: product.metaDescription,
+      metaKeywords: product.metaKeywords,
+      price: product.price,
+      currency: product.currency as Currency,
+      compareAtPrice: product.compareAtPrice ?? undefined,
+      isActive: product.isActive,
+      glbUrl: product.assets?.glb?.url || "/ShoeSoleFixed.glb",
+      glbLighting: product.assets?.glb?.lighting || "directional",
+      glbEnvironment: product.assets?.glb?.environment || "studio",
+      selectedMaterials: mappedMaterials,
+      selectedStyles: mappedStyles,
+      selectedSoles: mappedSoles,
+    };
+  }, []);
+
   // Options/variants/sizes/panels
 
   // Load materials
@@ -309,48 +385,28 @@ export default function ProductEditPage() {
       const data = (await res.json()) as Product;
       setProduct(data);
       
-      // Populate form with product data
-      form.reset({
-        productId: data.productId,
-        title: data.title,
-        vendor: data.vendor || "",
-        description: data.description,
-        metaTitle: data.metaTitle,
-        metaDescription: data.metaDescription,
-        metaKeywords: data.metaKeywords,
-        price: data.price,
-        currency: data.currency as Currency,
-        compareAtPrice: data.compareAtPrice ?? undefined,
-        isActive: data.isActive,
-        glbUrl: data.assets?.glb?.url || "/ShoeSoleFixed.glb",
-        glbLighting: data.assets?.glb?.lighting || "directional",
-        glbEnvironment: data.assets?.glb?.environment || "studio",
-        selectedMaterials: selectedMaterials,
-        selectedStyles: selectedStyles,
-        selectedSoles: selectedSoles,
-      });
+      // Map product data to form format
+      const formData = mapProductToForm(data);
+      
+      // Update state variables with mapped data
+      setSelectedMaterials(formData.selectedMaterials);
+      setSelectedStyles(formData.selectedStyles);
+      setSelectedSoles(formData.selectedSoles);
+      
+      // Populate form with mapped data
+      form.reset(formData);
     } catch {
       setProduct(FALLBACK_PRODUCT);
-      // Populate form with fallback data
-      form.reset({
-        productId: FALLBACK_PRODUCT.productId,
-        title: FALLBACK_PRODUCT.title,
-        vendor: FALLBACK_PRODUCT.vendor || "",
-        description: FALLBACK_PRODUCT.description,
-        metaTitle: FALLBACK_PRODUCT.metaTitle,
-        metaDescription: FALLBACK_PRODUCT.metaDescription,
-        metaKeywords: FALLBACK_PRODUCT.metaKeywords,
-        price: FALLBACK_PRODUCT.price,
-        currency: FALLBACK_PRODUCT.currency as Currency,
-        compareAtPrice: FALLBACK_PRODUCT.compareAtPrice ?? undefined,
-        isActive: FALLBACK_PRODUCT.isActive,
-        glbUrl: FALLBACK_PRODUCT.assets?.glb?.url || "/ShoeSoleFixed.glb",
-        glbLighting: FALLBACK_PRODUCT.assets?.glb?.lighting || "directional",
-        glbEnvironment: FALLBACK_PRODUCT.assets?.glb?.environment || "studio",
-        selectedMaterials: selectedMaterials,
-        selectedStyles: selectedStyles,
-        selectedSoles: selectedSoles,
-      });
+      // Map fallback data to form format
+      const formData = mapProductToForm(FALLBACK_PRODUCT);
+      
+      // Update state variables with mapped data
+      setSelectedMaterials(formData.selectedMaterials);
+      setSelectedStyles(formData.selectedStyles);
+      setSelectedSoles(formData.selectedSoles);
+      
+      // Populate form with mapped data
+      form.reset(formData);
     }
 
     
@@ -368,6 +424,7 @@ export default function ProductEditPage() {
     setSaving(true);
     
     const payload = {
+      productId: values.productId,
       title: values.title.trim(),
       vendor: values.vendor?.trim() || "Italian Shoes Company",
       description: values.description,
@@ -394,7 +451,7 @@ export default function ProductEditPage() {
         try {
           const j = await res.json();
           if (j?.error) msg = j.error;
-        } catch {}
+    } catch {}
         throw new Error(msg);
       }
       return res.json();
@@ -467,16 +524,16 @@ export default function ProductEditPage() {
                   {i + 1}. {s.label}
                 </TabsTrigger>
               ))}
-            </TabsList>
+        </TabsList>
 
             <TabsContent value="basic">
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-2 space-y-6">
-                  <Card className="rounded-2xl">
-                    <CardHeader className="pb-3">
-                      <CardTitle>Basic Info</CardTitle>
+          <Card className="rounded-2xl">
+            <CardHeader className="pb-3">
+              <CardTitle>Basic Info</CardTitle>
                       <CardDescription>Title, vendor, and description.</CardDescription>
-                    </CardHeader>
+            </CardHeader>
                     <CardContent className="grid gap-4">
                       <FormField
                         control={form.control as any}
@@ -489,7 +546,7 @@ export default function ProductEditPage() {
                           </FormItem>
                         )}
                       />
-                      <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2">
                         <FormField
                           control={form.control as any}
                           name="productId"
@@ -513,7 +570,7 @@ export default function ProductEditPage() {
                             </FormItem>
                           )}
                         />
-                      </div>
+                  </div>
                       <FormField
                         control={form.control as any}
                         name="description"
@@ -525,23 +582,23 @@ export default function ProductEditPage() {
                           </FormItem>
                         )}
                       />
-                    </CardContent>
-                  </Card>
-                </div>
+            </CardContent>
+          </Card>
+              </div>
               </div>
               <div className="mt-6 flex justify-end gap-2">
                 <Button type="button" variant="default" onClick={() => handleNext()}>Next</Button>
               </div>
-            </TabsContent>
+        </TabsContent>
 
             <TabsContent value="seo">
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-2 space-y-6">
-                  <Card className="rounded-2xl">
-                    <CardHeader className="pb-3">
+          <Card className="rounded-2xl">
+            <CardHeader className="pb-3">
                       <CardTitle>SEO</CardTitle>
                       <CardDescription>Meta tags for social & search.</CardDescription>
-                    </CardHeader>
+            </CardHeader>
                     <CardContent className="grid gap-4">
                       <div className="grid gap-4 md:grid-cols-2">
                         <FormField
@@ -566,7 +623,7 @@ export default function ProductEditPage() {
                             </FormItem>
                           )}
                         />
-                      </div>
+              </div>
                       <FormField
                         control={form.control as any}
                         name="metaDescription"
@@ -578,26 +635,26 @@ export default function ProductEditPage() {
                           </FormItem>
                         )}  
                       />
-                    </CardContent>
-                  </Card>
+            </CardContent>
+          </Card>
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
                 <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
                 <Button type="button" onClick={() => handleNext()}>Next</Button>
               </div>
-            </TabsContent>
+        </TabsContent>
 
             <TabsContent value="pricing">
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="space-y-6">
-                  <Card className="rounded-2xl">
-                    <CardHeader className="pb-3">
+          <Card className="rounded-2xl">
+            <CardHeader className="pb-3">
                       <CardTitle>Pricing</CardTitle>
                       <CardDescription>Amounts are in <strong>Rupees</strong>.</CardDescription>
-                    </CardHeader>
+            </CardHeader>
                     <CardContent className="grid gap-4">
-                      <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2">
                         <FormField
                           control={form.control as any}
                           name="price"
@@ -605,8 +662,8 @@ export default function ProductEditPage() {
                             <FormItem>
                               <FormLabel>Price (rupees)</FormLabel>
                               <FormControl>
-                                <Input
-                                  type="number"
+                    <Input
+                      type="number"
                                   min={0}
                                   step={1}
                                   value={field.value ?? ""}
@@ -627,8 +684,8 @@ export default function ProductEditPage() {
                             <FormItem>
                               <FormLabel>Compare at (rupees)</FormLabel>
                               <FormControl>
-                                <Input
-                                  type="number"
+                    <Input
+                      type="number"
                                   min={0}
                                   step={1}
                                   value={field.value ?? ""}
@@ -639,7 +696,7 @@ export default function ProductEditPage() {
                             </FormItem>
                           )}
                         />
-                      </div>
+              </div>
                       <FormField
                         control={form.control as any}
                         name="currency"
@@ -649,13 +706,13 @@ export default function ProductEditPage() {
                             <FormControl>
                               <Select value={field.value} onValueChange={field.onChange}>
                                 <SelectTrigger><SelectValue placeholder="Select currency" /></SelectTrigger>
-                                <SelectContent>
+              <SelectContent>
                           <SelectItem value="INR">INR</SelectItem>
                           <SelectItem value="USD">USD</SelectItem>
                           <SelectItem value="EUR">EUR</SelectItem>
                           <SelectItem value="GBP">GBP</SelectItem>
-                                </SelectContent>
-                              </Select>
+              </SelectContent>
+            </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -665,7 +722,7 @@ export default function ProductEditPage() {
                         <div className="space-y-1">
                           <div className="text-sm font-medium">Active</div>
                           <div className="text-xs text-muted-foreground">Visible on storefront</div>
-                        </div>
+                </div>
                         <FormField
                           control={form.control as any}
                           name="isActive"
@@ -678,10 +735,10 @@ export default function ProductEditPage() {
                             </FormItem>
                           )}
                         />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+        </div>
+      </CardContent>
+    </Card>
+    </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
                 <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
@@ -692,11 +749,11 @@ export default function ProductEditPage() {
             <TabsContent value="assets">
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="space-y-6">
-                  <Card className="rounded-2xl">
-                    <CardHeader className="pb-3">
+    <Card className="rounded-2xl">
+      <CardHeader className="pb-3">
                       <CardTitle>3D Assets</CardTitle>
                       <CardDescription>GLB + rendering hints.</CardDescription>
-                    </CardHeader>
+      </CardHeader>
                     <CardContent className="grid gap-4">
                       <FormField
                         control={form.control as any}
@@ -732,11 +789,11 @@ export default function ProductEditPage() {
                             </FormItem>
                           )}
                         />
-                      </div>
-                      <Button
+        </div>
+        <Button
                         type="button"
                         variant="secondary"
-                        onClick={() => {
+          onClick={() => {
                           const { glbUrl, glbLighting, glbEnvironment } = form.getValues();
                           const assets = buildAssets({ glbUrl, glbLighting, glbEnvironment } as FormValues);
                           toast.info("Assets preview (console)");
@@ -745,9 +802,9 @@ export default function ProductEditPage() {
                       >
                         <Sparkles className="mr-2 size-4" />
                         Preview assets JSON (console)
-                      </Button>
-                    </CardContent>
-                  </Card>
+        </Button>
+      </CardContent>
+    </Card>
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
@@ -782,11 +839,11 @@ export default function ProductEditPage() {
                   description="Select available styles for this product."
                   emptyMessage="No styles available. Create styles first in the Styles section."
                 />
-              </div>
+          </div>
               <div className="mt-6 flex justify-between gap-2">
                 <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
                 <Button type="button" onClick={() => handleNext()}>Next</Button>
-              </div>
+        </div>
             </TabsContent>
 
             <TabsContent value="soles">
@@ -800,7 +857,7 @@ export default function ProductEditPage() {
                   description="Select available soles for this product."
                   emptyMessage="No soles available. Create soles first in the Soles section."
                 />
-              </div>
+        </div>
               <div className="flex justify-between gap-2">
                 <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
                 <Button type="button" onClick={() => handleNext()}>Next</Button>
@@ -811,33 +868,12 @@ export default function ProductEditPage() {
           </Tabs>
         </form>
       </Form>
-    </div>
+        </div>
   );
 }
 
 
 
-/* ---------------- small helpers ---------------- */
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="grid gap-2">
-      <Label className="text-sm">{label}</Label>
-      {children}
-    </div>
-  );
-}
-
-function formatCurrency(cents: number, currency: Currency = "USD") {
-  try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    }).format(cents);
-  } catch {
-    return `$${(cents ?? 0) / 100}`;
-  }
-}
 
 
