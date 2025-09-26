@@ -4,6 +4,9 @@ import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import {
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from "@/components/ui/tabs";
@@ -24,12 +27,28 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import {
+  Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
+} from "@/components/ui/form";
+import {
   ArrowLeft, Check, CircleOff, Factory, Plus, RefreshCw, Save, Sparkles, Trash2,
 } from "lucide-react";
+import { MaterialSelection, Material, SelectedMaterial } from "@/components/material-selection";
+import { StyleSoleSelection, Style, Sole, SelectedItem } from "@/components/style-sole-selection";
+import { ProductCreateSchema as ServerProductCreateSchema } from "@/lib/validators";
 
 /* ---------------- types ---------------- */
-type Currency = "USD" | "EUR" | "GBP";
+type Currency = "USD" | "EUR" | "GBP" | "INR";
 type OptionType = "SIZE" | "WIDTH" | "STYLE" | "SOLE" | "COLOR" | "MATERIAL" | "CUSTOM";
+
+/** -------- Local UI schema (compatible with server) -------- */
+const ProductEditSchema = ServerProductCreateSchema.extend({
+  // UI-only fields for easier entry of GLB
+  glbUrl: z.string().optional(),
+  glbLighting: z.string().optional(),
+  glbEnvironment: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof ProductEditSchema>;
 
 type Product = {
   id: string;
@@ -118,13 +137,168 @@ export default function ProductEditPage() {
 
   const [product, setProduct] = React.useState<Product | null>(null);
 
+  // Form setup
+  const form = useForm<FormValues>({
+    resolver: zodResolver(ProductEditSchema) as any,
+    defaultValues: {
+      productId: "",
+      title: "",
+      vendor: "",
+      description: "",
+      metaTitle: "",
+      metaDescription: "",
+      metaKeywords: "",
+      price: 0,
+      currency: "INR",
+      compareAtPrice: undefined,
+      isActive: true,
+      glbUrl: "/ShoeSoleFixed.glb",
+      glbLighting: "directional",
+      glbEnvironment: "studio",
+      selectedMaterials: [],
+      selectedStyles: [],
+      selectedSoles: [],
+    },
+    mode: "onChange",
+  });
+
+  // Wizard state
+  const steps = React.useMemo(
+    () => [
+      { id: "basic", label: "Basic" as const, validate: ["title", "productId", "vendor", "description"] as const },
+      { id: "seo", label: "SEO" as const, validate: [
+        "metaTitle",
+        "metaDescription",
+        "metaKeywords",
+      ] as const },
+      { id: "pricing", label: "Pricing" as const, validate: ["price", "currency", "compareAtPrice", "isActive"] as const },
+      { id: "assets", label: "3D Assets" as const, validate: ["glbUrl", "glbLighting", "glbEnvironment"] as const },
+      { id: "materials", label: "Materials" as const, validate: [] as const },
+      { id: "styles", label: "Styles" as const, validate: [] as const },
+      { id: "soles", label: "Soles" as const, validate: [] as const },
+    ],
+    []
+  );
+  const [activeStepIndex, setActiveStepIndex] = React.useState(0);
+  const activeStep = steps[activeStepIndex];
+
+  const goToStep = React.useCallback((index: number) => {
+    setActiveStepIndex(Math.min(Math.max(index, 0), steps.length - 1));
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [steps.length]);
+
+  const handleNext = React.useCallback(async () => {
+    const fields = activeStep.validate as readonly (keyof FormValues)[];
+    if (fields.length > 0) {
+      const ok = await form.trigger(fields as any, { shouldFocus: true });
+      if (!ok) return;
+    }
+    goToStep(activeStepIndex + 1);
+  }, [activeStep.validate, activeStepIndex, form, goToStep]);
+
+  const handleBack = React.useCallback(() => {
+    goToStep(activeStepIndex - 1);
+  }, [activeStepIndex, goToStep]);
+
+  // Material selection state
+  const [materials, setMaterials] = React.useState<Material[]>([]);
+  const [materialsLoading, setMaterialsLoading] = React.useState(true);
+  const [selectedMaterials, setSelectedMaterials] = React.useState<SelectedMaterial[]>([]);
+
+  // Style selection state
+  const [styles, setStyles] = React.useState<Style[]>([]);
+  const [stylesLoading, setStylesLoading] = React.useState(true);
+  const [selectedStyles, setSelectedStyles] = React.useState<SelectedItem[]>([]);
+
+  // Sole selection state
+  const [soles, setSoles] = React.useState<Sole[]>([]);
+  const [solesLoading, setSolesLoading] = React.useState(true);
+  const [selectedSoles, setSelectedSoles] = React.useState<SelectedItem[]>([]);
+
+  // Helper function for building assets
+  const buildAssets = React.useCallback((values: Partial<FormValues>) => {
+    const glbUrl = values.glbUrl?.trim();
+    if (!glbUrl) return {};
+    return {
+      glb: {
+        url: glbUrl,
+        lighting: values.glbLighting || "directional",
+        environment: values.glbEnvironment || "studio",
+      },
+    };
+  }, []);
+
   // Options/variants/sizes/panels
-  const [options, setOptions] = React.useState<ProductOption[]>([]);
-  const [variants, setVariants] = React.useState<Variant[]>([]);
-  const [sizes, setSizes] = React.useState<Size[]>([]);
-  const [productSizes, setProductSizes] = React.useState<ProductSize[]>([]);
-  const [masterPanels, setMasterPanels] = React.useState<Panel[]>([]);
-  const [productPanels, setProductPanels] = React.useState<ProductPanel[]>([]);
+
+  // Load materials
+  React.useEffect(() => {
+    const loadMaterials = async () => {
+      try {
+        const response = await fetch("/api/materials/with-colors");
+        if (response.ok) {
+          const data = await response.json();
+          setMaterials(data.materials || []);
+        }
+      } catch (error) {
+        console.error("Failed to load materials:", error);
+      } finally {
+        setMaterialsLoading(false);
+      }
+    };
+
+    loadMaterials();
+  }, []);
+
+  // Load styles
+  React.useEffect(() => {
+    const loadStyles = async () => {
+      try {
+        const response = await fetch("/api/styles/active");
+        if (response.ok) {
+          const data = await response.json();
+          setStyles(data.styles || []);
+        }
+      } catch (error) {
+        console.error("Failed to load styles:", error);
+      } finally {
+        setStylesLoading(false);
+      }
+    };
+
+    loadStyles();
+  }, []);
+
+  // Load soles
+  React.useEffect(() => {
+    const loadSoles = async () => {
+      try {
+        const response = await fetch("/api/soles/active");
+        if (response.ok) {
+          const data = await response.json();
+          setSoles(data.soles || []);
+        }
+      } catch (error) {
+        console.error("Failed to load soles:", error);
+      } finally {
+        setSolesLoading(false);
+      }
+    };
+
+    loadSoles();
+  }, []);
+
+  // Update form when selections change
+  React.useEffect(() => {
+    form.setValue("selectedMaterials", selectedMaterials);
+  }, [selectedMaterials, form]);
+
+  React.useEffect(() => {
+    form.setValue("selectedStyles", selectedStyles);
+  }, [selectedStyles, form]);
+
+  React.useEffect(() => {
+    form.setValue("selectedSoles", selectedSoles);
+  }, [selectedSoles, form]);
 
   /* ------------ load everything ------------ */
   const refreshAll = async () => {
@@ -134,68 +308,52 @@ export default function ProductEditPage() {
       if (!res.ok) throw new Error("product");
       const data = (await res.json()) as Product;
       setProduct(data);
+      
+      // Populate form with product data
+      form.reset({
+        productId: data.productId,
+        title: data.title,
+        vendor: data.vendor || "",
+        description: data.description,
+        metaTitle: data.metaTitle,
+        metaDescription: data.metaDescription,
+        metaKeywords: data.metaKeywords,
+        price: data.price,
+        currency: data.currency as Currency,
+        compareAtPrice: data.compareAtPrice ?? undefined,
+        isActive: data.isActive,
+        glbUrl: data.assets?.glb?.url || "/ShoeSoleFixed.glb",
+        glbLighting: data.assets?.glb?.lighting || "directional",
+        glbEnvironment: data.assets?.glb?.environment || "studio",
+        selectedMaterials: selectedMaterials,
+        selectedStyles: selectedStyles,
+        selectedSoles: selectedSoles,
+      });
     } catch {
       setProduct(FALLBACK_PRODUCT);
+      // Populate form with fallback data
+      form.reset({
+        productId: FALLBACK_PRODUCT.productId,
+        title: FALLBACK_PRODUCT.title,
+        vendor: FALLBACK_PRODUCT.vendor || "",
+        description: FALLBACK_PRODUCT.description,
+        metaTitle: FALLBACK_PRODUCT.metaTitle,
+        metaDescription: FALLBACK_PRODUCT.metaDescription,
+        metaKeywords: FALLBACK_PRODUCT.metaKeywords,
+        price: FALLBACK_PRODUCT.price,
+        currency: FALLBACK_PRODUCT.currency as Currency,
+        compareAtPrice: FALLBACK_PRODUCT.compareAtPrice ?? undefined,
+        isActive: FALLBACK_PRODUCT.isActive,
+        glbUrl: FALLBACK_PRODUCT.assets?.glb?.url || "/ShoeSoleFixed.glb",
+        glbLighting: FALLBACK_PRODUCT.assets?.glb?.lighting || "directional",
+        glbEnvironment: FALLBACK_PRODUCT.assets?.glb?.environment || "studio",
+        selectedMaterials: selectedMaterials,
+        selectedStyles: selectedStyles,
+        selectedSoles: selectedSoles,
+      });
     }
 
-    // options
-    try {
-      const r = await fetch(`/api/products/${id}/options`, { cache: "no-store" });
-      const data = (await r.json()) as { items?: ProductOption[] } | ProductOption[];
-      setOptions(Array.isArray(data) ? data : data.items ?? []);
-    } catch {
-      setOptions([]);
-    }
-
-    // variants
-    try {
-      const r = await fetch(`/api/products/${id}/variants`, { cache: "no-store" });
-      if (!r.ok) throw new Error();
-      const data = (await r.json()) as Variant[];
-      setVariants(data ?? []);
-    } catch {
-      setVariants([{ id: "fake_v1", sku: "SKU-AB12CD34", price: FALLBACK_PRODUCT.price, isActive: true }]);
-    }
-
-    // sizes (master + product)
-    try {
-      const r = await fetch(`/api/sizes?limit=200`);
-      const d = (await r.json()) as { items?: Size[] } | Size[];
-      setSizes(Array.isArray(d) ? d : d.items ?? []);
-    } catch {
-      setSizes([
-        { id: "size_us8", sizeId: "us-8", name: "US 8", region: "US", value: 8 },
-        { id: "size_us9", sizeId: "us-9", name: "US 9", region: "US", value: 9 },
-      ]);
-    }
-    try {
-      const r = await fetch(`/api/products/${id}/sizes`);
-      const d = (await r.json()) as ProductSize[];
-      setProductSizes(d ?? []);
-    } catch {
-      setProductSizes([{ id: "ps1", sizeId: "us-8", width: "STANDARD" }]);
-    }
-
-    // panels (master + product)
-    try {
-      const r = await fetch(`/api/panels?limit=200`);
-      const d = (await r.json()) as { items?: Panel[] } | Panel[];
-      setMasterPanels(Array.isArray(d) ? d : d.items ?? []);
-    } catch {
-      setMasterPanels([
-        { id: "p_toe", panelId: "toe-cap", name: "Toe Cap" },
-        { id: "p_upper", panelId: "upper", name: "Upper" },
-      ]);
-    }
-    try {
-      const r = await fetch(`/api/products/${id}/panels`);
-      const d = (await r.json()) as ProductPanel[];
-      setProductPanels(d ?? []);
-    } catch {
-      setProductPanels([
-        { id: "pp1", panelId: "toe-cap", panel: { id: "p_toe", panelId: "toe-cap", name: "Toe Cap" }, isCustomizable: true },
-      ]);
-    }
+    
 
     setLoading(false);
   };
@@ -205,182 +363,63 @@ export default function ProductEditPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  /* ------------ save overview/seo/assets ------------ */
-  const saveOverview = async () => {
+  const onSubmit = async (values: FormValues) => {
     if (!product) return;
     setSaving(true);
+    
+    const payload = {
+      title: values.title.trim(),
+      vendor: values.vendor?.trim() || "Italian Shoes Company",
+      description: values.description,
+      metaTitle: values.metaTitle?.trim(),
+      metaDescription: values.metaDescription?.trim(),
+      metaKeywords: values.metaKeywords?.trim(),
+      price: Number(values.price) || 0,
+      currency: values.currency,
+      compareAtPrice: values.compareAtPrice ? Number(values.compareAtPrice) : 0,
+      isActive: values.isActive ?? true,
+      assets: buildAssets(values),
+      selectedMaterials: selectedMaterials,
+      selectedStyles: selectedStyles,
+      selectedSoles: selectedSoles,
+    };
+
     const run = async () => {
       const res = await fetch(`/api/products/${product.id}`, {
         method: "PUT",
-        body: JSON.stringify({
-          title: product.title,
-          vendor: product.vendor,
-          description: product.description,
-          price: product.price,
-          currency: product.currency,
-          compareAtPrice: product.compareAtPrice,
-          isActive: product.isActive,
-        }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
-    };
-    const p = run();
-    toast.promise(p, { loading: "Saving…", success: "Saved", error: "Failed to save" });
-    await p;
-    setSaving(false);
-  };
-
-  const saveSEO = async () => {
-    if (!product) return;
-    const run = async () => {
-      const res = await fetch(`/api/products/${product.id}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          metaTitle: product.metaTitle,
-          metaDescription: product.metaDescription,
-          metaKeywords: product.metaKeywords,
-          metaImage: product.metaImage,
-          metaImageWidth: product.metaImageWidth,
-          metaImageHeight: product.metaImageHeight,
-          metaImageAlt: product.metaImageAlt,
-          metaImageTitle: product.metaImageTitle,
-          metaImageDescription: product.metaImageDescription,
-        }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
-    };
-    const p = run();
-    toast.promise(p, { loading: "Saving…", success: "Saved", error: "Failed to save" });
-    await p;
-  };
-
-  const saveAssets = async () => {
-    if (!product) return;
-    const run = async () => {
-      const res = await fetch(`/api/products/${product.id}`, {
-        method: "PUT",
-        body: JSON.stringify({ assets: product.assets ?? {} }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
-    };
-    const p = run();
-    toast.promise(p, { loading: "Saving…", success: "Saved", error: "Failed to save" });
-    await p;
-  };
-
-  /* ------------ options ------------ */
-  const createOption = async (payload: { code: string; name: string; type: OptionType }) => {
-    const run = async (): Promise<ProductOption> => {
-      const res = await fetch(`/api/products/${id}/options`, { method: "POST", body: JSON.stringify(payload) });
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
-    };
-    const p = run();
-    toast.promise(p, { loading: "Adding option…", success: "Option added", error: "Failed" });
-    const created: ProductOption = await p;
-    setOptions((prev) => [...prev, { ...created, values: created.values ?? [] }]);
-  };
-
-  const addOptionValue = async (optionId: string, payload: { value: string; label: string }) => {
-    const run = async (): Promise<ProductOptionValue> => {
-      const res = await fetch(`/api/products/${id}/options/${optionId}/values`, {
-        method: "POST",
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        let msg = "Failed to update product";
+        try {
+          const j = await res.json();
+          if (j?.error) msg = j.error;
+        } catch {}
+        throw new Error(msg);
+      }
       return res.json();
     };
-    const p = run();
-    toast.promise(p, { loading: "Adding value…", success: "Value added", error: "Failed" });
-    const created: ProductOptionValue = await p;
-    setOptions((prev) =>
-      prev.map((o) => (o.id === optionId ? { ...o, values: [...(o.values ?? []), created] } : o))
-    );
-  };
 
-  /* ------------ variants ------------ */
-  const generateVariants = async (payload: { optionCodes: string[]; skuPrefix?: string; priceOverride?: number }) => {
-    const run = async () => {
-      const res = await fetch(`/api/products/${id}/variants`, { method: "POST", body: JSON.stringify(payload) });
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
-    };
-    const p = run();
-    toast.promise(p, { loading: "Generating…", success: "Variants generated", error: "Failed" });
-    await p;
-    // refresh variants list
     try {
-      const r = await fetch(`/api/products/${id}/variants`, { cache: "no-store" });
-      const d = (await r.json()) as Variant[];
-      setVariants(d ?? []);
-    } catch {}
-  };
-
-  /* ------------ sizes ------------ */
-  const toggleSize = async (size: Size, enabled: boolean) => {
-    if (enabled) {
-      const runCreate = async (): Promise<ProductSize> => {
-        const res = await fetch(`/api/products/${id}/sizes`, {
-          method: "POST",
-          body: JSON.stringify({ sizeId: size.id, width: "STANDARD" }),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
-      };
-      const p = runCreate();
-      toast.promise(p, { loading: "Adding size…", success: "Size added", error: "Failed" });
-      const created: ProductSize = await p;
-      setProductSizes((s) => [...s, created]);
-    } else {
-      const found = productSizes.find((ps) => ps.sizeId === size.id);
-      if (!found) return; // Prevent running if not found
-
-      const runDelete = async (): Promise<{ deleted?: number } | { ok?: boolean }> => {
-        const res = await fetch(`/api/products/${id}/sizes`, {
-          method: "DELETE",
-          body: JSON.stringify({ sizeId: size.id, width: "STANDARD", id: found.id }),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
-      };
-      const p = runDelete();
-      toast.promise(p, { loading: "Removing…", success: "Removed", error: "Failed" });
-      await p;
-      setProductSizes((s) => s.filter((ps) => ps.sizeId !== size.id));
-    }
-  };
-
-  /* ------------ panels ------------ */
-  const addPanel = async (panelId: string) => {
-    const run = async (): Promise<ProductPanel> => {
-      const res = await fetch(`/api/products/${id}/panels`, {
-        method: "POST",
-        body: JSON.stringify({ panelId, isCustomizable: true }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
-    };
-    const p = run();
-    toast.promise(p, { loading: "Adding panel…", success: "Panel added", error: "Failed" });
-    const created: ProductPanel = await p;
-    setProductPanels((prev) => [...prev, created]);
-  };
-
-  const togglePanelCustom = async (pp: ProductPanel, next: boolean) => {
-    // optimistic UI
-    setProductPanels((list) => list.map((x) => (x.id === pp.id ? { ...x, isCustomizable: next } : x)));
-    try {
-      await fetch(`/api/products/${id}/panels`, {
-        method: "PUT",
-        body: JSON.stringify({ id: pp.id, isCustomizable: next }),
+      await toast.promise(run(), {
+        loading: "Updating product…",
+        success: "Product updated",
+        error: (e) => (typeof e === "object" && e && "message" in e ? (e as any).message : String(e)) || "Failed to update",
       });
     } catch {
-      toast.error("Failed to update panel");
+      // keep on page
+    } finally {
+      setSaving(false);
     }
   };
+
+
+ 
+
+  /* ------------ sizes ------------ */
+ 
+
+  
 
   if (!product) {
     return (
@@ -404,655 +443,379 @@ export default function ProductEditPage() {
             <Link href="/products"><ArrowLeft className="mr-2 size-4" />Back</Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{product.title}</h1>
-            <p className="text-sm text-muted-foreground">ID: {product.productId}</p>
+            <h1 className="text-2xl font-semibold tracking-tight">{product?.title || "Edit Product"}</h1>
+            <p className="text-sm text-muted-foreground">ID: {product?.productId || id}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={refreshAll}><RefreshCw className="mr-2 size-4" />Refresh</Button>
-          <Button onClick={saveOverview} disabled={saving}><Save className="mr-2 size-4" />Save</Button>
+          <Button onClick={form.handleSubmit(onSubmit)} disabled={saving}>
+            <Save className="mr-2 size-4" />Save
+          </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="images">Images</TabsTrigger>
-          <TabsTrigger value="options">Options</TabsTrigger>
-          <TabsTrigger value="variants">Variants</TabsTrigger>
-          <TabsTrigger value="panels">Panels</TabsTrigger>
-          <TabsTrigger value="sizes">Sizes</TabsTrigger>
-          <TabsTrigger value="assets">3D Assets</TabsTrigger>
-          <TabsTrigger value="seo">SEO</TabsTrigger>
-        </TabsList>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Tabs value={activeStep.id} onValueChange={(v) => {
+            const idx = steps.findIndex((s) => s.id === v);
+            if (idx !== -1) setActiveStepIndex(idx);
+          }}>
+            <TabsList className="w-full flex flex-wrap justify-start">
+              {steps.map((s, i) => (
+                <TabsTrigger key={s.id} value={s.id} className="data-[state=active]:font-semibold">
+                  {i + 1}. {s.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-        {/* OVERVIEW */}
-        <TabsContent value="overview" className="mt-4">
-          <Card className="rounded-2xl">
-            <CardHeader className="pb-3">
-              <CardTitle>Basic Info</CardTitle>
-              <CardDescription>Title, vendor, description, price.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-2 grid gap-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Title">
-                    <Input value={product.title} onChange={(e) => setProduct({ ...product, title: e.target.value })} />
-                  </Field>
-                  <Field label="Vendor">
-                    <Input value={product.vendor || ""} onChange={(e) => setProduct({ ...product, vendor: e.target.value })} />
-                  </Field>
-                </div>
-                <Field label="Description">
-                  <Textarea rows={8} value={product.description} onChange={(e) => setProduct({ ...product, description: e.target.value })} />
-                </Field>
-              </div>
-              <div className="space-y-4">
-                <Field label="Price (cents)">
-                  <Input
-                    type="number"
-                    value={product.price}
-                    onChange={(e) => setProduct({ ...product, price: Number(e.target.value || 0) })}
-                  />
-                </Field>
-                <Field label="Compare at (cents)">
-                  <Input
-                    type="number"
-                    value={product.compareAtPrice ?? ""}
-                    onChange={(e) =>
-                      setProduct({ ...product, compareAtPrice: e.target.value === "" ? null : Number(e.target.value) })
-                    }
-                  />
-                </Field>
-                <Field label="Currency">
-                  <Select value={product.currency} onValueChange={(v: Currency) => setProduct({ ...product, currency: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="EUR">EUR</SelectItem>
-                      <SelectItem value="GBP">GBP</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium">Active</div>
-                    <div className="text-xs text-muted-foreground">Visible on storefront</div>
-                  </div>
-                  <Switch checked={product.isActive} onCheckedChange={(v) => setProduct({ ...product, isActive: v })} />
-                </div>
-                <Button onClick={saveOverview}><Save className="mr-2 size-4" />Save Overview</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* IMAGES (static UI placeholder unless you add /api/products/[id]/images) */}
-        <TabsContent value="images" className="mt-4">
-          <Card className="rounded-2xl">
-            <CardHeader className="pb-3">
-              <CardTitle>Images</CardTitle>
-              <CardDescription>Add product images (UI only stub)</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-xl border p-4 text-sm text-muted-foreground">
-                This demo uses static UI. Wire to <code>/api/products/[id]/images</code> for full CRUD.
-              </div>
-              <div className="grid gap-3 md:grid-cols-3">
-                <div className="rounded-xl border p-3 text-sm">/images/products/oxford-001.png</div>
-                <div className="rounded-xl border p-3 text-sm opacity-60">/images/products/oxford-001-2.png</div>
-                <div className="rounded-xl border p-3 text-sm opacity-60">/images/products/oxford-001-3.png</div>
-              </div>
-              <div className="flex gap-2">
-                <Input placeholder="https://…" />
-                <Button><Plus className="mr-2 size-4" />Add</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* OPTIONS */}
-        <TabsContent value="options" className="mt-4">
-          <OptionsTab
-            options={options}
-            onCreate={createOption}
-            onAddValue={addOptionValue}
-          />
-        </TabsContent>
-
-        {/* VARIANTS */}
-        <TabsContent value="variants" className="mt-4">
-          <VariantsTab
-            options={options}
-            variants={variants}
-            onGenerate={generateVariants}
-          />
-        </TabsContent>
-
-        {/* PANELS */}
-        <TabsContent value="panels" className="mt-4">
-          <PanelsTab
-            master={masterPanels}
-            list={productPanels}
-            onAddPanel={addPanel}
-            onToggleCustom={togglePanelCustom}
-          />
-        </TabsContent>
-
-        {/* SIZES */}
-        <TabsContent value="sizes" className="mt-4">
-          <SizesTab
-            sizes={sizes}
-            productSizes={productSizes}
-            onToggle={toggleSize}
-          />
-        </TabsContent>
-
-        {/* 3D ASSETS */}
-        <TabsContent value="assets" className="mt-4">
-          <Card className="rounded-2xl">
-            <CardHeader className="pb-3">
-              <CardTitle>3D Assets</CardTitle>
-              <CardDescription>GLB & rendering hints</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-3">
-              <Field label="GLB URL">
-                <Input
-                  value={product.assets?.glb?.url ?? ""}
-                  onChange={(e) =>
-                    setProduct({
-                      ...product,
-                      assets: { ...(product.assets ?? {}), glb: { ...(product.assets?.glb ?? {}), url: e.target.value } },
-                    })
-                  }
-                />
-              </Field>
-              <Field label="Lighting">
-                <Input
-                  value={product.assets?.glb?.lighting ?? ""}
-                  onChange={(e) =>
-                    setProduct({
-                      ...product,
-                      assets: {
-                        ...(product.assets ?? {}),
-                        glb: { ...(product.assets?.glb ?? {}), lighting: e.target.value },
-                      },
-                    })
-                  }
-                />
-              </Field>
-              <Field label="Environment">
-                <Input
-                  value={product.assets?.glb?.environment ?? ""}
-                  onChange={(e) =>
-                    setProduct({
-                      ...product,
-                      assets: {
-                        ...(product.assets ?? {}),
-                        glb: { ...(product.assets?.glb ?? {}), environment: e.target.value },
-                      },
-                    })
-                  }
-                />
-              </Field>
-              <div className="md:col-span-3 flex gap-2">
-                <Button onClick={saveAssets}><Save className="mr-2 size-4" />Save Assets</Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    toast.info("Assets JSON in console");
-                    console.log("assets", product.assets);
-                  }}
-                >
-                  <Sparkles className="mr-2 size-4" /> Preview JSON
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* SEO */}
-        <TabsContent value="seo" className="mt-4">
-          <Card className="rounded-2xl">
-            <CardHeader className="pb-3">
-              <CardTitle>SEO</CardTitle>
-              <CardDescription>Meta for social & search</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Meta Title">
-                  <Input value={product.metaTitle} onChange={(e) => setProduct({ ...product, metaTitle: e.target.value })} />
-                </Field>
-                <Field label="Meta Keywords">
-                  <Input value={product.metaKeywords} onChange={(e) => setProduct({ ...product, metaKeywords: e.target.value })} />
-                </Field>
-              </div>
-              <Field label="Meta Description">
-                <Textarea rows={3} value={product.metaDescription} onChange={(e) => setProduct({ ...product, metaDescription: e.target.value })} />
-              </Field>
-              <Separator />
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Meta Image URL">
-                  <Input value={product.metaImage} onChange={(e) => setProduct({ ...product, metaImage: e.target.value })} />
-                </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Width">
-                    <Input
-                      type="number"
-                      value={product.metaImageWidth ?? ""}
-                      onChange={(e) =>
-                        setProduct({ ...product, metaImageWidth: e.target.value === "" ? null : Number(e.target.value) })
-                      }
-                    />
-                  </Field>
-                  <Field label="Height">
-                    <Input
-                      type="number"
-                      value={product.metaImageHeight ?? ""}
-                      onChange={(e) =>
-                        setProduct({ ...product, metaImageHeight: e.target.value === "" ? null : Number(e.target.value) })
-                      }
-                    />
-                  </Field>
+            <TabsContent value="basic">
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="lg:col-span-2 space-y-6">
+                  <Card className="rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle>Basic Info</CardTitle>
+                      <CardDescription>Title, vendor, and description.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                      <FormField
+                        control={form.control as any}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Title</FormLabel>
+                            <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={form.control as any}
+                          name="productId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Product ID (slug)</FormLabel>
+                              <FormControl><Input placeholder="oxford-001" {...field} /></FormControl>
+                              <FormDescription>URL/key (unique)</FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control as any}
+                          name="vendor"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Vendor</FormLabel>
+                              <FormControl><Input placeholder="Italian Shoes Company" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control as any}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description (HTML allowed)</FormLabel>
+                            <FormControl><Textarea rows={6} placeholder="<p>Full-grain leather, Goodyear welt…</p>" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                <Field label="Alt">
-                  <Input value={product.metaImageAlt ?? ""} onChange={(e) => setProduct({ ...product, metaImageAlt: e.target.value })} />
-                </Field>
-                <Field label="Image Title">
-                  <Input value={product.metaImageTitle ?? ""} onChange={(e) => setProduct({ ...product, metaImageTitle: e.target.value })} />
-                </Field>
-                <Field label="Image Description">
-                  <Input
-                    value={product.metaImageDescription ?? ""}
-                    onChange={(e) => setProduct({ ...product, metaImageDescription: e.target.value })}
-                  />
-                </Field>
+              <div className="mt-6 flex justify-end gap-2">
+                <Button type="button" variant="default" onClick={() => handleNext()}>Next</Button>
               </div>
-              <Button onClick={saveSEO}><Save className="mr-2 size-4" />Save SEO</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </TabsContent>
+
+            <TabsContent value="seo">
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="lg:col-span-2 space-y-6">
+                  <Card className="rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle>SEO</CardTitle>
+                      <CardDescription>Meta tags for social & search.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={form.control as any}
+                          name="metaTitle"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Meta Title</FormLabel>
+                              <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control as any}
+                          name="metaKeywords"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Meta Keywords</FormLabel>
+                              <FormControl><Input placeholder="Oxford Shoes, Full-grain leather…" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control as any}
+                        name="metaDescription"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Meta Description</FormLabel>
+                            <FormControl><Textarea rows={3} placeholder="Premium Oxford Shoes, Full-grain leather…" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}  
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-between gap-2">
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" onClick={() => handleNext()}>Next</Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="pricing">
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="space-y-6">
+                  <Card className="rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle>Pricing</CardTitle>
+                      <CardDescription>Amounts are in <strong>Rupees</strong>.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={form.control as any}
+                          name="price"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Price (rupees)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step={1}
+                                  value={field.value ?? ""}
+                                  onChange={(e) => {
+                                    const v = e.target.value;
+                                    field.onChange(v === "" ? 0 : Number(v));
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control as any}
+                          name="compareAtPrice"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Compare at (rupees)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step={1}
+                                  value={field.value ?? ""}
+                                  onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control as any}
+                        name="currency"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Currency</FormLabel>
+                            <FormControl>
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <SelectTrigger><SelectValue placeholder="Select currency" /></SelectTrigger>
+                                <SelectContent>
+                          <SelectItem value="INR">INR</SelectItem>
+                          <SelectItem value="USD">USD</SelectItem>
+                          <SelectItem value="EUR">EUR</SelectItem>
+                          <SelectItem value="GBP">GBP</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex items-center justify-between rounded-lg border p-3">
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium">Active</div>
+                          <div className="text-xs text-muted-foreground">Visible on storefront</div>
+                        </div>
+                        <FormField
+                          control={form.control as any}
+                          name="isActive"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-between gap-2">
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" onClick={() => handleNext()}>Next</Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="assets">
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="space-y-6">
+                  <Card className="rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle>3D Assets</CardTitle>
+                      <CardDescription>GLB + rendering hints.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                      <FormField
+                        control={form.control as any}
+                        name="glbUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>GLB URL</FormLabel>
+                            <FormControl><Input placeholder="/ShoeSoleFixed.glb" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={form.control as any}
+                          name="glbLighting"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Lighting</FormLabel>
+                              <FormControl><Input placeholder="directional" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control as any}
+                          name="glbEnvironment"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Environment</FormLabel>
+                              <FormControl><Input placeholder="studio" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          const { glbUrl, glbLighting, glbEnvironment } = form.getValues();
+                          const assets = buildAssets({ glbUrl, glbLighting, glbEnvironment } as FormValues);
+                          toast.info("Assets preview (console)");
+                          console.log("assets", assets);
+                        }}
+                      >
+                        <Sparkles className="mr-2 size-4" />
+                        Preview assets JSON (console)
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-between gap-2">
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" onClick={() => handleNext()}>Next</Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="materials">
+              <div className="space-y-6">
+                <MaterialSelection
+                  materials={materials}
+                  selectedMaterials={selectedMaterials}
+                  onSelectionChange={setSelectedMaterials}
+                  loading={materialsLoading}
+                />
+              </div>
+              <div className="mt-6 flex justify-between gap-2">
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" onClick={handleNext}>Next</Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="styles">
+              <div className="space-y-6">
+                <StyleSoleSelection
+                  items={styles}
+                  selectedItems={selectedStyles}
+                  onSelectionChange={setSelectedStyles}
+                  loading={stylesLoading}
+                  title="Style Selection"
+                  description="Select available styles for this product."
+                  emptyMessage="No styles available. Create styles first in the Styles section."
+                />
+              </div>
+              <div className="mt-6 flex justify-between gap-2">
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" onClick={() => handleNext()}>Next</Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="soles">
+              <div className="space-y-6">
+                <StyleSoleSelection
+                  items={soles}
+                  selectedItems={selectedSoles}
+                  onSelectionChange={setSelectedSoles}
+                  loading={solesLoading}
+                  title="Sole Selection"
+                  description="Select available soles for this product."
+                  emptyMessage="No soles available. Create soles first in the Soles section."
+                />
+              </div>
+              <div className="flex justify-between gap-2">
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" onClick={() => handleNext()}>Next</Button>
+              </div>
+            </TabsContent>
+
+
+          </Tabs>
+        </form>
+      </Form>
     </div>
   );
 }
 
-/* ---------------- tabs subcomponents ---------------- */
 
-function OptionsTab({
-  options,
-  onCreate,
-  onAddValue,
-}: {
-  options: ProductOption[];
-  onCreate: (p: { code: string; name: string; type: OptionType }) => Promise<void>;
-  onAddValue: (optionId: string, p: { value: string; label: string }) => Promise<void>;
-}) {
-  const [code, setCode] = React.useState("");
-  const [name, setName] = React.useState("");
-  const [type, setType] = React.useState<OptionType>("CUSTOM");
-
-  return (
-    <Card className="rounded-2xl">
-      <CardHeader className="pb-3">
-        <CardTitle>Options</CardTitle>
-        <CardDescription>Attributes used to generate variants (e.g., Size, Style).</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* create option */}
-        <div className="grid gap-3 md:grid-cols-3">
-          <Field label="Code (slug)">
-            <Input placeholder="size" value={code} onChange={(e) => setCode(e.target.value)} />
-          </Field>
-          <Field label="Name">
-            <Input placeholder="Size" value={name} onChange={(e) => setName(e.target.value)} />
-          </Field>
-          <Field label="Type">
-            <Select value={type} onValueChange={(v: OptionType) => setType(v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {["SIZE", "WIDTH", "STYLE", "SOLE", "COLOR", "MATERIAL", "CUSTOM"].map((t) => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-        </div>
-        <Button
-          onClick={() => {
-            if (!code.trim() || !name.trim()) return toast.error("Provide code & name");
-            onCreate({ code: code.trim(), name: name.trim(), type });
-            setCode(""); setName(""); setType("CUSTOM");
-          }}
-        >
-          <Plus className="mr-2 size-4" /> Add Option
-        </Button>
-
-        <Separator />
-
-        {/* list options */}
-        <div className="grid gap-4">
-          {options.length === 0 && (
-            <div className="rounded-xl border p-4 text-sm text-muted-foreground">
-              No options yet. Create Size/Style/Sole to start generating variants.
-            </div>
-          )}
-          {options.map((opt) => (
-            <div key={opt.id} className="rounded-xl border p-4">
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="uppercase">{opt.code}</Badge>
-                  <div className="font-medium">{opt.name}</div>
-                </div>
-                <div className="text-xs text-muted-foreground">Type: {opt.type}</div>
-              </div>
-              <div className="overflow-hidden rounded-lg border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Label</TableHead>
-                      <TableHead>Value</TableHead>
-                      <TableHead className="w-0"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {opt.values.map((v) => (
-                      <TableRow key={v.id}>
-                        <TableCell>{v.label}</TableCell>
-                        <TableCell className="text-muted-foreground">{v.value}</TableCell>
-                        <TableCell className="text-right"><CircleOff className="size-4 opacity-30" /></TableCell>
-                      </TableRow>
-                    ))}
-                    {opt.values.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={3} className="py-6 text-center text-sm text-muted-foreground">
-                          No values yet
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-              <AddValueRow onAdd={(payload) => onAddValue(opt.id, payload)} />
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function AddValueRow({ onAdd }: { onAdd: (p: { label: string; value: string }) => void }) {
-  const [label, setLabel] = React.useState("");
-  const [value, setValue] = React.useState("");
-  return (
-    <div className="mt-3 flex gap-2">
-      <Input placeholder="Label (e.g., US 8 or Cap Toe)" value={label} onChange={(e) => setLabel(e.target.value)} />
-      <Input placeholder="Value (e.g., us-8 or cap-toe)" value={value} onChange={(e) => setValue(e.target.value)} />
-      <Button
-        variant="secondary"
-        onClick={() => {
-          if (!label.trim() || !value.trim()) return toast.error("Provide label & value");
-          onAdd({ label: label.trim(), value: value.trim() });
-          setLabel(""); setValue("");
-        }}
-      >
-        <Plus className="mr-2 size-4" /> Add
-      </Button>
-    </div>
-  );
-}
-
-function VariantsTab({
-  options,
-  variants,
-  onGenerate,
-}: {
-  options: ProductOption[];
-  variants: Variant[];
-  onGenerate: (p: { optionCodes: string[]; skuPrefix?: string; priceOverride?: number }) => Promise<void>;
-}) {
-  const [selectedCodes, setSelectedCodes] = React.useState<string[]>([]);
-  const [skuPrefix, setSkuPrefix] = React.useState("SKU");
-  const [priceOverride, setPriceOverride] = React.useState<string>("");
-
-  return (
-    <Card className="rounded-2xl">
-      <CardHeader className="pb-3">
-        <CardTitle>Variants</CardTitle>
-        <CardDescription>Generate all combinations from selected options.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid gap-3 md:grid-cols-3">
-          <Field label="Select options">
-            <div className="flex flex-wrap gap-2">
-              {options.map((o) => {
-                const active = selectedCodes.includes(o.code);
-                return (
-                  <Button
-                    key={o.id}
-                    variant={active ? "default" : "outline"}
-                    size="sm"
-                    onClick={() =>
-                      setSelectedCodes((prev) =>
-                        prev.includes(o.code) ? prev.filter((c) => c !== o.code) : [...prev, o.code]
-                      )
-                    }
-                  >
-                    {active ? <Check className="mr-1 size-4" /> : null}
-                    {o.name}
-                  </Button>
-                );
-              })}
-            </div>
-          </Field>
-          <Field label="SKU prefix">
-            <Input value={skuPrefix} onChange={(e) => setSkuPrefix(e.target.value)} />
-          </Field>
-          <Field label="Price override (cents)">
-            <Input
-              type="number"
-              placeholder="Leave blank to use product price"
-              value={priceOverride}
-              onChange={(e) => setPriceOverride(e.target.value)}
-            />
-          </Field>
-        </div>
-        <Button
-          onClick={() => {
-            if (selectedCodes.length === 0) return toast.error("Choose at least one option");
-            onGenerate({
-              optionCodes: selectedCodes,
-              skuPrefix: skuPrefix || "SKU",
-              priceOverride: priceOverride ? Number(priceOverride) : undefined,
-            });
-          }}
-        >
-          <Factory className="mr-2 size-4" />
-          Generate Variants
-        </Button>
-
-        <Separator />
-
-        <div className="overflow-hidden rounded-xl border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>SKU</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {variants.map((v) => (
-                <TableRow key={v.id}>
-                  <TableCell className="font-medium">{v.sku}</TableCell>
-                  <TableCell>{formatCurrency(v.price)}</TableCell>
-                  <TableCell>{v.isActive ? <Badge>Active</Badge> : <Badge variant="secondary">Disabled</Badge>}</TableCell>
-                </TableRow>
-              ))}
-              {variants.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="py-6 text-center text-sm text-muted-foreground">
-                    No variants yet. Generate from options above.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function PanelsTab({
-  master,
-  list,
-  onAddPanel,
-  onToggleCustom,
-}: {
-  master: Panel[];
-  list: ProductPanel[];
-  onAddPanel: (panelId: string) => Promise<void>;
-  onToggleCustom: (pp: ProductPanel, next: boolean) => Promise<void>;
-}) {
-  const [panelId, setPanelId] = React.useState<string>("");
-
-  return (
-    <Card className="rounded-2xl">
-      <CardHeader className="pb-3">
-        <CardTitle>Panels</CardTitle>
-        <CardDescription>Attach customizable panels to this product.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-          <Field label="Select panel">
-            <Select value={panelId} onValueChange={setPanelId}>
-              <SelectTrigger><SelectValue placeholder="Choose panel…" /></SelectTrigger>
-              <SelectContent>
-                {master.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <div className="flex items-end">
-            <Button
-              onClick={() => {
-                if (!panelId) return toast.error("Choose a panel");
-                onAddPanel(panelId);
-                setPanelId("");
-              }}
-            >
-              <Plus className="mr-2 size-4" /> Add Panel
-            </Button>
-          </div>
-        </div>
-
-        <div className="overflow-hidden rounded-xl border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Panel</TableHead>
-                <TableHead>Customizable</TableHead>
-                <TableHead>Allowed Colors</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {list.map((pp) => (
-                <TableRow key={pp.id}>
-                  <TableCell className="font-medium">{pp.panel?.name ?? pp.panelId}</TableCell>
-                  <TableCell>
-                    <Switch checked={pp.isCustomizable} onCheckedChange={(v) => onToggleCustom(pp, v)} />
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    (manage via PUT /api/products/[id]/panels — UI pending)
-                  </TableCell>
-                </TableRow>
-              ))}
-              {list.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="py-6 text-center text-sm text-muted-foreground">
-                    No panels yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function SizesTab({
-  sizes,
-  productSizes,
-  onToggle,
-}: {
-  sizes: Size[];
-  productSizes: ProductSize[];
-  onToggle: (size: Size, enabled: boolean) => Promise<void>;
-}) {
-  const enabledMap = React.useMemo(() => new Set(productSizes.map((ps) => ps.sizeId)), [productSizes]);
-
-  return (
-    <Card className="rounded-2xl">
-      <CardHeader className="pb-3">
-        <CardTitle>Sizes</CardTitle>
-        <CardDescription>Enable sizes for this product (STANDARD width).</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="overflow-hidden rounded-xl border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Region</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead className="w-0"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sizes.map((s) => {
-                const enabled = enabledMap.has(s.id);
-                return (
-                  <TableRow key={s.id} className={enabled ? "" : "opacity-70"}>
-                    <TableCell>{s.region}</TableCell>
-                    <TableCell className="font-medium">{s.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{s.value}</TableCell>
-                    <TableCell className="text-right">
-                      {enabled ? (
-                        <Button size="sm" variant="outline" onClick={() => onToggle(s, false)}>
-                          <Trash2 className="mr-2 size-4" /> Disable
-                        </Button>
-                      ) : (
-                        <Button size="sm" onClick={() => onToggle(s, true)}>
-                          <Plus className="mr-2 size-4" /> Enable
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {sizes.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="py-6 text-center text-sm text-muted-foreground">
-                    No sizes found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 /* ---------------- small helpers ---------------- */
 
@@ -1071,8 +834,10 @@ function formatCurrency(cents: number, currency: Currency = "USD") {
       style: "currency",
       currency,
       maximumFractionDigits: 0,
-    }).format((cents ?? 0) / 100);
+    }).format(cents);
   } catch {
     return `$${(cents ?? 0) / 100}`;
   }
 }
+
+

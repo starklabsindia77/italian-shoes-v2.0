@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     if (!admin) return bad("Unauthorized", 401);
 
     const body = await req.json();
-    console.log(body);
+    console.log("Creating product with data:", body);
     const validatedData = ProductCreateSchema.parse(body);
 
     // Check if productId already exists
@@ -53,19 +53,16 @@ export async function POST(req: Request) {
         currency: validatedData.currency as any,
         compareAtPrice: validatedData.compareAtPrice,
         assets: validatedData.assets,
+        selectedMaterials: validatedData.selectedMaterials ?? undefined,
+        selectedStyles: validatedData.selectedStyles ?? undefined,
+        selectedSoles: validatedData.selectedSoles ?? undefined,
         isActive: validatedData.isActive ?? true,
-        
-        // Create related styles if provided
-       
-        selectedMaterials: validatedData.selectedMaterials ?? [],
-        selectedSoles: validatedData.selectedSoles ?? [],
-        selectedStyles: validatedData.selectedStyles ?? [],
       },
     });
 
     return ok(product, 201);
   } catch (e) {
-    console.log(e);
+    console.error("POST product error:", e);
     if (e instanceof Error && e.name === 'ZodError') {
       return bad("Validation error", 400);
     }
