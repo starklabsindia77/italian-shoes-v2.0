@@ -69,7 +69,7 @@ function formatCurrency(cents: number, currency = "USD") {
     style: "currency",
     currency,
     maximumFractionDigits: 0,
-  }).format(cents / 100);
+  }).format(cents);
 }
 
 export default function ProductsPage() {
