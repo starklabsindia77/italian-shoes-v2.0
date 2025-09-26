@@ -154,6 +154,7 @@ export default function DerbyBuilderClean() {
   const [productData, setProductData] = useState<any>(null);
   const [sizesData, setSizesData] = useState<any>(null);
   const [panelsData, setPanelsData] = useState<any>(null);
+  const [materialsData, setMaterialsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -168,6 +169,10 @@ export default function DerbyBuilderClean() {
   const [appliedTextures, setAppliedTextures] = useState<Record<string, string | null>>({});
   const [inscription, setInscription] = useState({ toe: "", tongue: "" });
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  
+  // Filter state for materials and colors
+  const [selectedMaterialFilter, setSelectedMaterialFilter] = useState<string>("all");
+  const [selectedColorFilter, setSelectedColorFilter] = useState<string>("all");
 
   // Fetch all data from APIs
   useEffect(() => {
@@ -175,11 +180,11 @@ export default function DerbyBuilderClean() {
       try {
         setLoading(true);
 
-        // Fetch data from all three APIs in parallel
+        // Fetch data from all four APIs in parallel
         const [productResponse, sizesResponse, panelsResponse] = await Promise.all([
           fetch(`/api/products/${id}`),
           fetch('/api/sizes'),
-          fetch('/api/panels')
+          fetch('/api/panels'),
         ]);
 
         // Check if all requests were successful
@@ -192,18 +197,20 @@ export default function DerbyBuilderClean() {
         if (!panelsResponse.ok) {
           throw new Error('Failed to fetch panels');
         }
+       
 
         // Parse all responses
         const [productData, sizesData, panelsData] = await Promise.all([
           productResponse.json(),
           sizesResponse.json(),
-          panelsResponse.json()
+          panelsResponse.json(),
         ]);
 
         // Set all data
         setProductData(productData);
         setSizesData(sizesData);
         setPanelsData(panelsData);
+        setMaterialsData(productData.selectedMaterials);
 
         // Initialize UI state with first available options
         if (panelsData.items && panelsData.items.length > 0) {
@@ -268,6 +275,50 @@ export default function DerbyBuilderClean() {
 
   // Use transformed API data or fallback to mock data
   const cfg = transformApiData(productData, sizesData, panelsData);
+
+  // Helper functions to get filtered materials and colors
+  const getAvailableMaterials = () => {
+    if (!materialsData) return [];
+    return materialsData;
+  };
+
+  const getAvailableColors = () => {
+    if (!materialsData) return [];
+    
+    if (selectedMaterialFilter === "all") {
+      // Return all colors from all materials
+      return materialsData.flatMap((material: any) => 
+        material.colors.map((color: any) => ({
+          ...color,
+          materialName: material.name,
+          materialId: material.id
+        }))
+      );
+    } else {
+      // Return colors from selected material only
+      const selectedMaterial = materialsData.materials.find((m: any) => m.id === selectedMaterialFilter);
+      return selectedMaterial ? selectedMaterial.colors.map((color: any) => ({
+        ...color,
+        materialName: selectedMaterial.name,
+        materialId: selectedMaterial.id
+      })) : [];
+    }
+  };
+
+  const getFilteredMaterialCategories = () => {
+    if (!materialsData?.materials) return cfg.materialCategories || [];
+    
+    // Transform API materials data to match the expected format
+    return materialsData.materials.map((material: any) => ({
+      id: material.id,
+      name: material.name,
+      colors: material.colors.map((color: any) => ({
+        id: color.id,
+        name: color.name,
+        hex: color.hexCode || "#000000"
+      }))
+    }));
+  };
 
   const actionsCount = useMemo(
     () => [selectedMaterial, selectedStyle, selectedSole, selectedColor, ...Object.values(appliedTextures)].filter(Boolean).length,
@@ -476,27 +527,41 @@ export default function DerbyBuilderClean() {
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">All Materials</label>
-                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                        <option>All Materials</option>
-                        <option>Premium Leather</option>
-                        <option>Metallic Finish</option>
-                        <option>High Shine</option>
+                      <select 
+                        value={selectedMaterialFilter}
+                        onChange={(e) => {
+                          setSelectedMaterialFilter(e.target.value);
+                          setSelectedColorFilter("all"); // Reset color filter when material changes
+                        }}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      >
+                        <option value="all">All Materials</option>
+                        {getAvailableMaterials().map((material: any) => (
+                          <option key={material.materialId} value={material.materialId}>
+                            {material.materialName}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">All colors</label>
-                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                        <option>All colors</option>
-                        <option>Brown</option>
-                        <option>Black</option>
-                        <option>Red</option>
-                        <option>Blue</option>
+                      <select 
+                        value={selectedColorFilter}
+                        onChange={(e) => setSelectedColorFilter(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      >
+                        <option value="all">All colors</option>
+                        {getAvailableColors().map((color: any) => (
+                          <option key={color.id} value={color.id}>
+                            {color.name} {selectedMaterialFilter === "all" ? `(${color.materialName})` : ""}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
 
                   <div className="space-y-6">
-                    {(cfg.materialCategories || []).map((category: any) => (
+                    {getFilteredMaterialCategories().map((category: any) => (
                       <div key={category.id}>
                         <h4 className="text-sm font-medium text-gray-700 mb-3">{category.name}</h4>
                         <div className="flex flex-wrap gap-2">

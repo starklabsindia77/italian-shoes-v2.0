@@ -29,6 +29,7 @@ export interface SelectedMaterial {
   materialId: string;
   materialName: string;
   selectedColorIds: string[];
+  selectedColor: MaterialColor[];
   selectAllColors: boolean;
 }
 
@@ -72,6 +73,7 @@ export function MaterialSelection({
         materialId: material.id,
         materialName: material.name,
         selectedColorIds: [],
+        selectedColor: [],
         selectAllColors: false
       };
       onSelectionChange([...selectedMaterials, newSelection]);
@@ -80,21 +82,29 @@ export function MaterialSelection({
 
   const toggleColorSelection = (materialId: string, colorId: string) => {
     const material = selectedMaterials.find(sm => sm.materialId === materialId);
-    if (!material) return;
+    const materialData = materials.find(m => m.id === materialId);
+    if (!material || !materialData) return;
+
+    const color = materialData.colors.find(c => c.id === colorId);
+    if (!color) return;
 
     const isColorSelected = material.selectedColorIds.includes(colorId);
     let newSelectedColorIds: string[];
+    let newSelectedColor: MaterialColor[];
     
     if (isColorSelected) {
       newSelectedColorIds = material.selectedColorIds.filter(id => id !== colorId);
+      newSelectedColor = material.selectedColor.filter(c => c.id !== colorId);
     } else {
       newSelectedColorIds = [...material.selectedColorIds, colorId];
+      newSelectedColor = [...material.selectedColor, color];
     }
 
     const updatedMaterial: SelectedMaterial = {
       ...material,
       selectedColorIds: newSelectedColorIds,
-      selectAllColors: newSelectedColorIds.length === materials.find(m => m.id === materialId)?.colors.filter(c => c.isActive).length
+      selectedColor: newSelectedColor,
+      selectAllColors: newSelectedColorIds.length === materialData.colors.filter(c => c.isActive).length
     };
 
     onSelectionChange(
@@ -113,6 +123,7 @@ export function MaterialSelection({
     const updatedMaterial: SelectedMaterial = {
       ...material,
       selectedColorIds: newSelectAllColors ? activeColors.map(c => c.id) : [],
+      selectedColor: newSelectAllColors ? activeColors : [],
       selectAllColors: newSelectAllColors
     };
 
