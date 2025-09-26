@@ -183,10 +183,10 @@ model MaterialColor {
   extId      Int?
 
   material    Material            @relation(fields: [materialId], references: [id], onDelete: Cascade)
-  panelColors ProductPanelColor[]
+
 
   // back-rel for ProductPanel.defaultMaterialColor
-  defaultForPanels ProductPanel[] @relation("DefaultPanelColor")
+
 
   @@index([materialId])
   @@index([name])
@@ -205,7 +205,7 @@ model Style {
   environment Json?
   assets      Json?
 
-  products ProductStyle[]
+ 
 
   // back-rel for OrderItem.style
   orderItems OrderItem[] @relation("OrderItemStyle")
@@ -227,7 +227,7 @@ model Sole {
   environment Json?
   assets      Json?
 
-  products ProductSole[]
+  
 
   // back-rel for OrderItem.sole
   orderItems OrderItem[] @relation("OrderItemSole")
@@ -247,7 +247,6 @@ model Size {
   sortOrder    Int     @default(0)
   extId        Int?
 
-  productSizes ProductSize[]
 
   // back-rel for OrderItem.size
   orderItems OrderItem[] @relation("OrderItemSize")
@@ -264,7 +263,7 @@ model Panel {
   sortOrder Int         @default(0)
   isActive  Boolean     @default(true)
 
-  productPanels ProductPanel[]
+
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -298,18 +297,17 @@ model Product {
   // Assets (JSON: { glb: { url, lighting, environment } })
   assets Json?
 
+  // Selected materials with colors (JSON array)
+  selectedMaterials Json?
+
+  // Selected styles (JSON array)
+  selectedStyles Json?
+
+  // Selected soles (JSON array)
+  selectedSoles Json?
+
   isActive Boolean @default(true)
 
-  images   ProductImage[]
-  panels   ProductPanel[]
-  styles   ProductStyle[]
-  soles    ProductSole[]
-  sizes    ProductSize[]
-  options  ProductOption[]
-  variants ProductVariant[]
-
-  // back-rel for OrderItem.product
-  orderItems OrderItem[] @relation("OrderItemProduct")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -318,186 +316,9 @@ model Product {
   @@index([productId])
 }
 
-model ProductImage {
-  id        String  @id @default(cuid())
-  productId String
-  url       String
-  alt       String?
-  sortOrder Int     @default(0)
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@index([productId])
-}
 
-model ProductStyle {
-  id        String @id @default(cuid())
-  productId String
-  styleId   String
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  style   Style   @relation(fields: [styleId], references: [id], onDelete: Restrict)
-
-  @@unique([productId, styleId])
-  @@index([styleId])
-}
-
-model ProductSole {
-  id        String @id @default(cuid())
-  productId String
-  soleId    String
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  sole    Sole    @relation(fields: [soleId], references: [id], onDelete: Restrict)
-
-  @@unique([productId, soleId])
-  @@index([soleId])
-}
-
-model ProductSize {
-  id        String    @id @default(cuid())
-  productId String
-  sizeId    String
-  width     ShoeWidth @default(STANDARD)
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  size    Size    @relation(fields: [sizeId], references: [id], onDelete: Restrict)
-
-  @@unique([productId, sizeId, width], name: "productId_sizeId_width")
-  @@index([sizeId])
-}
-
-model ProductPanel {
-  id             String  @id @default(cuid())
-  productId      String
-  panelId        String
-  isCustomizable Boolean @default(true)
-  modelUrl       String?
-
-  defaultMaterialColorId String?
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  panel   Panel   @relation(fields: [panelId], references: [id], onDelete: Restrict)
-
-  // named relation + back-rel on MaterialColor.defaultForPanels
-  defaultMaterialColor MaterialColor? @relation("DefaultPanelColor", fields: [defaultMaterialColorId], references: [id])
-
-  allowedColors ProductPanelColor[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([productId, panelId], name: "productId_panelId")
-  @@index([panelId])
-}
-
-model ProductPanelColor {
-  id              String @id @default(cuid())
-  productPanelId  String
-  materialColorId String
-
-  productPanel  ProductPanel  @relation(fields: [productPanelId], references: [id], onDelete: Cascade)
-  materialColor MaterialColor @relation(fields: [materialColorId], references: [id], onDelete: Restrict)
-
-  @@unique([productPanelId, materialColorId])
-  @@index([materialColorId])
-}
-
-/**
- * ============================
- * Attributes & Variations
- * ============================
- */
-model ProductOption {
-  id        String     @id @default(cuid())
-  productId String
-  code      String // "size" | "style" | "sole" | "color" | ...
-  name      String // "Size", "Style", ...
-  type      OptionType @default(CUSTOM)
-  position  Int        @default(0)
-  isActive  Boolean    @default(true)
-  metadata  Json?
-
-  product        Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
-  values         ProductOptionValue[]
-  variantOptions ProductVariantOption[]
-
-  @@unique([productId, code], name: "productId_code")
-  @@index([productId])
-}
-
-model ProductOptionValue {
-  id              String     @id @default(cuid())
-  productOptionId String
-  value           String // canonical value/slug (e.g., "8", "cap-toe", "sole-01")
-  label           String // display label
-  position        Int        @default(0)
-  isActive        Boolean    @default(true)
-  metadata        Json?
-  // optional links to master data
-  sizeId          String?
-  styleId         String?
-  soleId          String?
-  materialColorId String?
-  width           ShoeWidth?
-
-  productOption ProductOption @relation(fields: [productOptionId], references: [id], onDelete: Cascade)
-
-  // back-rel for ProductVariantOption.value
-  variantOptions ProductVariantOption[] @relation("VariantOptionValue")
-
-  @@unique([productOptionId, value], name: "productOptionId_value")
-  @@index([productOptionId])
-  @@index([materialColorId])
-  @@index([sizeId])
-  @@index([styleId])
-  @@index([soleId])
-}
-
-model ProductVariant {
-  id        String  @id @default(cuid())
-  productId String
-  sku       String  @unique
-  barcode   String? @unique
-  isActive  Boolean @default(true)
-
-  price       Int
-  currency    Currency @default(USD)
-  compareAt   Int?
-  stockQty    Int?
-  weightGrams Int?
-  imageUrl    String?
-  metadata    Json?
-
-  optionsHash String @unique // deterministic from option value IDs
-
-  product Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
-  options ProductVariantOption[]
-
-  // back-rel for OrderItem.variant
-  orderItems OrderItem[] @relation("OrderItemVariant")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([productId])
-}
-
-model ProductVariantOption {
-  id                   String @id @default(cuid())
-  productVariantId     String
-  productOptionId      String
-  productOptionValueId String
-
-  variant ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
-  option  ProductOption  @relation(fields: [productOptionId], references: [id], onDelete: Cascade)
-
-  // named relation + back-rel on ProductOptionValue.variantOptions
-  value ProductOptionValue @relation("VariantOptionValue", fields: [productOptionValueId], references: [id])
-
-  @@unique([productVariantId, productOptionId], name: "productVariantId_productOptionId")
-  @@index([productOptionValueId])
-}
 
 /**
  * ============================
@@ -575,7 +396,7 @@ model OrderItem {
 
   // variant linkage
   productVariantId String?
-  variant          ProductVariant? @relation("OrderItemVariant", fields: [productVariantId], references: [id], onDelete: SetNull)
+ 
 
   // optional high-level pointers
   styleId String?
@@ -586,7 +407,7 @@ model OrderItem {
   size    Size?   @relation("OrderItemSize", fields: [sizeId], references: [id], onDelete: SetNull)
 
   // product link for reporting
-  product Product? @relation("OrderItemProduct", fields: [productId], references: [id], onDelete: SetNull)
+  
 
   // panel-level customization snapshot
   panelCustomization Json

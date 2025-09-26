@@ -355,7 +355,7 @@ export default function ProductNewPage() {
                 </div>
               </div>
               <div className="mt-6 flex justify-end gap-2">
-                <Button type="button" variant="default" onClick={handleNext}>Next</Button>
+                <Button type="button" variant="default" onClick={() => handleNext()}>Next</Button>
               </div>
             </TabsContent>
 
@@ -401,15 +401,15 @@ export default function ProductNewPage() {
                             <FormControl><Textarea rows={3} placeholder="Premium Oxford Shoes, Full-grain leather…" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
-                        )}
+                        )}  
                       />
                     </CardContent>
                   </Card>
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
-                <Button type="button" onClick={handleNext}>Next</Button>
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" onClick={() => handleNext()}>Next</Button>
               </div>
             </TabsContent>
 
@@ -509,8 +509,8 @@ export default function ProductNewPage() {
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
-                <Button type="button" onClick={handleNext}>Next</Button>
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" onClick={() => handleNext()}>Next</Button>
               </div>
             </TabsContent>
 
@@ -576,8 +576,8 @@ export default function ProductNewPage() {
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
-                <Button type="button" onClick={handleNext}>Next</Button>
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" onClick={() => handleNext()}>Next</Button>
               </div>
             </TabsContent>
 
@@ -591,7 +591,7 @@ export default function ProductNewPage() {
                 />
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
                 <Button type="button" onClick={handleNext}>Next</Button>
               </div>
             </TabsContent>
@@ -609,8 +609,8 @@ export default function ProductNewPage() {
                 />
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
-                <Button type="button" onClick={handleNext}>Next</Button>
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" onClick={() => handleNext()}>Next</Button>
               </div>
             </TabsContent>
 
@@ -627,8 +627,8 @@ export default function ProductNewPage() {
                 />
               </div>
               <div className="flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
-                <Button type="button" onClick={handleNext}>Next</Button>
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" onClick={() => handleNext()}>Next</Button>
               </div>
             </TabsContent>
 
@@ -641,7 +641,7 @@ export default function ProductNewPage() {
                 <CardContent className="space-y-4">
                   <p className="text-sm text-muted-foreground">You can go back to edit any section.</p>
                   <div className="flex gap-2">
-                    <Button type="button" variant="outline" onClick={handleBack} className="flex-1">Back</Button>
+                    <Button type="button" variant="outline" onClick={() => handleBack()} className="flex-1">Back</Button>
                     <Button type="submit" className="flex-1">
                       <Save className="mr-2 size-4" />
                       Create Product
