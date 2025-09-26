@@ -6,7 +6,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Public paths
-  if (pathname.startsWith("/login") || pathname.startsWith("/api/auth")) {
+  if (pathname.startsWith("/login") || pathname.startsWith("/logout") || pathname.startsWith("/api/auth")) {
     return NextResponse.next();
   }
 
@@ -24,5 +24,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/api/auth/:path*"],
+  matcher: ["/dashboard/:path*", "/login", "/logout", "/api/auth/:path*"],
 };

@@ -289,12 +289,6 @@ model Product {
   metaTitle            String?
   metaDescription      String?
   metaKeywords         String?
-  metaImage            String?
-  metaImageWidth       Int?
-  metaImageHeight      Int?
-  metaImageAlt         String?
-  metaImageTitle       String?
-  metaImageDescription String?
 
   // Pricing
   price          Int

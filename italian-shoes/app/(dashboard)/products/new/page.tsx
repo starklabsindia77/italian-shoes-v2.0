@@ -48,12 +48,6 @@ const DEFAULTS: Partial<FormValues> = {
   metaTitle: "",
   metaDescription: "",
   metaKeywords: "",
-  metaImage: "",
-  metaImageAlt: "",
-  metaImageTitle: "",
-  metaImageDescription: "",
-  metaImageWidth: 1000,
-  metaImageHeight: 1000,
   price: 0, // rupees
   currency: "INR",
   compareAtPrice: undefined,
@@ -85,12 +79,6 @@ export default function ProductNewPage() {
         "metaTitle",
         "metaDescription",
         "metaKeywords",
-        "metaImage",
-        "metaImageWidth",
-        "metaImageHeight",
-        "metaImageAlt",
-        "metaImageTitle",
-        "metaImageDescription",
       ] as const },
       { id: "pricing", label: "Pricing" as const, validate: ["price", "currency", "compareAtPrice", "isActive"] as const },
       { id: "assets", label: "3D Assets" as const, validate: ["glbUrl", "glbLighting", "glbEnvironment"] as const },
@@ -220,20 +208,14 @@ export default function ProductNewPage() {
     const payload = {
       productId: values.productId.trim(),
       title: values.title.trim(),
-      vendor: values.vendor?.trim() || undefined,
+      vendor: values.vendor?.trim() || "Italian Shoes Company",
       description: values.description, // HTML ok or plain text
       metaTitle: values.metaTitle?.trim(),
       metaDescription: values.metaDescription?.trim(),
       metaKeywords: values.metaKeywords?.trim(),
-      metaImage: values.metaImage?.trim(),
-      metaImageWidth: values.metaImageWidth ?? null,
-      metaImageHeight: values.metaImageHeight ?? null,
-      metaImageAlt: values.metaImageAlt || null,
-      metaImageTitle: values.metaImageTitle || null,
-      metaImageDescription: values.metaImageDescription || null,
       price: Number(values.price) || 0, // rupees
       currency: values.currency,
-      compareAtPrice: values.compareAtPrice ? Number(values.compareAtPrice) : null,
+      compareAtPrice: values.compareAtPrice ? Number(values.compareAtPrice) :  0,
       isActive: values.isActive ?? true,
       assets: buildAssets(values),
       selectedMaterials: selectedMaterials,
@@ -421,79 +403,6 @@ export default function ProductNewPage() {
                           </FormItem>
                         )}
                       />
-                      <Separator />
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <FormField
-                          control={form.control as any}
-                          name="metaImage"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Meta Image URL</FormLabel>
-                              <FormControl><Input placeholder="/images/products/oxford-001.png" {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control as any}
-                            name="metaImageWidth"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Width</FormLabel>
-                                <FormControl><Input type="number" min={0} {...field} /></FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control as any}
-                            name="metaImageHeight"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Height</FormLabel>
-                                <FormControl><Input type="number" min={0} {...field} /></FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
-                      <div className="grid gap-4 md:grid-cols-3">
-                        <FormField
-                          control={form.control as any}
-                          name="metaImageAlt"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Alt</FormLabel>
-                              <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control as any}
-                          name="metaImageTitle"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Image Title</FormLabel>
-                              <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control as any}
-                          name="metaImageDescription"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Image Description</FormLabel>
-                              <FormControl><Input placeholder="Full-grain leather, Goodyear welt…" {...field} /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
                     </CardContent>
                   </Card>
                 </div>

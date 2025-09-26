@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { SessionProvider } from "next-auth/react";
 
 
 
@@ -49,13 +50,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="min-h-screen flex flex-col">
-          <main className="flex-grow">
-            {children}
-          </main>
-        </div>
-        {/* 👇 Required for sonner toasts */}
-        <Toaster richColors position="top-center" />
+        <SessionProvider>
+          <div className="min-h-screen flex flex-col">
+            <main className="flex-grow">
+              {children}
+            </main>
+          </div>
+          {/* 👇 Required for sonner toasts */}
+          <Toaster richColors position="top-center" />
+        </SessionProvider>
       </body>
     </html>
   );

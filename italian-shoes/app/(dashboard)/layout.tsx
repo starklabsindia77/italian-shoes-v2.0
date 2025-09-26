@@ -18,6 +18,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import {
   LayoutDashboard,
   Package,
@@ -88,6 +89,7 @@ function ClientShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: session } = useSession();
 
   const isActive = (href: string) =>
     pathname === href || (href !== "/dashboard" && pathname?.startsWith(href));
@@ -265,16 +267,27 @@ function ClientShell({ children }: { children: React.ReactNode }) {
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="relative">
                         <Avatar className="size-8">
-                          <AvatarImage src="/avatars/admin.png" alt="Admin" />
-                          <AvatarFallback>AD</AvatarFallback>
+                          <AvatarImage src="/avatars/admin.png" alt={session?.user?.name || "User"} />
+                          <AvatarFallback>
+                            {session?.user?.name ? session.user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+                          </AvatarFallback>
                         </Avatar>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium">Admin User</span>
-                          <span className="text-xs text-muted-foreground">admin@site.com</span>
+                          <span className="text-sm font-medium">
+                            {session?.user?.name || "User"}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {session?.user?.email || "user@example.com"}
+                          </span>
+                          {session?.user?.role && (
+                            <span className="text-xs text-muted-foreground">
+                              Role: {(session.user as any).role}
+                            </span>
+                          )}
                         </div>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
@@ -285,8 +298,11 @@ function ClientShell({ children }: { children: React.ReactNode }) {
                         <Link href="/profile">Profile</Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href="/logout">Sign out</Link>
+                      <DropdownMenuItem 
+                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        className="cursor-pointer"
+                      >
+                        Sign out
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

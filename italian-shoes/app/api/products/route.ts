@@ -28,6 +28,7 @@ export async function POST(req: Request) {
     if (!admin) return bad("Unauthorized", 401);
 
     const body = await req.json();
+    console.log(body);
     const validatedData = ProductCreateSchema.parse(body);
 
     // Check if productId already exists
@@ -48,12 +49,6 @@ export async function POST(req: Request) {
         metaTitle: validatedData.metaTitle ?? "",
         metaDescription: validatedData.metaDescription ?? "",
         metaKeywords: validatedData.metaKeywords ?? "",
-        metaImage: validatedData.metaImage ?? "",
-        metaImageWidth: validatedData.metaImageWidth,
-        metaImageHeight: validatedData.metaImageHeight,
-        metaImageAlt: validatedData.metaImageAlt,
-        metaImageTitle: validatedData.metaImageTitle,
-        metaImageDescription: validatedData.metaImageDescription,
         price: validatedData.price,
         currency: validatedData.currency as any,
         compareAtPrice: validatedData.compareAtPrice,
@@ -163,6 +158,7 @@ export async function POST(req: Request) {
 
     return ok(product, 201);
   } catch (e) {
+    console.log(e);
     if (e instanceof Error && e.name === 'ZodError') {
       return bad("Validation error", 400);
     }
