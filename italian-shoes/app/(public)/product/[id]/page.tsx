@@ -3,6 +3,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { ArrowLeft, ZoomIn, Save, Share2, Heart, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
 /* ----------------------
    Types & Product Config
@@ -14,23 +15,85 @@ type Sole = { id: string; name: string; thumbnail?: string; height?: string };
 type Color = { id: string; name: string; textureUrl: string };
 
 const product = {
-  id: "derby-classics",
-  title: "Derby Classics",
-  vendor: "Girotti (mock)",
-  price: 279,
-  compareAtPrice: 449,
-  images: ["/placeholder/shoe-1.jpg", "/placeholder/shoe-2.jpg", "/placeholder/shoe-3.jpg"],
+  id: "mens-luxury-dress-shoes",
+  title: "Men's Luxury Dress Shoes",
+  vendor: "GIROTTI",
+  price: 329,
+  compareAtPrice: 519,
+  currency: "USD",
+  images: [
+    "/placeholder/shoe-main.jpg",
+    "/placeholder/shoe-side.jpg",
+    "/placeholder/shoe-top.jpg",
+    "/placeholder/shoe-heel.jpg"
+  ],
+  colorVariants: [
+    { id: "brown", name: "Brown", image: "/placeholder/shoe-brown.jpg" },
+    { id: "black", name: "Black", image: "/placeholder/shoe-black.jpg" },
+    { id: "red", name: "Red", image: "/placeholder/shoe-red.jpg" },
+    { id: "blue", name: "Blue", image: "/placeholder/shoe-blue.jpg" }
+  ],
   panels: [
     { id: "upper", name: "Upper", meshName: "Upper_Mesh", thumbnail: "/placeholder/panel-upper.jpg" },
     { id: "toe", name: "Toe", meshName: "Toe_Mesh", thumbnail: "/placeholder/panel-toe.jpg" },
     { id: "quarter", name: "Quarter", meshName: "Quarter_Mesh", thumbnail: "/placeholder/panel-quarter.jpg" },
     { id: "heel", name: "Heel", meshName: "Heel_Mesh", thumbnail: "/placeholder/panel-heel.jpg" },
   ] as Panel[],
-  materials: [
-    { id: "calf", name: "Calf Leather", thumbnail: "/placeholder/material-calf.jpg", description: "Premium Italian calf." },
-    { id: "suede", name: "Suede", thumbnail: "/placeholder/material-suede.jpg", description: "Soft brushed finish." },
-    { id: "patent", name: "Patent", thumbnail: "/placeholder/material-patent.jpg", description: "High shine finish." },
-  ] as Material[],
+  materialCategories: [
+    {
+      id: "metallic",
+      name: "Metallic finish premium leather",
+      colors: [
+        { id: "metallic-brown-1", name: "Metallic Brown 1", hex: "#8B4513" },
+        { id: "metallic-brown-2", name: "Metallic Brown 2", hex: "#A0522D" },
+        { id: "metallic-orange", name: "Metallic Orange", hex: "#FF8C00" },
+        { id: "metallic-red-1", name: "Metallic Red 1", hex: "#DC143C" },
+        { id: "metallic-red-2", name: "Metallic Red 2", hex: "#B22222" },
+        { id: "metallic-blue-1", name: "Metallic Blue 1", hex: "#4169E1" },
+        { id: "metallic-blue-2", name: "Metallic Blue 2", hex: "#0000CD" },
+        { id: "metallic-green-1", name: "Metallic Green 1", hex: "#228B22" },
+        { id: "metallic-green-2", name: "Metallic Green 2", hex: "#006400" },
+        { id: "metallic-purple", name: "Metallic Purple", hex: "#8A2BE2" },
+        { id: "metallic-gold", name: "Metallic Gold", hex: "#FFD700" },
+        { id: "metallic-silver", name: "Metallic Silver", hex: "#C0C0C0" },
+        { id: "metallic-copper", name: "Metallic Copper", hex: "#B87333" },
+        { id: "metallic-bronze", name: "Metallic Bronze", hex: "#CD7F32" },
+        { id: "metallic-rose", name: "Metallic Rose", hex: "#E91E63" }
+      ]
+    },
+    {
+      id: "premium",
+      name: "Premium leather",
+      colors: [
+        { id: "premium-brown-1", name: "Premium Brown 1", hex: "#8B4513" },
+        { id: "premium-brown-2", name: "Premium Brown 2", hex: "#A0522D" },
+        { id: "premium-brown-3", name: "Premium Brown 3", hex: "#D2691E" },
+        { id: "premium-red-1", name: "Premium Red 1", hex: "#DC143C" },
+        { id: "premium-red-2", name: "Premium Red 2", hex: "#B22222" },
+        { id: "premium-blue-1", name: "Premium Blue 1", hex: "#4169E1" },
+        { id: "premium-blue-2", name: "Premium Blue 2", hex: "#0000CD" },
+        { id: "premium-green-1", name: "Premium Green 1", hex: "#228B22" },
+        { id: "premium-green-2", name: "Premium Green 2", hex: "#006400" },
+        { id: "premium-black", name: "Premium Black", hex: "#000000" },
+        { id: "premium-tan", name: "Premium Tan", hex: "#D2B48C" },
+        { id: "premium-burgundy", name: "Premium Burgundy", hex: "#800020" },
+        { id: "premium-navy", name: "Premium Navy", hex: "#000080" },
+        { id: "premium-forest", name: "Premium Forest", hex: "#228B22" },
+        { id: "premium-cognac", name: "Premium Cognac", hex: "#9F4E3B" }
+      ]
+    },
+    {
+      id: "high-shine",
+      name: "High shine premium leather",
+      colors: [
+        { id: "shine-black", name: "High Shine Black", hex: "#000000" },
+        { id: "shine-navy", name: "High Shine Navy", hex: "#000080" },
+        { id: "shine-forest", name: "High Shine Forest", hex: "#228B22" },
+        { id: "shine-burgundy", name: "High Shine Burgundy", hex: "#800020" },
+        { id: "shine-brown", name: "High Shine Brown", hex: "#8B4513" }
+      ]
+    }
+  ],
   styles: [
     { id: "derby", name: "Derby", thumbnail: "/placeholder/style-derby.jpg", glb: "/glb/derby.glb" },
     { id: "oxford", name: "Oxford", thumbnail: "/placeholder/style-oxford.jpg", glb: "/glb/oxford.glb" },
@@ -39,17 +102,17 @@ const product = {
     { id: "leather", name: "Leather Sole", thumbnail: "/placeholder/sole-leather.jpg", height: "2.0 cm" },
     { id: "rubber", name: "Rubber Sole", thumbnail: "/placeholder/sole-rubber.jpg", height: "2.5 cm" },
   ] as Sole[],
-  colors: [
-    { id: "black", name: "Black", textureUrl: "/leather/black.jpg" },
-    { id: "brown", name: "Brown", textureUrl: "/leather/brown.jpg" },
-    { id: "dark-red", name: "Dark Red", textureUrl: "/leather/dark-red.png" },
-    { id: "grey", name: "Grey", textureUrl: "/leather/grey.png" },
-  ] as Color[],
   sizes: [
+    { id: "40", label: "EU 40 / UK 6 / US 7" },
+    { id: "41", label: "EU 41 / UK 7 / US 8" },
     { id: "42", label: "EU 42 / UK 8 / US 9" },
     { id: "43", label: "EU 43 / UK 9 / US 10" },
     { id: "44", label: "EU 44 / UK 9.5 / US 10.5" },
+    { id: "45", label: "EU 45 / UK 10 / US 11" },
   ],
+  description: "Luxury Edition of hand-dyed dress shoes. These shoes embody authority, elegance, and comfort, blending classic and modern looks. Start designing your handcrafted shoes now.",
+  shippingInfo: "Manufacturing and delivery to India in 5-10 days only: $ 48.10",
+  orderStatus: "4 customers are processing an order"
 };
 
 /* ----------------------
@@ -77,7 +140,7 @@ const ViewerPlaceholder: React.FC<{
   <div className="relative bg-white border rounded-lg overflow-hidden h-[540px] flex items-center justify-center">
     <div className="absolute top-3 right-3 z-10 text-xs text-gray-500 bg-white p-2 rounded-md">Double tap to zoom</div>
     <img src={src} alt="shoe" className="object-contain max-h-full max-w-full" />
-    
+
   </div>
 );
 
@@ -111,14 +174,14 @@ export default function DerbyBuilderClean() {
     const fetchAllData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch data from all three APIs in parallel
         const [productResponse, sizesResponse, panelsResponse] = await Promise.all([
           fetch(`/api/products/${id}`),
           fetch('/api/sizes'),
           fetch('/api/panels')
         ]);
-        
+
         // Check if all requests were successful
         if (!productResponse.ok) {
           throw new Error('Failed to fetch product');
@@ -129,19 +192,19 @@ export default function DerbyBuilderClean() {
         if (!panelsResponse.ok) {
           throw new Error('Failed to fetch panels');
         }
-        
+
         // Parse all responses
         const [productData, sizesData, panelsData] = await Promise.all([
           productResponse.json(),
           sizesResponse.json(),
           panelsResponse.json()
         ]);
-        
+
         // Set all data
         setProductData(productData);
         setSizesData(sizesData);
         setPanelsData(panelsData);
-        
+
         // Initialize UI state with first available options
         if (panelsData.items && panelsData.items.length > 0) {
           setActivePanel(panelsData.items[0].panelId);
@@ -167,12 +230,12 @@ export default function DerbyBuilderClean() {
   // Transform API data to match UI expectations
   const transformApiData = (productApiData: any, sizesApiData: any, panelsApiData: any) => {
     if (!productApiData) return product;
-    
+
     return {
       ...productApiData,
       // Add default images if not present
       images: productApiData.images || ["/placeholder/shoe-1.jpg", "/placeholder/shoe-2.jpg", "/placeholder/shoe-3.jpg"],
-      
+
       // Transform panels from panels API data or use defaults
       panels: panelsApiData?.items ? panelsApiData.items.map((panel: any) => ({
         id: panel.panelId,
@@ -186,38 +249,13 @@ export default function DerbyBuilderClean() {
         { id: "quarter", name: "Quarter", meshName: "Quarter_Mesh", thumbnail: "/placeholder/panel-quarter.jpg" },
         { id: "heel", name: "Heel", meshName: "Heel_Mesh", thumbnail: "/placeholder/panel-heel.jpg" },
       ],
-      
-      // Transform materials from API data or use defaults
-      materials: productApiData.materials || [
-        { id: "calf", name: "Calf Leather", thumbnail: "/placeholder/material-calf.jpg", description: "Premium Italian calf." },
-        { id: "suede", name: "Suede", thumbnail: "/placeholder/material-suede.jpg", description: "Soft brushed finish." },
-        { id: "patent", name: "Patent", thumbnail: "/placeholder/material-patent.jpg", description: "High shine finish." },
-      ],
-      
-      // Transform styles from API data or use defaults
-      styles: productApiData.styles || [
-        { id: "derby", name: "Derby", thumbnail: "/placeholder/style-derby.jpg", glb: "/glb/derby.glb" },
-        { id: "oxford", name: "Oxford", thumbnail: "/placeholder/style-oxford.jpg", glb: "/glb/oxford.glb" },
-      ],
-      
-      // Transform soles from API data or use defaults
-      soles: productApiData.soles || [
-        { id: "leather", name: "Leather Sole", thumbnail: "/placeholder/sole-leather.jpg", height: "2.0 cm" },
-        { id: "rubber", name: "Rubber Sole", thumbnail: "/placeholder/sole-rubber.jpg", height: "2.5 cm" },
-      ],
-      
-      // Transform colors from API data or use defaults
-      colors: productApiData.colors || [
-        { id: "black", name: "Black", textureUrl: "/leather/black.jpg" },
-        { id: "brown", name: "Brown", textureUrl: "/leather/brown.jpg" },
-        { id: "dark-red", name: "Dark Red", textureUrl: "/leather/dark-red.png" },
-        { id: "grey", name: "Grey", textureUrl: "/leather/grey.png" },
-      ],
-      
+
+
+
       // Transform sizes from sizes API data or use defaults
       sizes: sizesApiData?.items ? sizesApiData.items.map((size: any) => ({
         id: size.id,
-        label: `${size.region} ${size.name}${size.euEquivalent ? ` / EU ${size.euEquivalent}` : ''}${size.ukEquivalent ? ` / UK ${size.ukEquivalent}` : ''}`,
+        label: `${size.name}${size.euEquivalent ? ` / ${size.euEquivalent}` : ''}${size.ukEquivalent ? ` / ${size.ukEquivalent}` : ''}`,
         value: size.value,
         region: size.region
       })) : [
@@ -276,8 +314,8 @@ export default function DerbyBuilderClean() {
           <div className="text-red-600 text-6xl mb-4">⚠️</div>
           <h1 className="text-2xl font-semibold mb-2">Error Loading Product</h1>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
           >
             Try Again
@@ -289,111 +327,222 @@ export default function DerbyBuilderClean() {
 
   return (
     <div className="min-h-screen bg-white text-gray-800">
-      {/* Breadcrumb header */}
-      <header className="border-b">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="text-sm text-gray-600">Home / Create Design / Men's Shoe / {cfg.title || 'Derby Classics'}</div>
-          <div className="text-sm text-gray-600">Support: +91 12345 67890</div>
+      {/* Header with back button and title */}
+      <header className="border-b bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-4 mb-2">
+            <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-sm">Back to list</span>
+            </button>
+          </div>
+          <div className="text-sm text-gray-500 mb-1">
+            Home &gt; Create Design &gt; Create Men's Shoes &gt; {cfg.title || 'Men\'s Luxury Dress Shoes'}
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">{cfg.title || 'Men\'s Luxury Dress Shoes'}</h1>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-[55%_45%] gap-8">
-          {/* Left: Viewer */}
-          <div className="space-y-4">
-            <div className="relative">
-              <Toolbar onClear={clearAll} />
-              <ViewerPlaceholder src={cfg.images?.[imageIndex] || '/placeholder/shoe-default.jpg'} panels={cfg.panels || []} activePanel={activePanel} appliedTextures={appliedTextures} />
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-12">
+          {/* Left: Enhanced Product Viewer */}
+          <div className="space-y-6">
+            {/* Main Product Image with Controls */}
+            <div className="relative bg-gray-50 rounded-lg overflow-hidden">
+              {/* Interactive Controls */}
+              <div className="absolute top-4 left-4 z-10 flex gap-2">
+                <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors">
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+                <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors">
+                  <Save className="w-4 h-4" />
+                </button>
+                <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors">
+                  <Share2 className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Navigation Arrows */}
+              <button className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors z-10">
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors z-10">
+                <ChevronRight className="w-5 h-5" />
+              </button>
+
+              {/* Main Product Image */}
+              <div className="aspect-square flex items-center justify-center p-8">
+                <img
+                  src={cfg.images?.[imageIndex] || '/placeholder/shoe-main.jpg'}
+                  alt="Product"
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
             </div>
 
-            <div className="flex gap-3">
+            {/* Thumbnail Gallery */}
+            <div className="flex gap-3 overflow-x-auto pb-2">
               {(cfg.images || []).map((src: string, i: number) => (
                 <button
                   key={src}
                   onClick={() => setImageIndex(i)}
-                  className={`w-20 h-20 rounded-md overflow-hidden border ${imageIndex === i ? "ring-2 ring-red-500" : "border-gray-200"}`}
+                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${imageIndex === i ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"
+                    }`}
                 >
-                  <img src={src} alt={`thumb-${i}`} className="w-full h-full object-cover" />
+                  <img src={src} alt={`View ${i + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+
+              {/* 360° View Button */}
+              <button className="flex-shrink-0 w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-gray-400 transition-colors">
+                <span className="text-xs font-medium text-gray-500">360°</span>
+              </button>
+
+              {/* Color Variants */}
+              {(cfg.colorVariants || []).map((variant: any) => (
+                <button
+                  key={variant.id}
+                  className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-gray-300 transition-colors"
+                >
+                  <img src={variant.image} alt={variant.name} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
+
+            {/* Order Status */}
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span>{cfg.orderStatus || '4 customers are processing an order'}</span>
+              <span className="text-gray-400">•</span>
+              <span className="font-medium">{cfg.vendor || 'GIROTTI'}</span>
+            </div>
           </div>
 
-          {/* Right: Controls */}
-          <div className="space-y-6">
+          {/* Right: Enhanced Customization Panel */}
+          <div className="space-y-8">
+            {/* Pricing Section */}
             <div>
-              <h1 className="text-2xl font-semibold">{cfg.title}</h1>
-              <p className="text-sm text-gray-600">By {cfg.vendor}</p>
-              <div className="flex items-baseline gap-3 mt-3">
-                <div className="text-2xl font-bold text-red-600">₹{cfg.price}</div>
-                <div className="text-sm text-gray-500 line-through">₹{cfg.compareAtPrice}</div>
-                <Badge>Free Delivery & Returns</Badge>
+              <div className="flex items-baseline gap-3 mb-4">
+                <div className="text-3xl font-bold text-gray-900">${cfg.price || 329}</div>
+                <div className="text-lg text-gray-500 line-through">${cfg.compareAtPrice || 519}</div>
+              </div>
+
+              {/* Size Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
+                <select
+                  value={selectedSize || ''}
+                  onChange={(e) => setSelectedSize(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                >
+                  {(cfg.sizes || []).map((s: any) => (
+                    <option key={s.id} value={s.id}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Add to Cart Button */}
+              <button className="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors mb-4">
+                ADD TO CART
+              </button>
+
+              {/* Shipping Info */}
+              <div className="text-sm text-gray-600 mb-6">
+                {cfg.shippingInfo || 'Manufacturing and delivery to India in 5-10 days only'}
               </div>
             </div>
 
-            {/* Panel selector */}
-            <section className="bg-white border rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <div className="text-sm font-medium">Edit Panel</div>
-                  <div className="text-xs text-gray-500">Choose the shoe panel to customize</div>
-                </div>
-                <div className="text-xs text-gray-500">Actions: {actionsCount}</div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {(cfg.panels || []).map((p: any) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setActivePanel(p.id)}
-                    className={`flex items-center gap-3 p-2 rounded-md border transition ${activePanel === p.id ? "ring-2 ring-red-400 border-transparent" : "border-gray-200"}`}
-                  >
-                    <div className="w-12 h-12 rounded overflow-hidden bg-gray-50 flex items-center justify-center">
-                      <img src={p.thumbnail || "/placeholder/panel-default.jpg"} alt={p.name} className="object-cover w-full h-full" />
-                    </div>
-                    <div className="text-sm">
-                      <div className="font-medium">{p.name}</div>
-                      <div className="text-xs text-gray-500">panel</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            {/* Editor tabs */}
-            <section className="bg-white border rounded-lg p-4">
-              <div className="flex gap-2 mb-4">
-                {(["Materials", "Style", "Soles", "Colors", "Inscription"] as const).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setActiveTab(t)}
-                    className={`px-3 py-2 text-sm rounded-md ${activeTab === t ? "bg-white text-gray-900 shadow" : "bg-gray-100 text-gray-600"}`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-
-              {/* Materials */}
-              {activeTab === "Materials" && (
-                <div>
-                  <h3 className="font-medium mb-2">Materials</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {(cfg.materials || []).map((m: any) => (
+            {/* Customization Tabs */}
+            <div>
+            <div className="flex gap-1 mb-6">
+                    {(["Materials", "Style", "Soles"] as const).map((t) => (
                       <button
-                        key={m.id}
-                        onClick={() => setSelectedMaterial(m.id)}
-                        className={`p-3 rounded-md border text-left transition ${selectedMaterial === m.id ? "border-red-500 ring-1 ring-red-100" : "border-gray-200"}`}
+                        key={t}
+                        onClick={() => setActiveTab(t)}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === t
+                            ? "bg-red-600 text-white"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          }`}
                       >
-                        <div className="w-full h-24 rounded-md overflow-hidden bg-gray-50 mb-2 flex items-center justify-center">
-                          <img src={m.thumbnail || "/placeholder/material-default.jpg"} alt={m.name} className="object-cover w-full h-full" />
-                        </div>
-                        <div className="text-sm font-medium">{m.name}</div>
-                        <div className="text-xs text-gray-500">{m.description}</div>
+                        {t}
                       </button>
                     ))}
                   </div>
-                </div>
+
+              {/* Materials */}
+              {activeTab === "Materials" && (
+
+                <>
+                  
+
+                  {/* Customization Instruction */}
+                  <p className="text-sm text-gray-600 mb-4">
+                    Choose a material and color for every part of your shoes
+                  </p>
+
+                  {/* Panel Selection */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select a panel:</label>
+                    <select
+                      value={activePanel || ''}
+                      onChange={(e) => setActivePanel(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    >
+                      {(cfg.panels || []).map((p: any) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Material and Color Filters */}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">All Materials</label>
+                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        <option>All Materials</option>
+                        <option>Premium Leather</option>
+                        <option>Metallic Finish</option>
+                        <option>High Shine</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">All colors</label>
+                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        <option>All colors</option>
+                        <option>Brown</option>
+                        <option>Black</option>
+                        <option>Red</option>
+                        <option>Blue</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    {(cfg.materialCategories || []).map((category: any) => (
+                      <div key={category.id}>
+                        <h4 className="text-sm font-medium text-gray-700 mb-3">{category.name}</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {category.colors.map((color: any) => (
+                            <button
+                              key={color.id}
+                              onClick={() => setSelectedMaterial(color.id)}
+                              className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${selectedMaterial === color.id
+                                  ? "border-gray-400 ring-2 ring-gray-300"
+                                  : "border-gray-200 hover:border-gray-300"
+                                }`}
+                              style={{ backgroundColor: color.hex }}
+                              title={color.name}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                </>
               )}
 
               {/* Style */}
@@ -401,14 +550,14 @@ export default function DerbyBuilderClean() {
                 <div>
                   <h3 className="font-medium mb-2">Style</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {(cfg.styles || []).map((s: any) => (
+                    {(cfg.selectedStyles || []).map((s: any) => (
                       <button
                         key={s.id}
                         onClick={() => setSelectedStyle(s.id)}
                         className={`p-2 rounded-md border transition ${selectedStyle === s.id ? "border-red-500 ring-1 ring-red-100" : "border-gray-200"}`}
                       >
                         <div className="w-full h-20 rounded-md overflow-hidden bg-gray-50 mb-1 flex items-center justify-center">
-                          <img src={s.thumbnail} alt={s.name} className="object-contain w-full h-full" />
+                          <img src={s.imageUrl} alt={s.name} className="object-contain w-full h-full" />
                         </div>
                         <div className="text-sm text-center">{s.name}</div>
                       </button>
@@ -422,17 +571,16 @@ export default function DerbyBuilderClean() {
                 <div>
                   <h3 className="font-medium mb-2">Soles</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {(cfg.soles || []).map((so: any) => (
+                    {(cfg.selectedSoles || []).map((so: any) => (
                       <button
                         key={so.id || so.name}
                         onClick={() => setSelectedSole(so.id || so.name)}
                         className={`p-2 rounded-md border transition ${selectedSole === (so.id || so.name) ? "border-red-500 ring-1 ring-red-100" : "border-gray-200"}`}
                       >
                         <div className="w-full h-20 rounded-md overflow-hidden bg-gray-50 mb-2 flex items-center justify-center">
-                          <img src={so.thumbnail} alt={so.name} className="object-contain w-full h-full" />
+                          <img src={so.imageUrl} alt={so.name} className="object-contain w-full h-full" />
                         </div>
                         <div className="text-sm font-medium">{so.name}</div>
-                        <div className="text-xs text-gray-500">{so.height || so.description}</div>
                       </button>
                     ))}
                   </div>
@@ -487,55 +635,62 @@ export default function DerbyBuilderClean() {
                   <p className="text-xs text-gray-500 mt-2">Preview will render on the 3D model (in the real viewer).</p>
                 </div>
               )}
-            </section>
+            </div>
 
-            {/* Size & Add to Cart */}
-            <section className="bg-white border rounded-lg p-4">
-              <div className="mb-3">
-                <label className="block text-sm font-medium mb-2">Size</label>
-                <select value={selectedSize || ''} onChange={(e) => setSelectedSize(e.target.value)} className="border rounded-md px-3 py-2">
-                  {(cfg.sizes || []).map((s: any) => (
-                    <option key={s.id} value={s.id}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex gap-3">
-                <button className="flex-1 bg-red-600 text-white px-4 py-3 rounded-md font-medium hover:bg-red-700 transition">Add to Cart</button>
-                <button className="w-12 h-12 rounded-md border flex items-center justify-center">♡</button>
-              </div>
-
-              <div className="mt-3 text-xs text-gray-500 space-y-1">
-                <div>Style: <span className="font-medium">{(cfg.styles || []).find((s: any) => s.id === selectedStyle)?.name || "—"}</span></div>
-                <div>Material: <span className="font-medium">{(cfg.materials || []).find((m: any) => m.id === selectedMaterial)?.name || "—"}</span></div>
-                <div>Sole: <span className="font-medium">{(cfg.soles || []).find((s: any) => (s.id || s.name) === selectedSole)?.name || "—"}</span></div>
-                <div>Panel textures: <span className="font-medium">{Object.values(appliedTextures).filter(Boolean).length}</span></div>
-                <div>Inscription: <span className="font-medium">{inscription.toe || inscription.tongue ? `${inscription.toe} ${inscription.tongue}` : "—"}</span></div>
-              </div>
-            </section>
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                <Heart className="w-4 h-4" />
+                Save to wishlist
+              </button>
+              <button className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                <MessageCircle className="w-4 h-4" />
+                Send inquiry
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Tabs / details */}
-        <div className="mt-10">
-          <div className="bg-white border rounded-md">
-            <nav className="flex space-x-2 p-3 border-b">
-              <button className="px-4 py-2 text-sm rounded-md bg-gray-100">Details</button>
-              <button className="px-4 py-2 text-sm rounded-md hover:bg-gray-50">How to measure</button>
-              <button className="px-4 py-2 text-sm rounded-md hover:bg-gray-50">Reviews (0)</button>
+        {/* Product Information Tabs */}
+        <div className="mt-12">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8">
+              <button className="py-2 px-1 border-b-2 border-red-600 text-sm font-medium text-red-600">
+                Product Description
+              </button>
+              <button className="py-2 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                More information
+              </button>
             </nav>
-            <div className="p-6 text-sm text-gray-700">
-              <p>Classic derby model handcrafted in premium materials. This is a UI-only mock based on the Girotti builder — replace placeholders with real assets and wire the viewer/API to make it interactive.</p>
+          </div>
+
+          <div className="py-6">
+            <div className="prose max-w-none">
+              <p className="text-gray-700 leading-relaxed">
+                {cfg.description || "Luxury Edition of hand-dyed dress shoes. These shoes embody authority, elegance, and comfort, blending classic and modern looks. Start designing your handcrafted shoes now."}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Key Features Section */}
+        <div className="mt-12 bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="text-sm font-medium text-red-800 mb-1">FREE Delivery & Returns</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-red-800 mb-1">100% Quality guaranteed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-red-800 mb-1">100% Italian Style</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-red-800 mb-1">100% Hand Made Shoes</div>
             </div>
           </div>
         </div>
       </main>
-
-      <footer className="border-t mt-12">
-        <div className="max-w-6xl mx-auto px-4 py-6 text-sm text-gray-500">© {new Date().getFullYear()} — Derby Builder (UI)</div>
-      </footer>
     </div>
   );
 }
