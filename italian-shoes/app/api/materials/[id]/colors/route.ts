@@ -20,27 +20,38 @@ export async function GET(
 }
 
 // ✅ POST create a new color for a material
+
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Ensure only admin can create
     await requireAdmin();
+
+    // Parse request body
     const body = await req.json();
     const { id } = await params;
-    console.log('body is', body);
+
+    // Normalize input to match schema
     const data = {
       materialId: id,
       name: body.name,
-      family: body.family,
-      colorCode: body.colorCode,
-      imageUrl: body.imageUrl ? body.imageUrl : '',
-      isActive: body.isActive,
-    }
-    const p = MaterialColorCreateSchema.safeParse(data);
-    console.log('p is', p);
-    if (!p.success) return bad(p.error.message);
+      family: body.family || undefined, // optional
+      colorCode: body.colorCode || undefined, // optional
+      imageUrl: body.imageUrl || undefined, // optional
+      isActive:
+        body.isActive === undefined ? undefined : Boolean(body.isActive),
+    };
 
+    // Validate using Zod
+    const p = MaterialColorCreateSchema.safeParse(data);
+    if (!p.success) {
+      console.error("Validation failed:", p.error.format());
+      return bad("Validation failed: " + JSON.stringify(p.error.format()));
+    }
+
+    // Create the color in DB
     const color = await prisma.materialColor.create({
       data: p.data,
     });
@@ -50,4 +61,3 @@ export async function POST(
     return server(e);
   }
 }
-
