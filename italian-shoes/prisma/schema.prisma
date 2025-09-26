@@ -24,6 +24,7 @@ enum Currency {
   USD
   EUR
   GBP
+  INR
 }
 
 enum Region {
@@ -282,13 +283,13 @@ model Product {
 
   title       String
   vendor      String?
-  description String // HTML ok
+  description String? // HTML ok
 
   // SEO (meta_*)
-  metaTitle            String
-  metaDescription      String
-  metaKeywords         String
-  metaImage            String
+  metaTitle            String?
+  metaDescription      String?
+  metaKeywords         String?
+  metaImage            String?
   metaImageWidth       Int?
   metaImageHeight      Int?
   metaImageAlt         String?
@@ -297,7 +298,7 @@ model Product {
 
   // Pricing
   price          Int
-  currency       Currency @default(USD)
+  currency       Currency @default(INR)
   compareAtPrice Int?
 
   // Assets (JSON: { glb: { url, lighting, environment } })

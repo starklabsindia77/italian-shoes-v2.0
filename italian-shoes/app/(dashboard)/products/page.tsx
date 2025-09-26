@@ -37,32 +37,32 @@ type ApiList<T> = {
   limit: number;
 };
 
-const FALLBACK: ApiList<Product> = {
-  items: [
-    {
-      id: "fake_1",
-      productId: "oxford-001",
-      title: "Premium Oxford Shoes",
-      vendor: "Italian Shoes Company",
-      price: 12999,
-      currency: "USD",
-      isActive: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "fake_2",
-      productId: "derby-002",
-      title: "Classic Derby",
-      vendor: "Italian Shoes Company",
-      price: 11999,
-      currency: "USD",
-      isActive: true,
-      createdAt: new Date().toISOString(),
-    },
-  ],
-  total: 2,
-  limit: 20,
-};
+// const FALLBACK: ApiList<Product> = {
+//   items: [
+//     {
+//       id: "fake_1",
+//       productId: "oxford-001",
+//       title: "Premium Oxford Shoes",
+//       vendor: "Italian Shoes Company",
+//       price: 12999,
+//       currency: "USD",
+//       isActive: true,
+//       createdAt: new Date().toISOString(),
+//     },
+//     {
+//       id: "fake_2",
+//       productId: "derby-002",
+//       title: "Classic Derby",
+//       vendor: "Italian Shoes Company",
+//       price: 11999,
+//       currency: "USD",
+//       isActive: true,
+//       createdAt: new Date().toISOString(),
+//     },
+//   ],
+//   total: 2,
+//   limit: 20,
+// };
 
 function formatCurrency(cents: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
@@ -76,7 +76,7 @@ export default function ProductsPage() {
   const router = useRouter();
   const sp = useSearchParams();
   const [loading, setLoading] = useState(true);
-  const [list, setList] = useState<ApiList<Product>>(FALLBACK);
+  const [list, setList] = useState<ApiList<Product>>({ items: [], total: 0, limit: 20 });
   const [q, setQ] = useState(sp.get("q") ?? "");
   const [page, setPage] = useState<number>(Number(sp.get("page") ?? 1));
   const limit = 20;
@@ -103,7 +103,7 @@ export default function ProductsPage() {
       if (process.env.NODE_ENV !== "production") {
         console.warn("Products API failed, using fallback data:", e);
       }
-      setList(FALLBACK);
+      // setList(FALLBACK);
     } finally {
       setLoading(false);
     }
