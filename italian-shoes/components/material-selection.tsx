@@ -228,7 +228,6 @@ export function MaterialSelection({
                               className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                                 isColorSelected ? 'bg-primary/5 border-primary' : 'hover:bg-muted/50'
                               }`}
-                              onClick={() => toggleColorSelection(material.id, color.id)}
                             >
                               <Checkbox
                                 checked={isColorSelected}
