@@ -12,6 +12,7 @@ export async function DELETE(
     const color = await prisma.materialColor.findUnique({
       where: { id: colorId },
     });
+    
     if (!color) return notFound();
 
     await prisma.materialColor.delete({
