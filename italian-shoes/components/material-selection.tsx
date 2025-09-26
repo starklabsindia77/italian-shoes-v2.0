@@ -47,7 +47,8 @@ export function MaterialSelection({
 }: MaterialSelectionProps) {
   const [expandedMaterials, setExpandedMaterials] = React.useState<Set<string>>(new Set());
 
-  const toggleMaterialExpansion = (materialId: string) => {
+  const toggleMaterialExpansion = (e: React.MouseEvent<HTMLButtonElement>, materialId: string) => {
+    e.preventDefault();
     setExpandedMaterials(prev => {
       const newSet = new Set(prev);
       if (newSet.has(materialId)) {
@@ -66,12 +67,12 @@ export function MaterialSelection({
       // Remove material
       onSelectionChange(selectedMaterials.filter(sm => sm.materialId !== material.id));
     } else {
-      // Add material with all colors selected by default
+      // Add material with no colors selected by default
       const newSelection: SelectedMaterial = {
         materialId: material.id,
         materialName: material.name,
-        selectedColorIds: material.colors.filter(c => c.isActive).map(c => c.id),
-        selectAllColors: true
+        selectedColorIds: [],
+        selectAllColors: false
       };
       onSelectionChange([...selectedMaterials, newSelection]);
     }
@@ -192,7 +193,7 @@ export function MaterialSelection({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => toggleMaterialExpansion(material.id)}
+                      onClick={(e) => toggleMaterialExpansion(e, material.id)}
                       disabled={!isSelected}
                     >
                       {isExpanded ? "Hide" : "Show"} Colors
@@ -228,11 +229,10 @@ export function MaterialSelection({
                               className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                                 isColorSelected ? 'bg-primary/5 border-primary' : 'hover:bg-muted/50'
                               }`}
-                              onClick={() => toggleColorSelection(material.id, color.id)}
                             >
                               <Checkbox
                                 checked={isColorSelected}
-                                onChange={() => {}} // Handled by parent div click
+                                onCheckedChange={() => toggleColorSelection(material.id, color.id)}
                               />
                               <div className="flex-1 flex items-center space-x-2">
                                 {color.hexCode && (

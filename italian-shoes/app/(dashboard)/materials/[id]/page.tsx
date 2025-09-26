@@ -37,8 +37,8 @@ type Material = {
 type MaterialColor = {
   id: string;
   name: string;
-  type?: string | null;       // e.g., "White"
-  hexCode?: string | null;
+  family?: string | null;       // e.g., "White"
+  colorCode?: string | null;
   imageUrl?: string | null;
   isActive: boolean;
   position?: number | null;
@@ -53,8 +53,8 @@ const FALLBACK_MATERIAL: Material = {
 };
 
 const FALLBACK_COLORS: MaterialColor[] = [
-  { id: "c_white", name: "White Oxford", type: "White", imageUrl: "/images/colors/white.png", isActive: true },
-  { id: "c_black", name: "Black Oxford", type: "Black", imageUrl: "/images/colors/black.png", isActive: true },
+  { id: "c_white", name: "White Oxford", family: "White", imageUrl: "/images/colors/white.png", isActive: true },
+  { id: "c_black", name: "Black Oxford", family: "Black", imageUrl: "/images/colors/black.png", isActive: true },
 ];
 
 export default function MaterialEditPage() {
@@ -278,7 +278,7 @@ function ColorsTab({
             <Button
               onClick={() => {
                 if (!name.trim()) return toast.error("Color name is required");
-                onCreate({ name: name.trim(), type: type || null, hexCode: hex || null, imageUrl: imageUrl || null, isActive: active });
+                onCreate({ name: name.trim(), family: type || null, colorCode: hex || null, imageUrl: imageUrl || null, isActive: active });
                 setName(""); setType(""); setHex(""); setImageUrl(""); setActive(true);
               }}
             >
@@ -308,10 +308,10 @@ function ColorsTab({
                     <InlineEdit value={c.name} onChange={(v) => onPatch(c, { name: v })} />
                   </TableCell>
                   <TableCell>
-                    <InlineEdit value={c.type ?? ""} onChange={(v) => onPatch(c, { type: v || null })} />
+                    <InlineEdit value={c.family ?? ""} onChange={(v) => onPatch(c, { family: v || null })} />
                   </TableCell>
                   <TableCell>
-                    <InlineEdit value={c.hexCode ?? ""} onChange={(v) => onPatch(c, { hexCode: v || null })} />
+                    <InlineEdit value={c.colorCode ?? ""} onChange={(v) => onPatch(c, { colorCode: v || null })} />
                   </TableCell>
                   <TableCell className="text-muted-foreground">{c.imageUrl ?? "—"}</TableCell>
                   <TableCell>

@@ -22,6 +22,7 @@ import {
 import {
   Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { ProductCreateSchema as ServerProductCreateSchema } from "@/lib/validators";
 import { ArrowLeft, Save, Sparkles } from "lucide-react";
@@ -53,8 +54,8 @@ const DEFAULTS: Partial<FormValues> = {
   metaImageDescription: "",
   metaImageWidth: 1000,
   metaImageHeight: 1000,
-  price: 0, // cents
-  currency: "USD",
+  price: 0, // rupees
+  currency: "INR",
   compareAtPrice: undefined,
   isActive: true,
   // UI helpers
@@ -75,6 +76,52 @@ export default function ProductNewPage() {
 
   const watchTitle = form.watch("title");
   const watchProductId = form.watch("productId");
+
+  // Wizard state
+  const steps = React.useMemo(
+    () => [
+      { id: "basic", label: "Basic" as const, validate: ["title", "productId", "vendor", "description"] as const },
+      { id: "seo", label: "SEO" as const, validate: [
+        "metaTitle",
+        "metaDescription",
+        "metaKeywords",
+        "metaImage",
+        "metaImageWidth",
+        "metaImageHeight",
+        "metaImageAlt",
+        "metaImageTitle",
+        "metaImageDescription",
+      ] as const },
+      { id: "pricing", label: "Pricing" as const, validate: ["price", "currency", "compareAtPrice", "isActive"] as const },
+      { id: "assets", label: "3D Assets" as const, validate: ["glbUrl", "glbLighting", "glbEnvironment"] as const },
+      { id: "materials", label: "Materials" as const, validate: [] as const },
+      { id: "styles", label: "Styles" as const, validate: [] as const },
+      { id: "soles", label: "Soles" as const, validate: [] as const },
+      { id: "review", label: "Review" as const, validate: [] as const },
+    ],
+    []
+  );
+  const [activeStepIndex, setActiveStepIndex] = React.useState(0);
+  const activeStep = steps[activeStepIndex];
+
+  const goToStep = React.useCallback((index: number) => {
+    setActiveStepIndex(Math.min(Math.max(index, 0), steps.length - 1));
+    // scroll to top for better UX
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [steps.length]);
+
+  const handleNext = React.useCallback(async () => {
+    const fields = activeStep.validate as readonly (keyof FormValues)[];
+    if (fields.length > 0) {
+      const ok = await form.trigger(fields as any, { shouldFocus: true });
+      if (!ok) return; // stay on step until valid
+    }
+    goToStep(activeStepIndex + 1);
+  }, [activeStep.validate, activeStepIndex, form, goToStep]);
+
+  const handleBack = React.useCallback(() => {
+    goToStep(activeStepIndex - 1);
+  }, [activeStepIndex, goToStep]);
 
   // Material selection state
   const [materials, setMaterials] = React.useState<Material[]>([]);
@@ -184,7 +231,7 @@ export default function ProductNewPage() {
       metaImageAlt: values.metaImageAlt || null,
       metaImageTitle: values.metaImageTitle || null,
       metaImageDescription: values.metaImageDescription || null,
-      price: Number(values.price) || 0, // cents
+      price: Number(values.price) || 0, // rupees
       currency: values.currency,
       compareAtPrice: values.compareAtPrice ? Number(values.compareAtPrice) : null,
       isActive: values.isActive ?? true,
@@ -221,7 +268,7 @@ export default function ProductNewPage() {
       const id = typeof created === "object" && created !== null && "id" in created
         ? (created as any).id
         : created;
-      router.push(`/products/${id}`);
+      router.push(`/products`);
     } catch {
       // keep on page
     }
@@ -252,379 +299,449 @@ export default function ProductNewPage() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 lg:grid-cols-3">
-          {/* Left column */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="rounded-2xl">
-              <CardHeader className="pb-3">
-                <CardTitle>Basic Info</CardTitle>
-                <CardDescription>Title, vendor, and description.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <FormField
-                  control={form.control as any}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title</FormLabel>
-                      <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control as any}
-                    name="productId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Product ID (slug)</FormLabel>
-                        <FormControl><Input placeholder="oxford-001" {...field} /></FormControl>
-                        <FormDescription>URL/key (unique)</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control as any}
-                    name="vendor"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Vendor</FormLabel>
-                        <FormControl><Input placeholder="Italian Shoes Company" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <FormField
-                  control={form.control as any}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description (HTML allowed)</FormLabel>
-                      <FormControl><Textarea rows={6} placeholder="<p>Full-grain leather, Goodyear welt…</p>" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Tabs value={activeStep.id} onValueChange={(v) => {
+            const idx = steps.findIndex((s) => s.id === v);
+            if (idx !== -1) setActiveStepIndex(idx);
+          }}>
+            <TabsList className="w-full flex flex-wrap justify-start">
+              {steps.map((s, i) => (
+                <TabsTrigger key={s.id} value={s.id} className="data-[state=active]:font-semibold">
+                  {i + 1}. {s.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-            <Card className="rounded-2xl">
-              <CardHeader className="pb-3">
-                <CardTitle>SEO</CardTitle>
-                <CardDescription>Meta tags for social & search.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control as any}
-                    name="metaTitle"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Meta Title</FormLabel>
-                        <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control as any}
-                    name="metaKeywords"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Meta Keywords</FormLabel>
-                        <FormControl><Input placeholder="Oxford Shoes, Full-grain leather…" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <TabsContent value="basic">
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="lg:col-span-2 space-y-6">
+                  <Card className="rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle>Basic Info</CardTitle>
+                      <CardDescription>Title, vendor, and description.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                      <FormField
+                        control={form.control as any}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Title</FormLabel>
+                            <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={form.control as any}
+                          name="productId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Product ID (slug)</FormLabel>
+                              <FormControl><Input placeholder="oxford-001" {...field} /></FormControl>
+                              <FormDescription>URL/key (unique)</FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control as any}
+                          name="vendor"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Vendor</FormLabel>
+                              <FormControl><Input placeholder="Italian Shoes Company" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control as any}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description (HTML allowed)</FormLabel>
+                            <FormControl><Textarea rows={6} placeholder="<p>Full-grain leather, Goodyear welt…</p>" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
                 </div>
-                <FormField
-                  control={form.control as any}
-                  name="metaDescription"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Meta Description</FormLabel>
-                      <FormControl><Textarea rows={3} placeholder="Premium Oxford Shoes, Full-grain leather…" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Separator />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control as any}
-                    name="metaImage"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Meta Image URL</FormLabel>
-                        <FormControl><Input placeholder="/images/products/oxford-001.png" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control as any}
-                      name="metaImageWidth"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Width</FormLabel>
-                          <FormControl><Input type="number" min={0} {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control as any}
-                      name="metaImageHeight"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Height</FormLabel>
-                          <FormControl><Input type="number" min={0} {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <FormField
-                    control={form.control as any}
-                    name="metaImageAlt"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Alt</FormLabel>
-                        <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control as any}
-                    name="metaImageTitle"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Image Title</FormLabel>
-                        <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control as any}
-                    name="metaImageDescription"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Image Description</FormLabel>
-                        <FormControl><Input placeholder="Full-grain leather, Goodyear welt…" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-2">
+                <Button type="button" variant="default" onClick={handleNext}>Next</Button>
+              </div>
+            </TabsContent>
 
-          {/* Right column */}
-          <div className="space-y-6">
-            <Card className="rounded-2xl">
-              <CardHeader className="pb-3">
-                <CardTitle>Pricing</CardTitle>
-                <CardDescription>Amounts are in <strong>cents</strong>.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control as any}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Price (cents)</FormLabel>
-                        <FormControl>
-                          {/*
-                            Fix: HTML number inputs produce string values on change, which
-                            causes zod (expecting a number) to flag "invalid input".
-                            Convert to Number before calling field.onChange and keep value
-                            controlled to avoid mixed string/number types.
-                          */}
-                          <Input
-                            type="number"
-                            min={0}
-                            step={1}
-                            value={field.value ?? ""}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              // Always pass a number to RHF so zod validation gets a number
-                              field.onChange(v === "" ? 0 : Number(v));
-                            }}
+            <TabsContent value="seo">
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="lg:col-span-2 space-y-6">
+                  <Card className="rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle>SEO</CardTitle>
+                      <CardDescription>Meta tags for social & search.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={form.control as any}
+                          name="metaTitle"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Meta Title</FormLabel>
+                              <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control as any}
+                          name="metaKeywords"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Meta Keywords</FormLabel>
+                              <FormControl><Input placeholder="Oxford Shoes, Full-grain leather…" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control as any}
+                        name="metaDescription"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Meta Description</FormLabel>
+                            <FormControl><Textarea rows={3} placeholder="Premium Oxford Shoes, Full-grain leather…" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Separator />
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={form.control as any}
+                          name="metaImage"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Meta Image URL</FormLabel>
+                              <FormControl><Input placeholder="/images/products/oxford-001.png" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control as any}
+                            name="metaImageWidth"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Width</FormLabel>
+                                <FormControl><Input type="number" min={0} {...field} /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control as any}
-                    name="compareAtPrice"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Compare at (cents)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min={0}
-                            step={1}
-                            value={field.value ?? ""}
-                            onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                          <FormField
+                            control={form.control as any}
+                            name="metaImageHeight"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Height</FormLabel>
+                                <FormControl><Input type="number" min={0} {...field} /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        </div>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <FormField
+                          control={form.control as any}
+                          name="metaImageAlt"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Alt</FormLabel>
+                              <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control as any}
+                          name="metaImageTitle"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Image Title</FormLabel>
+                              <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control as any}
+                          name="metaImageDescription"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Image Description</FormLabel>
+                              <FormControl><Input placeholder="Full-grain leather, Goodyear welt…" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-                <FormField
-                  control={form.control as any}
-                  name="currency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Currency</FormLabel>
-                      <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger><SelectValue placeholder="Select currency" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="USD">USD</SelectItem>
-                            <SelectItem value="EUR">EUR</SelectItem>
-                            <SelectItem value="GBP">GBP</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              </div>
+              <div className="mt-6 flex justify-between gap-2">
+                <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
+                <Button type="button" onClick={handleNext}>Next</Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="pricing">
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="space-y-6">
+                  <Card className="rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle>Pricing</CardTitle>
+                      <CardDescription>Amounts are in <strong>Rupees</strong>.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={form.control as any}
+                          name="price"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Price (rupees)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step={1}
+                                  value={field.value ?? ""}
+                                  onChange={(e) => {
+                                    const v = e.target.value;
+                                    field.onChange(v === "" ? 0 : Number(v));
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control as any}
+                          name="compareAtPrice"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Compare at (rupees)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step={1}
+                                  value={field.value ?? ""}
+                                  onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control as any}
+                        name="currency"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Currency</FormLabel>
+                            <FormControl>
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <SelectTrigger><SelectValue placeholder="Select currency" /></SelectTrigger>
+                                <SelectContent>
+                          <SelectItem value="INR">INR</SelectItem>
+                          <SelectItem value="USD">USD</SelectItem>
+                          <SelectItem value="EUR">EUR</SelectItem>
+                          <SelectItem value="GBP">GBP</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex items-center justify-between rounded-lg border p-3">
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium">Active</div>
+                          <div className="text-xs text-muted-foreground">Visible on storefront</div>
+                        </div>
+                        <FormField
+                          control={form.control as any}
+                          name="isActive"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-between gap-2">
+                <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
+                <Button type="button" onClick={handleNext}>Next</Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="assets">
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="space-y-6">
+                  <Card className="rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle>3D Assets</CardTitle>
+                      <CardDescription>GLB + rendering hints.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                      <FormField
+                        control={form.control as any}
+                        name="glbUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>GLB URL</FormLabel>
+                            <FormControl><Input placeholder="/ShoeSoleFixed.glb" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={form.control as any}
+                          name="glbLighting"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Lighting</FormLabel>
+                              <FormControl><Input placeholder="directional" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control as any}
+                          name="glbEnvironment"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Environment</FormLabel>
+                              <FormControl><Input placeholder="studio" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          const { glbUrl, glbLighting, glbEnvironment } = form.getValues();
+                          const assets = buildAssets({ glbUrl, glbLighting, glbEnvironment } as FormValues);
+                          toast.info("Assets preview (console)");
+                          console.log("assets", assets);
+                        }}
+                      >
+                        <Sparkles className="mr-2 size-4" />
+                        Preview assets JSON (console)
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-between gap-2">
+                <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
+                <Button type="button" onClick={handleNext}>Next</Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="materials">
+              <div className="space-y-6">
+                <MaterialSelection
+                  materials={materials}
+                  selectedMaterials={selectedMaterials}
+                  onSelectionChange={setSelectedMaterials}
+                  loading={materialsLoading}
                 />
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium">Active</div>
-                    <div className="text-xs text-muted-foreground">Visible on storefront</div>
+              </div>
+              <div className="mt-6 flex justify-between gap-2">
+                <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
+                <Button type="button" onClick={handleNext}>Next</Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="styles">
+              <div className="space-y-6">
+                <StyleSoleSelection
+                  items={styles}
+                  selectedItems={selectedStyles}
+                  onSelectionChange={setSelectedStyles}
+                  loading={stylesLoading}
+                  title="Style Selection"
+                  description="Select available styles for this product."
+                  emptyMessage="No styles available. Create styles first in the Styles section."
+                />
+              </div>
+              <div className="mt-6 flex justify-between gap-2">
+                <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
+                <Button type="button" onClick={handleNext}>Next</Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="soles">
+              <div className="space-y-6">
+                <StyleSoleSelection
+                  items={soles}
+                  selectedItems={selectedSoles}
+                  onSelectionChange={setSelectedSoles}
+                  loading={solesLoading}
+                  title="Sole Selection"
+                  description="Select available soles for this product."
+                  emptyMessage="No soles available. Create soles first in the Soles section."
+                />
+              </div>
+              <div className="flex justify-between gap-2">
+                <Button type="button" variant="outline" onClick={handleBack}>Back</Button>
+                <Button type="button" onClick={handleNext}>Next</Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="review">
+              <Card className="rounded-2xl">
+                <CardHeader className="pb-3">
+                  <CardTitle>Review & Submit</CardTitle>
+                  <CardDescription>Submit to create the product.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">You can go back to edit any section.</p>
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" onClick={handleBack} className="flex-1">Back</Button>
+                    <Button type="submit" className="flex-1">
+                      <Save className="mr-2 size-4" />
+                      Create Product
+                    </Button>
                   </div>
-                  <FormField
-                    control={form.control as any}
-                    name="isActive"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl">
-              <CardHeader className="pb-3">
-                <CardTitle>3D Assets</CardTitle>
-                <CardDescription>GLB + rendering hints.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <FormField
-                  control={form.control as any}
-                  name="glbUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>GLB URL</FormLabel>
-                      <FormControl><Input placeholder="/ShoeSoleFixed.glb" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control as any}
-                    name="glbLighting"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Lighting</FormLabel>
-                        <FormControl><Input placeholder="directional" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control as any}
-                    name="glbEnvironment"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Environment</FormLabel>
-                        <FormControl><Input placeholder="studio" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    const { glbUrl, glbLighting, glbEnvironment } = form.getValues();
-                    const assets = buildAssets({ glbUrl, glbLighting, glbEnvironment } as FormValues);
-                    toast.info("Assets preview (console)");
-                    console.log("assets", assets);
-                  }}
-                >
-                  <Sparkles className="mr-2 size-4" />
-                  Preview assets JSON (console)
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Material Selection */}
-            <MaterialSelection
-              materials={materials}
-              selectedMaterials={selectedMaterials}
-              onSelectionChange={setSelectedMaterials}
-              loading={materialsLoading}
-            />
-
-            {/* Style Selection */}
-            <StyleSoleSelection
-              items={styles}
-              selectedItems={selectedStyles}
-              onSelectionChange={setSelectedStyles}
-              loading={stylesLoading}
-              title="Style Selection"
-              description="Select available styles for this product."
-              emptyMessage="No styles available. Create styles first in the Styles section."
-            />
-
-            {/* Sole Selection */}
-            <StyleSoleSelection
-              items={soles}
-              selectedItems={selectedSoles}
-              onSelectionChange={setSelectedSoles}
-              loading={solesLoading}
-              title="Sole Selection"
-              description="Select available soles for this product."
-              emptyMessage="No soles available. Create soles first in the Soles section."
-            />
-
-            <div className="flex gap-2">
-              <Button className="flex-1" onClick={form.handleSubmit(onSubmit)}>
-                <Save className="mr-2 size-4" />
-                Save Product
-              </Button>
-              <Button asChild variant="outline" className="flex-1">
-                <Link href="/products">Cancel</Link>
-              </Button>
-            </div>
-          </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </form>
       </Form>
     </div>
