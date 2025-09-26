@@ -19,6 +19,7 @@ type StyleCreate = {
   category: string;
   description?: string | null;
   isActive: boolean;
+  imageUrl?: string;
   modelConfig?: {
     glbUrl?: string | null;
     lighting?: string | null;
@@ -32,6 +33,7 @@ export default function StyleCreatePage() {
     name: "",
     category: "oxford",
     description: "",
+    imageUrl: "",
     isActive: true,
     modelConfig: { glbUrl: "", lighting: "directional", environment: "studio" },
   });
@@ -93,6 +95,9 @@ export default function StyleCreatePage() {
               <Textarea rows={6} value={form.description ?? ""} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
             </Field>
           </div>
+          <Field label="Preview Image URL">
+            <Input placeholder="/images/style/style-01.png" value={form.imageUrl ?? ""} onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))} />
+          </Field>
           <div className="md:col-span-2 flex items-center justify-between rounded-lg border p-3">
             <div>
               <div className="text-sm font-medium">Active</div>

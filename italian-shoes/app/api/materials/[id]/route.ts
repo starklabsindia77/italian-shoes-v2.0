@@ -26,7 +26,8 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
   try {
     await requireAdmin();
     console.log("DELETE color API called with:", params);
-    await prisma.material.delete({ where: { id: params.id } });
+    const { id } = await params;
+    await prisma.material.delete({ where: { id: id} });
     return ok({ ok: true });
   } catch (e: any) {
     if (e?.code === "P2025") return notFound();

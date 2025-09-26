@@ -267,6 +267,7 @@ export default function SizesListPage() {
                         size="sm"
                         variant="destructive"
                         onClick={() => deleteSize(s)}
+                        className="cursor-pointer text-white"
                       >
                         Delete
                       </Button>

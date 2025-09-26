@@ -243,6 +243,7 @@ export default function StylesListPage() {
                         size="sm"
                         variant="destructive"
                         onClick={() => deleteStyle(s)}
+                        className="cursor-pointer text-white"
                       >
                         <Trash2 className="mr-2 size-4" />
                         Delete

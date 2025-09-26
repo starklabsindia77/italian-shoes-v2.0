@@ -153,7 +153,7 @@ export default function MaterialsListPage() {
                       <Button size="sm" asChild>
                         <Link href={`/materials/${m.id}`}><Edit3 className="mr-2 size-4" />Edit</Link>
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => deleteMaterial(m)}>
+                      <Button size="sm" variant="destructive" onClick={() => deleteMaterial(m)} className="cursor-pointer text-white">
                         <Trash2 className="mr-2 size-4" />Delete
                       </Button>
                     </TableCell>

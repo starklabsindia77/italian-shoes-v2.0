@@ -23,7 +23,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   try {
     await requireAdmin();
-    await prisma.panel.delete({ where: { id: params.id } });
+    const { id } = await params;
+    await prisma.panel.delete({ where: { id: id } });
     return ok({ ok: true });
   } catch (e: any) {
     if (e?.code === "P2025") return notFound();

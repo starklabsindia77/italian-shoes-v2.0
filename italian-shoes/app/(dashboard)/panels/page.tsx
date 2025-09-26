@@ -226,6 +226,7 @@ export default function PanelsListPage() {
                         size="sm"
                         variant="destructive"
                         onClick={() => deletePanel(p)}
+                        className="cursor-pointer text-white"
                       >
                         <Trash2 className="mr-2 size-4" />
                         Delete

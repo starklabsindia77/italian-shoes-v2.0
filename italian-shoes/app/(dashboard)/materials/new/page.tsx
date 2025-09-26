@@ -89,13 +89,13 @@ export default function MaterialCreatePage() {
       router.push("/materials");
 
       // server should return created.id
-      const id = data?.id;
-      if (id) {
-        router.push(`/materials/${id}`);
-      } else {
-        // fallback: refresh list or go back
-        router.push("/materials");
-      }
+      // const id = data?.id;
+      // if (id) {
+      //   router.push(`/materials/${id}`);
+      // } else {
+      //   // fallback: refresh list or go back
+      //   router.push("/materials");
+      // }
     } catch (err: any) {
       console.error("Network / fetch error:", err);
       toast.error("Network error: " + (err?.message ?? err));

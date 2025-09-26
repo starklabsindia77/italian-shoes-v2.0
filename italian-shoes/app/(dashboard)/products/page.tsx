@@ -305,7 +305,7 @@ function RowActions({ id, onDelete }: { id: string; onDelete: (id: string) => vo
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          className="text-destructive focus:text-destructive"
+          className="text-destructive focus:text-destructive cursor-pointer"
           onClick={() => onDelete(id)}
         >
           <Trash2 className="mr-2 size-4" />

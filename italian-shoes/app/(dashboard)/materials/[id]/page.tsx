@@ -446,7 +446,11 @@ function ColorsTab({
                     />
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {c.imageUrl ?? "—"}
+                    {/* {c.imageUrl ?? "—"} */}
+                    {c.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={c.imageUrl ?? ""} alt={c.name} width={32} height={32} />
+                    ) : "—"}
                   </TableCell>
                   <TableCell>
                     {c.isActive ? (
@@ -472,6 +476,7 @@ function ColorsTab({
                       size="sm"
                       variant="destructive"
                       onClick={() => onDelete(c)}
+                      className="cursor-pointer text-white"
                     >
                       <Trash2 className="mr-2 size-4" /> Delete
                     </Button>
