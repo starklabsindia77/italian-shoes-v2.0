@@ -162,14 +162,14 @@ export default function DerbyBuilderClean() {
   const [imageIndex, setImageIndex] = useState(0);
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"Materials" | "Style" | "Soles" | "Colors" | "Inscription">("Materials");
-  const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<string | null>('premium-black');
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [selectedSole, setSelectedSole] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [appliedTextures, setAppliedTextures] = useState<Record<string, string | null>>({});
   const [inscription, setInscription] = useState({ toe: "", tongue: "" });
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  
+
   // Filter state for materials and colors
   const [selectedMaterialFilter, setSelectedMaterialFilter] = useState<string>("all");
   const [selectedColorFilter, setSelectedColorFilter] = useState<string>("all");
@@ -197,7 +197,7 @@ export default function DerbyBuilderClean() {
         if (!panelsResponse.ok) {
           throw new Error('Failed to fetch panels');
         }
-       
+
 
         // Parse all responses
         const [productData, sizesData, panelsData] = await Promise.all([
@@ -284,17 +284,17 @@ export default function DerbyBuilderClean() {
 
   const getAvailableColors = () => {
     if (!materialsData) return [];
-    
+
     if (selectedMaterialFilter === "all") {
       // Return all colors from all materials, deduplicated by family
-      const allColors = materialsData.flatMap((material: any) => 
+      const allColors = materialsData.flatMap((material: any) =>
         material?.selectedColor?.map((color: any) => ({
           ...color,
           materialName: material.name,
           materialId: material.id
         }))
       );
-      
+
       // Deduplicate by color family, keeping the first occurrence
       // Only include colors that have a family (exclude null/undefined families)
       const uniqueColors = allColors?.reduce((acc: any[], color: any) => {
@@ -309,42 +309,42 @@ export default function DerbyBuilderClean() {
         return acc;
       }, []);
       return uniqueColors;
-      } else {
-        // Return unique colors from selected material only
-        const selectedMaterial = materialsData.find((m: any) => m.materialId === selectedMaterialFilter);
-        
+    } else {
+      // Return unique colors from selected material only
+      const selectedMaterial = materialsData.find((m: any) => m.materialId === selectedMaterialFilter);
 
-        if (!selectedMaterial) return [];
-        
-        const materialColors = selectedMaterial?.selectedColor?.map((color: any) => ({
-          ...color,
-          materialName: selectedMaterial.name,
-          materialId: selectedMaterial.id
-        }));
-        
-        // Deduplicate by color family, keeping the first occurrence
-        // Only include colors that have a family (exclude null/undefined families)
-        console.log("materialColors", materialColors?.length);
-        const uniqueColors = materialColors.reduce((acc: any[], color: any) => {
-          if (color.family) {
-            // Check if this family already exists
-            const existingFamily = acc.find(c => c.family === color.family);
-            if (!existingFamily) {
-              acc.push(color);
-            }
+
+      if (!selectedMaterial) return [];
+
+      const materialColors = selectedMaterial?.selectedColor?.map((color: any) => ({
+        ...color,
+        materialName: selectedMaterial.name,
+        materialId: selectedMaterial.id
+      }));
+
+      // Deduplicate by color family, keeping the first occurrence
+      // Only include colors that have a family (exclude null/undefined families)
+      console.log("materialColors", materialColors?.length);
+      const uniqueColors = materialColors.reduce((acc: any[], color: any) => {
+        if (color.family) {
+          // Check if this family already exists
+          const existingFamily = acc.find(c => c.family === color.family);
+          if (!existingFamily) {
+            acc.push(color);
           }
-          // Skip colors with null/undefined family
-          return acc;
-        }, []);
-        console.log("uniqueColors", uniqueColors?.length);
-        
-        return uniqueColors;
-      }
+        }
+        // Skip colors with null/undefined family
+        return acc;
+      }, []);
+      console.log("uniqueColors", uniqueColors?.length);
+
+      return uniqueColors;
+    }
   };
 
   const getFilteredMaterialCategories = () => {
     if (!materialsData?.materials) return cfg.materialCategories || [];
-    
+
     // Transform API materials data to match the expected format
     return materialsData.materials.map((material: any) => ({
       id: material.id,
@@ -427,7 +427,7 @@ export default function DerbyBuilderClean() {
           <div className="text-sm text-gray-500 mb-1">
             Home &gt; Create Design &gt; Create Men's Shoes &gt; {cfg.title || 'Men\'s Luxury Dress Shoes'}
           </div>
-          
+
         </div>
       </header>
 
@@ -469,7 +469,7 @@ export default function DerbyBuilderClean() {
             </div>
 
             {/* Thumbnail Gallery */}
-            
+
 
             {/* Order Status */}
             <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -483,7 +483,7 @@ export default function DerbyBuilderClean() {
           <div className="space-y-8">
             {/* Pricing Section */}
             <div>
-            <h1 className="text-2xl font-bold text-gray-900">{cfg.title || 'Men\'s Luxury Dress Shoes'}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{cfg.title || 'Men\'s Luxury Dress Shoes'}</h1>
               <div className="flex items-baseline gap-3 mb-4">
                 <div className="text-3xl font-bold text-gray-900">${cfg.price || 329}</div>
                 <div className="text-lg text-gray-500 line-through">${cfg.compareAtPrice || 519}</div>
@@ -518,27 +518,26 @@ export default function DerbyBuilderClean() {
 
             {/* Customization Tabs */}
             <div>
-            <div className="flex gap-1 mb-6">
-                    {(["Materials", "Style", "Soles"] as const).map((t) => (
-                      <button
-                        key={t}
-                        onClick={() => setActiveTab(t)}
-                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === t
-                            ? "bg-red-600 text-white"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                          }`}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
+              <div className="mb-6">
+                <div className="relative inline-flex bg-gray-200 rounded-full p-1 shadow-sm w-full">
+                  {(["Materials", "Style", "Soles"] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setActiveTab(t)}
+                      className={`relative px-6 py-2 justify-center items-center text-sm font-medium rounded-full transition-all duration-200 ${activeTab === t
+                          ? "bg-red-500 text-white shadow-sm"
+                          : "text-gray-700 hover:text-gray-900"
+                        }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* Materials */}
               {activeTab === "Materials" && (
-
                 <>
-                  
-
                   {/* Customization Instruction */}
                   <p className="text-sm text-gray-600 mb-4">
                     Choose a material and color for every part of your shoes
@@ -547,78 +546,79 @@ export default function DerbyBuilderClean() {
                   {/* Panel Selection */}
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Select a panel:</label>
-                    <select
-                      value={activePanel || ''}
-                      onChange={(e) => setActivePanel(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                    >
-                      {(cfg.panels || []).map((p: any) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={activePanel || ''}
+                        onChange={(e) => setActivePanel(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white"
+                      >
+                        {(cfg.panels || []).map((p: any) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                        <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Material and Color Filters */}
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">All Materials</label>
-                      <select 
-                        value={selectedMaterialFilter}
-                        onChange={(e) => {
-                          setSelectedMaterialFilter(e.target.value);
-                          setSelectedColorFilter("all"); // Reset color filter when material changes
-                        }}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      >
-                        <option value="all">All Materials</option>
-                        {getAvailableMaterials().map((material: any) => (
-                          <option key={material.materialId} value={material.materialId}>
-                            {material.materialName}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={selectedMaterialFilter}
+                          onChange={(e) => {
+                            setSelectedMaterialFilter(e.target.value);
+                            setSelectedColorFilter("all");
+                          }}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white"
+                        >
+                          <option value="all">All Materials</option>
+                          {getAvailableMaterials().map((material: any) => (
+                            <option key={material.materialId} value={material.materialId}>
+                              {material.materialName}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">All colors</label>
-                      <select 
-                        value={selectedColorFilter}
-                        onChange={(e) => setSelectedColorFilter(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      >
-                        <option value="all">All colors</option>
-                        {getAvailableColors().map((color: any) => (
-                          <option key={color.id} value={color.id}>
-                            {color.family}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={selectedColorFilter}
+                          onChange={(e) => setSelectedColorFilter(e.target.value)}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white"
+                        >
+                          <option value="all">All colors</option>
+                          {getAvailableColors().map((color: any) => (
+                            <option key={color.id} value={color.id}>
+                              {color.family}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-6">
-                    {getFilteredMaterialCategories().map((category: any) => (
-                      <div key={category.id}>
-                        <h4 className="text-sm font-medium text-gray-700 mb-3">{category.name}</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {category.colors.map((color: any) => (
-                            <button
-                              key={color.id}
-                              onClick={() => setSelectedMaterial(color.id)}
-                              className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${selectedMaterial === color.id
-                                  ? "border-gray-400 ring-2 ring-gray-300"
-                                  : "border-gray-200 hover:border-gray-300"
-                                }`}
-                              style={{ backgroundColor: color.hex }}
-                              title={color.name}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
+                  {/* Material Categories with Color Swatches */}
+                  
                 </>
               )}
 
