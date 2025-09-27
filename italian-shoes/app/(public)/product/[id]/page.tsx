@@ -184,6 +184,15 @@ export default function DerbyBuilderClean() {
   // Filter state for materials and colors
   const [selectedMaterialFilter, setSelectedMaterialFilter] = useState<string>("all");
   const [selectedColorFilter, setSelectedColorFilter] = useState<string>("all");
+  const [selectedPanelName, setSelectedPanelName] = useState<string>('');
+
+  const handlePanelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedPanelName(e.target.value);
+  };
+
+  const handleTextureChange = (panelId: string, textureUrl: string) => {
+    setSelectedTextureMap((prev) => ({ ...prev, [panelId]: {colorUrl:textureUrl} }));
+  };
 
   // Fetch all data from APIs
   useEffect(() => {
@@ -587,7 +596,7 @@ export default function DerbyBuilderClean() {
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Select a panel:</label>
                     <div className="relative">
-                      <select
+                      {/* <select
                         value={activePanel || ''}
                         onChange={(e) => setActivePanel(e.target.value)}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white"
@@ -597,7 +606,19 @@ export default function DerbyBuilderClean() {
                             {p.name}
                           </option>
                         ))}
-                      </select>
+                      </select> */}
+                      <select
+          value={selectedPanelName || ""}
+          onChange={handlePanelChange}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white"
+        >
+          <option value="">-- Choose Panel --</option>
+          {objectList?.map((obj: any) => (
+            <option key={obj.name} value={obj.name}>
+              {obj.name.replace('_', ' ')}
+            </option>
+          ))}
+        </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                         <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -645,6 +666,7 @@ export default function DerbyBuilderClean() {
                             // Reset material filter when color is selected directly
                             setSelectedMaterialFilter("all");
                             setSelectedColor(null);
+                            
                           }}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white"
                         >
@@ -685,7 +707,7 @@ export default function DerbyBuilderClean() {
                             }
                             
                             return (
-                              <div key={color.id} onClick={() => setSelectedColor(color.id)} className={`rounded-md transition flex-shrink-0 ${selectedColor === color.id ? "border-red-500 ring-1 ring-red-100" : "border-gray-200"}`}>
+                              <div key={color.id} onClick={() => {setSelectedColor(color.id); handleTextureChange(selectedPanelName, color.imageUrl)} } className={`rounded-md transition flex-shrink-0 ${selectedColor === color.id ? "border-red-500 ring-1 ring-red-100" : "border-gray-200"}`}>
                                 <img src={color.imageUrl} alt={color.name} className="object-contain w-12 h-12" />
                               </div>
                             );
