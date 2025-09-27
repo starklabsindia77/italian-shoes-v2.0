@@ -286,23 +286,60 @@ export default function DerbyBuilderClean() {
     if (!materialsData) return [];
     
     if (selectedMaterialFilter === "all") {
-      // Return all colors from all materials
-      return materialsData.flatMap((material: any) => 
-        material.colors.map((color: any) => ({
+      // Return all colors from all materials, deduplicated by family
+      const allColors = materialsData.flatMap((material: any) => 
+        material?.selectedColor?.map((color: any) => ({
           ...color,
           materialName: material.name,
           materialId: material.id
         }))
       );
-    } else {
-      // Return colors from selected material only
-      const selectedMaterial = materialsData.materials.find((m: any) => m.id === selectedMaterialFilter);
-      return selectedMaterial ? selectedMaterial.colors.map((color: any) => ({
-        ...color,
-        materialName: selectedMaterial.name,
-        materialId: selectedMaterial.id
-      })) : [];
-    }
+      
+      // Deduplicate by color family, keeping the first occurrence
+      // Only include colors that have a family (exclude null/undefined families)
+      const uniqueColors = allColors?.reduce((acc: any[], color: any) => {
+        if (color?.family) {
+          // Check if this family already exists
+          const existingFamily = acc.find(c => c.family === color.family);
+          if (!existingFamily) {
+            acc.push(color);
+          }
+        }
+        // Skip colors with null/undefined family
+        return acc;
+      }, []);
+      return uniqueColors;
+      } else {
+        // Return unique colors from selected material only
+        const selectedMaterial = materialsData.find((m: any) => m.materialId === selectedMaterialFilter);
+        
+
+        if (!selectedMaterial) return [];
+        
+        const materialColors = selectedMaterial?.selectedColor?.map((color: any) => ({
+          ...color,
+          materialName: selectedMaterial.name,
+          materialId: selectedMaterial.id
+        }));
+        
+        // Deduplicate by color family, keeping the first occurrence
+        // Only include colors that have a family (exclude null/undefined families)
+        console.log("materialColors", materialColors?.length);
+        const uniqueColors = materialColors.reduce((acc: any[], color: any) => {
+          if (color.family) {
+            // Check if this family already exists
+            const existingFamily = acc.find(c => c.family === color.family);
+            if (!existingFamily) {
+              acc.push(color);
+            }
+          }
+          // Skip colors with null/undefined family
+          return acc;
+        }, []);
+        console.log("uniqueColors", uniqueColors.length);
+        
+        return uniqueColors;
+      }
   };
 
   const getFilteredMaterialCategories = () => {
@@ -553,7 +590,7 @@ export default function DerbyBuilderClean() {
                         <option value="all">All colors</option>
                         {getAvailableColors().map((color: any) => (
                           <option key={color.id} value={color.id}>
-                            {color.name} {selectedMaterialFilter === "all" ? `(${color.materialName})` : ""}
+                            {color.family}
                           </option>
                         ))}
                       </select>
