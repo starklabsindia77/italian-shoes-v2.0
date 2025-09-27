@@ -324,7 +324,6 @@ export default function DerbyBuilderClean() {
 
       // Deduplicate by color family, keeping the first occurrence
       // Only include colors that have a family (exclude null/undefined families)
-      console.log("materialColors", materialColors?.length);
       const uniqueColors = materialColors.reduce((acc: any[], color: any) => {
         if (color.family) {
           // Check if this family already exists
@@ -336,7 +335,6 @@ export default function DerbyBuilderClean() {
         // Skip colors with null/undefined family
         return acc;
       }, []);
-      console.log("uniqueColors", uniqueColors?.length);
 
       return uniqueColors;
     }
@@ -618,7 +616,21 @@ export default function DerbyBuilderClean() {
                   </div>
 
                   {/* Material Categories with Color Swatches */}
+
                   
+                  {getAvailableMaterials().map((material: any) => (
+                    <div key={material.materialId}>
+                      <h3 className="font-medium mb-2 text-right">{material.materialName}</h3>
+                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-1 justify-end">
+                        {material.selectedColor?.map((color: any) => (
+                          <div key={color.id} onClick={() => setSelectedColor(color.id)} className={`rounded-md transition ${selectedColor === color.id ? "border-red-500 ring-1 ring-red-100" : "border-gray-200"}`}>
+                            <img src={color.imageUrl} alt={color.name} className="object-contain w-8 h-8" />
+                          </div>
+                          
+                        ))}
+                      </div>
+                    </div>
+                    ))}
                 </>
               )}
 
