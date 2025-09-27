@@ -254,7 +254,7 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
           maxWidth: "100%",
         }}
         camera={{ position: [2.2, 0.25, 0], fov: 50 }}
-        onCreated={({ gl }) => {
+        onCreated={({ gl }: { gl: THREE.WebGLRenderer }) => {
           gl.outputColorSpace = THREE.SRGBColorSpace;
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.toneMappingExposure = 1.5;
