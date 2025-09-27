@@ -279,6 +279,25 @@ export default function DerbyBuilderClean() {
   // Helper functions to get filtered materials and colors
   const getAvailableMaterials = () => {
     if (!materialsData) return [];
+    
+    // Case 1: Material filter is selected - show only that material
+    if (selectedMaterialFilter !== "all") {
+      const filteredMaterial = materialsData.filter((material: any) => 
+        material.materialId === selectedMaterialFilter
+      );
+      return filteredMaterial;
+    }
+    
+    // Case 2: Color filter is selected but no material - show all materials with that color family
+    if (selectedColorFilter !== "all") {
+      const materialsWithSelectedColor = materialsData.filter((material: any) => {
+        // Check if this material has the selected color family
+        return material.selectedColor?.some((color: any) => color.id === selectedColorFilter);
+      });
+      return materialsWithSelectedColor;
+    }
+    
+    // Case 3: No filters - show all materials
     return materialsData;
   };
 
@@ -575,7 +594,9 @@ export default function DerbyBuilderClean() {
                           value={selectedMaterialFilter}
                           onChange={(e) => {
                             setSelectedMaterialFilter(e.target.value);
+                            // Reset color filter when material is selected
                             setSelectedColorFilter("all");
+                            setSelectedColor(null);
                           }}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white"
                         >
@@ -598,7 +619,12 @@ export default function DerbyBuilderClean() {
                       <div className="relative">
                         <select
                           value={selectedColorFilter}
-                          onChange={(e) => setSelectedColorFilter(e.target.value)}
+                          onChange={(e) => {
+                            setSelectedColorFilter(e.target.value);
+                            // Reset material filter when color is selected directly
+                            setSelectedMaterialFilter("all");
+                            setSelectedColor(null);
+                          }}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white"
                         >
                           <option value="all">All colors</option>
@@ -628,15 +654,24 @@ export default function DerbyBuilderClean() {
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-2 w-full">
-                          {material.selectedColor?.map((color: any) => (
-                            <div key={color.id} onClick={() => setSelectedColor(color.id)} className={`rounded-md transition flex-shrink-0 ${selectedColor === color.id ? "border-red-500 ring-1 ring-red-100" : "border-gray-200"}`}>
-                              <img src={color.imageUrl} alt={color.name} className="object-contain w-12 h-12" />
-                            </div>
-                          ))}
+                          {material.selectedColor?.map((color: any) => {
+                            // If a color filter is selected, only show colors from that family
+                            if (selectedColorFilter !== "all") {
+                              const selectedColorData = getAvailableColors().find((c: any) => c.id === selectedColorFilter);
+                              if (selectedColorData && color.family !== selectedColorData.family) {
+                                return null; // Don't render this color
+                              }
+                            }
+                            
+                            return (
+                              <div key={color.id} onClick={() => setSelectedColor(color.id)} className={`rounded-md transition flex-shrink-0 ${selectedColor === color.id ? "border-red-500 ring-1 ring-red-100" : "border-gray-200"}`}>
+                                <img src={color.imageUrl} alt={color.name} className="object-contain w-12 h-12" />
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     ))}
-
                   </div>
                 </>
               )}
