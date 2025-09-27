@@ -4,7 +4,7 @@ import { ProductCreateSchema } from "@/lib/validators";
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Find the product
     const product = await prisma.product.findUnique({
@@ -25,7 +25,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
     await requireAdmin();
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     
     // Validate the request body

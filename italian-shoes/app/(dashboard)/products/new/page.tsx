@@ -192,9 +192,6 @@ export default function ProductNewPage() {
   }, []);
 
   // Update form when selections change
-  React.useEffect(() => {
-    form.setValue("selectedMaterials", selectedMaterials);
-  }, [selectedMaterials, form]);
 
   React.useEffect(() => {
     form.setValue("selectedStyles", selectedStyles);

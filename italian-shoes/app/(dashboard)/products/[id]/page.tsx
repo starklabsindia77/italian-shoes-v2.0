@@ -64,12 +64,6 @@ type Product = {
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
-  metaImage: string;
-  metaImageWidth?: number | null;
-  metaImageHeight?: number | null;
-  metaImageAlt?: string | null;
-  metaImageTitle?: string | null;
-  metaImageDescription?: string | null;
   selectedMaterials?: any;
   selectedStyles?: any;
   selectedSoles?: any;
@@ -123,12 +117,6 @@ const FALLBACK_PRODUCT: Product = {
   metaTitle: "Premium Oxford Shoes",
   metaDescription: "Premium Oxford Shoes, Full-grain leather, Goodyear welt…",
   metaKeywords: "Oxford Shoes, Premium Oxford, Full-grain leather",
-  metaImage: "/images/products/oxford-001.png",
-  metaImageWidth: 1000,
-  metaImageHeight: 1000,
-  metaImageAlt: "Premium Oxford Shoes",
-  metaImageTitle: "Premium Oxford Shoes",
-  metaImageDescription: "Premium Oxford Shoes social",
   selectedMaterials: [],
   selectedStyles: [],
   selectedSoles: [],
@@ -172,11 +160,13 @@ export default function ProductEditPage() {
   const steps = React.useMemo(
     () => [
       { id: "basic", label: "Basic" as const, validate: ["title", "productId", "vendor", "description"] as const },
-      { id: "seo", label: "SEO" as const, validate: [
-        "metaTitle",
-        "metaDescription",
-        "metaKeywords",
-      ] as const },
+      {
+        id: "seo", label: "SEO" as const, validate: [
+          "metaTitle",
+          "metaDescription",
+          "metaKeywords",
+        ] as const
+      },
       { id: "pricing", label: "Pricing" as const, validate: ["price", "currency", "compareAtPrice", "isActive"] as const },
       { id: "assets", label: "3D Assets" as const, validate: ["glbUrl", "glbLighting", "glbEnvironment"] as const },
       { id: "materials", label: "Materials" as const, validate: [] as const },
@@ -245,6 +235,7 @@ export default function ProductEditPage() {
             materialId: material.materialId || material.id || '',
             materialName: material.materialName || material.name || '',
             selectedColorIds: material.selectedColorIds || [],
+            selectedColor: material.selectedColor || [],
             selectAllColors: material.selectAllColors || false
           });
         }
@@ -384,32 +375,32 @@ export default function ProductEditPage() {
       if (!res.ok) throw new Error("product");
       const data = (await res.json()) as Product;
       setProduct(data);
-      
+
       // Map product data to form format
       const formData = mapProductToForm(data);
-      
+
       // Update state variables with mapped data
       setSelectedMaterials(formData.selectedMaterials);
       setSelectedStyles(formData.selectedStyles);
       setSelectedSoles(formData.selectedSoles);
-      
+
       // Populate form with mapped data
       form.reset(formData);
     } catch {
       setProduct(FALLBACK_PRODUCT);
       // Map fallback data to form format
       const formData = mapProductToForm(FALLBACK_PRODUCT);
-      
+
       // Update state variables with mapped data
       setSelectedMaterials(formData.selectedMaterials);
       setSelectedStyles(formData.selectedStyles);
       setSelectedSoles(formData.selectedSoles);
-      
+
       // Populate form with mapped data
       form.reset(formData);
     }
 
-    
+
 
     setLoading(false);
   };
@@ -419,10 +410,24 @@ export default function ProductEditPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Debug: Log form state changes
+  React.useEffect(() => {
+    console.log("📝 Form initialized, errors:", form.formState.errors);
+  }, [form.formState.errors]);
+
   const onSubmit = async (values: FormValues) => {
-    if (!product) return;
+    console.log("🚀 onSubmit function called!");
+    if (!product) {
+      console.log("❌ No product found, returning early");
+      return;
+    }
     setSaving(true);
-    
+
+    console.log("Form values:", values);
+    console.log("Selected materials:", selectedMaterials);
+    console.log("Selected styles:", selectedStyles);
+    console.log("Selected soles:", selectedSoles);
+
     const payload = {
       productId: values.productId,
       title: values.title.trim(),
@@ -433,7 +438,7 @@ export default function ProductEditPage() {
       metaKeywords: values.metaKeywords?.trim(),
       price: Number(values.price) || 0,
       currency: values.currency,
-      compareAtPrice: values.compareAtPrice ? Number(values.compareAtPrice) : 0,
+      compareAtPrice: values.compareAtPrice ? Number(values.compareAtPrice) : undefined,
       isActive: values.isActive ?? true,
       assets: buildAssets(values),
       selectedMaterials: selectedMaterials,
@@ -441,17 +446,27 @@ export default function ProductEditPage() {
       selectedSoles: selectedSoles,
     };
 
+    console.log("Payload being sent:", payload);
+
     const run = async () => {
       const res = await fetch(`/api/products/${product.id}`, {
         method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
         let msg = "Failed to update product";
         try {
           const j = await res.json();
-          if (j?.error) msg = j.error;
-    } catch {}
+          if (j?.error) {
+            msg = j.error;
+            console.error("API Error:", j);
+          }
+        } catch (parseError) {
+          console.error("Failed to parse error response:", parseError);
+        }
         throw new Error(msg);
       }
       return res.json();
@@ -460,23 +475,24 @@ export default function ProductEditPage() {
     try {
       await toast.promise(run(), {
         loading: "Updating product…",
-        success: "Product updated",
+        success: "Product updated successfully",
         error: (e) => (typeof e === "object" && e && "message" in e ? (e as any).message : String(e)) || "Failed to update",
       });
-    } catch {
-      // keep on page
+    } catch (error) {
+      console.error("Product update error:", error);
+      toast.error("Failed to update product. Please check the console for details.");
     } finally {
       setSaving(false);
     }
   };
 
 
- 
+
 
   /* ------------ sizes ------------ */
- 
 
-  
+
+
 
   if (!product) {
     return (
@@ -506,9 +522,6 @@ export default function ProductEditPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={refreshAll}><RefreshCw className="mr-2 size-4" />Refresh</Button>
-          <Button onClick={form.handleSubmit(onSubmit)} disabled={saving}>
-            <Save className="mr-2 size-4" />Save
-          </Button>
         </div>
       </div>
 
@@ -524,16 +537,16 @@ export default function ProductEditPage() {
                   {i + 1}. {s.label}
                 </TabsTrigger>
               ))}
-        </TabsList>
+            </TabsList>
 
             <TabsContent value="basic">
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-2 space-y-6">
-          <Card className="rounded-2xl">
-            <CardHeader className="pb-3">
-              <CardTitle>Basic Info</CardTitle>
+                  <Card className="rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle>Basic Info</CardTitle>
                       <CardDescription>Title, vendor, and description.</CardDescription>
-            </CardHeader>
+                    </CardHeader>
                     <CardContent className="grid gap-4">
                       <FormField
                         control={form.control as any}
@@ -546,7 +559,7 @@ export default function ProductEditPage() {
                           </FormItem>
                         )}
                       />
-                <div className="grid gap-4 md:grid-cols-2">
+                      <div className="grid gap-4 md:grid-cols-2">
                         <FormField
                           control={form.control as any}
                           name="productId"
@@ -570,7 +583,7 @@ export default function ProductEditPage() {
                             </FormItem>
                           )}
                         />
-                  </div>
+                      </div>
                       <FormField
                         control={form.control as any}
                         name="description"
@@ -582,23 +595,23 @@ export default function ProductEditPage() {
                           </FormItem>
                         )}
                       />
-            </CardContent>
-          </Card>
-              </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
               <div className="mt-6 flex justify-end gap-2">
                 <Button type="button" variant="default" onClick={() => handleNext()}>Next</Button>
               </div>
-        </TabsContent>
+            </TabsContent>
 
             <TabsContent value="seo">
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-2 space-y-6">
-          <Card className="rounded-2xl">
-            <CardHeader className="pb-3">
+                  <Card className="rounded-2xl">
+                    <CardHeader className="pb-3">
                       <CardTitle>SEO</CardTitle>
                       <CardDescription>Meta tags for social & search.</CardDescription>
-            </CardHeader>
+                    </CardHeader>
                     <CardContent className="grid gap-4">
                       <div className="grid gap-4 md:grid-cols-2">
                         <FormField
@@ -623,7 +636,7 @@ export default function ProductEditPage() {
                             </FormItem>
                           )}
                         />
-              </div>
+                      </div>
                       <FormField
                         control={form.control as any}
                         name="metaDescription"
@@ -633,28 +646,28 @@ export default function ProductEditPage() {
                             <FormControl><Textarea rows={3} placeholder="Premium Oxford Shoes, Full-grain leather…" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
-                        )}  
+                        )}
                       />
-            </CardContent>
-          </Card>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
                 <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
                 <Button type="button" onClick={() => handleNext()}>Next</Button>
               </div>
-        </TabsContent>
+            </TabsContent>
 
             <TabsContent value="pricing">
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="space-y-6">
-          <Card className="rounded-2xl">
-            <CardHeader className="pb-3">
+                  <Card className="rounded-2xl">
+                    <CardHeader className="pb-3">
                       <CardTitle>Pricing</CardTitle>
                       <CardDescription>Amounts are in <strong>Rupees</strong>.</CardDescription>
-            </CardHeader>
+                    </CardHeader>
                     <CardContent className="grid gap-4">
-              <div className="grid gap-4 md:grid-cols-2">
+                      <div className="grid gap-4 md:grid-cols-2">
                         <FormField
                           control={form.control as any}
                           name="price"
@@ -662,8 +675,8 @@ export default function ProductEditPage() {
                             <FormItem>
                               <FormLabel>Price (rupees)</FormLabel>
                               <FormControl>
-                    <Input
-                      type="number"
+                                <Input
+                                  type="number"
                                   min={0}
                                   step={1}
                                   value={field.value ?? ""}
@@ -684,8 +697,8 @@ export default function ProductEditPage() {
                             <FormItem>
                               <FormLabel>Compare at (rupees)</FormLabel>
                               <FormControl>
-                    <Input
-                      type="number"
+                                <Input
+                                  type="number"
                                   min={0}
                                   step={1}
                                   value={field.value ?? ""}
@@ -696,7 +709,7 @@ export default function ProductEditPage() {
                             </FormItem>
                           )}
                         />
-              </div>
+                      </div>
                       <FormField
                         control={form.control as any}
                         name="currency"
@@ -706,13 +719,13 @@ export default function ProductEditPage() {
                             <FormControl>
                               <Select value={field.value} onValueChange={field.onChange}>
                                 <SelectTrigger><SelectValue placeholder="Select currency" /></SelectTrigger>
-              <SelectContent>
-                          <SelectItem value="INR">INR</SelectItem>
-                          <SelectItem value="USD">USD</SelectItem>
-                          <SelectItem value="EUR">EUR</SelectItem>
-                          <SelectItem value="GBP">GBP</SelectItem>
-              </SelectContent>
-            </Select>
+                                <SelectContent>
+                                  <SelectItem value="INR">INR</SelectItem>
+                                  <SelectItem value="USD">USD</SelectItem>
+                                  <SelectItem value="EUR">EUR</SelectItem>
+                                  <SelectItem value="GBP">GBP</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -722,7 +735,7 @@ export default function ProductEditPage() {
                         <div className="space-y-1">
                           <div className="text-sm font-medium">Active</div>
                           <div className="text-xs text-muted-foreground">Visible on storefront</div>
-                </div>
+                        </div>
                         <FormField
                           control={form.control as any}
                           name="isActive"
@@ -735,10 +748,10 @@ export default function ProductEditPage() {
                             </FormItem>
                           )}
                         />
-        </div>
-      </CardContent>
-    </Card>
-    </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
                 <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
@@ -749,11 +762,11 @@ export default function ProductEditPage() {
             <TabsContent value="assets">
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="space-y-6">
-    <Card className="rounded-2xl">
-      <CardHeader className="pb-3">
+                  <Card className="rounded-2xl">
+                    <CardHeader className="pb-3">
                       <CardTitle>3D Assets</CardTitle>
                       <CardDescription>GLB + rendering hints.</CardDescription>
-      </CardHeader>
+                    </CardHeader>
                     <CardContent className="grid gap-4">
                       <FormField
                         control={form.control as any}
@@ -789,11 +802,11 @@ export default function ProductEditPage() {
                             </FormItem>
                           )}
                         />
-        </div>
-        <Button
+                      </div>
+                      <Button
                         type="button"
                         variant="secondary"
-          onClick={() => {
+                        onClick={() => {
                           const { glbUrl, glbLighting, glbEnvironment } = form.getValues();
                           const assets = buildAssets({ glbUrl, glbLighting, glbEnvironment } as FormValues);
                           toast.info("Assets preview (console)");
@@ -802,9 +815,9 @@ export default function ProductEditPage() {
                       >
                         <Sparkles className="mr-2 size-4" />
                         Preview assets JSON (console)
-        </Button>
-      </CardContent>
-    </Card>
+                      </Button>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
@@ -839,11 +852,11 @@ export default function ProductEditPage() {
                   description="Select available styles for this product."
                   emptyMessage="No styles available. Create styles first in the Styles section."
                 />
-          </div>
+              </div>
               <div className="mt-6 flex justify-between gap-2">
                 <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
                 <Button type="button" onClick={() => handleNext()}>Next</Button>
-        </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="soles">
@@ -857,7 +870,7 @@ export default function ProductEditPage() {
                   description="Select available soles for this product."
                   emptyMessage="No soles available. Create soles first in the Soles section."
                 />
-        </div>
+              </div>
               <div className="flex justify-between gap-2">
                 <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
                 <Button type="button" onClick={() => handleNext()}>Next</Button>
@@ -866,9 +879,35 @@ export default function ProductEditPage() {
 
 
           </Tabs>
+
+          {/* Update Button - Now inside the form */}
+          <div className="flex justify-end gap-2 pt-6 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                console.log("🧪 Test button clicked - form values:", form.getValues());
+                console.log("🧪 Form errors:", form.formState.errors);
+                console.log("🧪 Form is valid:", form.formState.isValid);
+              }}
+            >
+              Test Form State
+            </Button>
+            <Button
+              type="submit"
+              disabled={saving}
+              onClick={() => {
+                console.log("🔘 Update button clicked");
+                console.log("Form errors:", form.formState.errors);
+                console.log("Form is valid:", form.formState.isValid);
+              }}
+            >
+              <Save className="mr-2 size-4" />{saving ? "Updating..." : "Update Product"}
+            </Button>
+          </div>
         </form>
       </Form>
-        </div>
+    </div>
   );
 }
 

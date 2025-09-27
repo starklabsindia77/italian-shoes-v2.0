@@ -18,6 +18,7 @@ export const ProductCreateSchema = z.object({
     materialId: z.string(),
     materialName: z.string(),
     selectedColorIds: z.array(z.string()),
+    selectedColor: z.array(z.any()),
     selectAllColors: z.boolean()
   })).optional(),
   selectedStyles: z.array(z.object({

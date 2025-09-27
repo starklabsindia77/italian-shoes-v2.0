@@ -11,8 +11,9 @@ import { Plus, X, PaintBucket } from "lucide-react";
 export interface MaterialColor {
   id: string;
   name: string;
-  hexCode?: string | null;
-  imageUrl?: string | null;
+  hexCode?: any;
+  imageUrl?: any;
+  family?: any;
   isActive: boolean;
 }
 
@@ -94,7 +95,7 @@ export function MaterialSelection({
     
     if (isColorSelected) {
       newSelectedColorIds = material.selectedColorIds.filter(id => id !== colorId);
-      newSelectedColor = material.selectedColor.filter(c => c.id !== colorId);
+      newSelectedColor = material.selectedColor?.filter(c => c.id !== colorId);
     } else {
       newSelectedColorIds = [...material.selectedColorIds, colorId];
       newSelectedColor = [...material.selectedColor, color];
@@ -106,6 +107,7 @@ export function MaterialSelection({
       selectedColor: newSelectedColor,
       selectAllColors: newSelectedColorIds.length === materialData.colors.filter(c => c.isActive).length
     };
+    
 
     onSelectionChange(
       selectedMaterials.map(sm => sm.materialId === materialId ? updatedMaterial : sm)
@@ -126,6 +128,8 @@ export function MaterialSelection({
       selectedColor: newSelectAllColors ? activeColors : [],
       selectAllColors: newSelectAllColors
     };
+
+ 
 
     onSelectionChange(
       selectedMaterials.map(sm => sm.materialId === materialId ? updatedMaterial : sm)
