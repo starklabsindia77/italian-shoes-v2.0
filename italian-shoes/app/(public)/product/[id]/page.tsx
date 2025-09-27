@@ -519,7 +519,7 @@ export default function DerbyBuilderClean() {
             {/* Customization Tabs */}
             <div>
               <div className="mb-6">
-                <div className="relative inline-flex bg-gray-200 rounded-full p-1 shadow-sm w-full">
+                <div className="relative inline-flex bg-gray-200 rounded-full p-1 shadow-sm w-full justify-center items-center">
                   {(["Materials", "Style", "Soles"] as const).map((t) => (
                     <button
                       key={t}
@@ -539,7 +539,7 @@ export default function DerbyBuilderClean() {
               {activeTab === "Materials" && (
                 <>
                   {/* Customization Instruction */}
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-sm text-gray-600 mb-4 text-center">
                     Choose a material and color for every part of your shoes
                   </p>
 
