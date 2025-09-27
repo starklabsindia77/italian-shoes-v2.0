@@ -1,80 +1,208 @@
 "use client";
 
-import React, { useEffect, useState, Suspense, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, useGLTF, Environment } from "@react-three/drei";
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useState,
+  Suspense,
+  useRef,
+  SetStateAction,
+} from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, useGLTF, Environment, Bounds } from "@react-three/drei";
 import * as THREE from "three";
 
 interface AvatarProps {
   avatarData: string;
   objectList: any[];
   setObjectList: React.Dispatch<React.SetStateAction<any[]>>;
-  selectedColorHexMap?: Record<string, string>;
+  selectedTextureMap?: Record<
+    string,
+    {
+      colorUrl?: string;
+      normalUrl?: string;
+      roughnessUrl?: string;
+    }
+  >;
+  setIsTextureLoading?: React.Dispatch<SetStateAction<boolean>>;
 }
+
+const textureLoader = new THREE.TextureLoader();
 
 const Avatar: React.FC<AvatarProps> = ({
   avatarData,
   objectList,
   setObjectList,
-  selectedColorHexMap = {},
+  selectedTextureMap = {},
+  setIsTextureLoading,
 }) => {
   const { scene } = useGLTF(avatarData);
   const meshRef = useRef<THREE.Group>(null);
-  const [scale, setScale] = useState(1);
-  const prevColorMapRef = useRef<string>("");
+  const prevTextureMapRef = useRef<string>("");
 
-  useEffect(() => {
-    if (scene && meshRef.current) {
-      const box = new THREE.Box3().setFromObject(scene);
-      const size = new THREE.Vector3();
-      const center = new THREE.Vector3();
-      box.getSize(size);
-      box.getCenter(center);
+  const textureCacheRef = useRef<Map<string, THREE.Texture>>(new Map());
+  const originalMapRef = useRef<WeakMap<THREE.Material, THREE.Texture | null>>(
+    new WeakMap()
+  );
+  const pendingLoadsRef = useRef(0);
 
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const newScale = 2.5 / maxDim;
+  const setLoading = (isLoading: boolean) => {
+    setIsTextureLoading?.(isLoading);
+  };
 
-      setScale(newScale);
-      meshRef.current.position.set(-center.x, -center.y, -center.z);
+  // --- Center + scale ---
+  useLayoutEffect(() => {
+    if (!scene || !meshRef.current) return;
+    meshRef.current.scale.set(27, 28, 31);
 
-      const children: THREE.Mesh[] = [];
-      scene.traverse((child: any) => {
-        if (child.isMesh) children.push(child);
-      });
+    const box = new THREE.Box3().setFromObject(scene);
+    const center = box.getCenter(new THREE.Vector3());
+    meshRef.current.position.set(-center.x, -center.y, -center.z);
+  }, [scene]);
 
-      setObjectList((prev: any[]) => {
-        const prevNames = prev?.map((obj) => obj.name).sort().join(",");
-        const newNames = children.map((obj) => obj.name).sort().join(",");
-        return prevNames === newNames ? prev : children;
-      });
-    }
-  }, [scene, setObjectList]);
+  // --- Ground on Y=0 ---
+  useLayoutEffect(() => {
+    if (!meshRef.current) return;
+    const scaledBox = new THREE.Box3().setFromObject(meshRef.current);
+    const minY = scaledBox.min.y;
+    meshRef.current.position.y -= minY;
+  }, []);
 
-  useEffect(() => {
-    const currentMapStr = JSON.stringify(selectedColorHexMap);
-    if (!scene || currentMapStr === prevColorMapRef.current) return;
+  // --- Material Enhancements ---
+  useLayoutEffect(() => {
+    if (!scene) return;
 
-    scene.traverse((child: any) => {
-      if (child.isMesh) {
-        child.material = child.material.clone();
+    scene.traverse((o: any) => {
+      if (o.isMesh && o.material) {
+        const mat = o.material as THREE.MeshStandardMaterial;
 
-        const hexColor = selectedColorHexMap[child.name];
-        if (hexColor) {
-          child.material.color = new THREE.Color(hexColor);
-        } else if (!child.material.map) {
-          child.material.color = new THREE.Color("#888888");
+        // Leather-like tuning
+        mat.envMapIntensity = 1.2;
+        mat.roughness = 0.45;
+        mat.metalness = 0.1;
+        mat.needsUpdate = true;
+
+        const texConfig = selectedTextureMap?.[o.name];
+        if (texConfig?.normalUrl) {
+          const normalMap = textureLoader.load(texConfig.normalUrl);
+          normalMap.flipY = false;
+          mat.normalMap = normalMap;
         }
-
-        child.material.needsUpdate = true;
+        if (texConfig?.roughnessUrl) {
+          const roughnessMap = textureLoader.load(texConfig.roughnessUrl);
+          roughnessMap.flipY = false;
+          mat.roughnessMap = roughnessMap;
+        }
       }
     });
+  }, [scene, selectedTextureMap]);
 
-    prevColorMapRef.current = currentMapStr;
-  }, [selectedColorHexMap, scene]);
+  // --- Collect meshes for UI ---
+  useEffect(() => {
+    if (!scene) return;
+    const children: THREE.Mesh[] = [];
+    scene.traverse((child: any) => {
+      if (child.isMesh) children.push(child);
+    });
+
+    setObjectList((prev: any[]) => {
+      const prevNames = prev?.map((o) => o.name).sort().join(",");
+      const newNames = children.map((o) => o.name).sort().join(",");
+      return prevNames === newNames ? prev : children;
+    });
+  }, [scene, setObjectList]);
+
+  // --- Texture swapping ---
+  useEffect(() => {
+    const currentMapStr = JSON.stringify(selectedTextureMap || {});
+    if (!scene || currentMapStr === prevTextureMapRef.current) return;
+
+    const cache = textureCacheRef.current;
+
+    const beginLoad = () => {
+      pendingLoadsRef.current += 1;
+      setLoading(true);
+    };
+    const endLoad = () => {
+      pendingLoadsRef.current = Math.max(0, pendingLoadsRef.current - 1);
+      if (pendingLoadsRef.current === 0) setLoading(false);
+    };
+
+    const getTexture = (url: string) => {
+      const cached = cache.get(url);
+      if (cached) return cached;
+
+      beginLoad();
+      const tex = textureLoader.load(
+        url,
+        () => endLoad(),
+        undefined,
+        () => endLoad()
+      );
+      tex.flipY = false;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      cache.set(url, tex);
+      return tex;
+    };
+
+    scene.traverse((child: any) => {
+      if (!child.isMesh) return;
+      const prevMat = child.material as THREE.MeshStandardMaterial;
+
+      if (!originalMapRef.current.has(prevMat)) {
+        originalMapRef.current.set(prevMat, prevMat.map ?? null);
+      }
+
+      const textureUrl: string | undefined =
+        selectedTextureMap?.[child.name]?.colorUrl;
+
+      child.material = prevMat.clone();
+      const mat = child.material as THREE.MeshStandardMaterial;
+
+      const prevMap = prevMat.map ?? originalMapRef.current.get(prevMat) ?? null;
+
+      if (!textureUrl) {
+        const original = originalMapRef.current.get(prevMat) ?? null;
+        if (mat.map !== original) {
+          mat.map = original;
+          mat.needsUpdate = true;
+        }
+        return;
+      }
+
+      if ((mat.map as any)?.userData?._appliedUrl === textureUrl) return;
+
+      const tex = getTexture(textureUrl);
+      if (prevMap) {
+        tex.offset.copy(prevMap.offset);
+        tex.repeat.copy(prevMap.repeat);
+        tex.center.copy(prevMap.center);
+        tex.rotation = prevMap.rotation;
+      }
+
+      (tex as any).userData = {
+        ...(tex as any).userData,
+        _appliedUrl: textureUrl,
+      };
+
+      mat.map = tex;
+      mat.needsUpdate = true;
+    });
+
+    prevTextureMapRef.current = currentMapStr;
+  }, [selectedTextureMap, scene]);
 
   return (
-    <group ref={meshRef} scale={[scale, scale, scale]}>
+    <group ref={meshRef}>
       <primitive object={scene} />
+
+      {/* Soft shadow ground */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <planeGeometry args={[5, 5]} />
+        <shadowMaterial opacity={0.25} />
+      </mesh>
     </group>
   );
 };
@@ -83,15 +211,14 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
   avatarData,
   objectList,
   setObjectList,
-  selectedColorHexMap,
+  selectedTextureMap,
 }) => {
-
-  console.log('selected Color Hex', selectedColorHexMap);
   const [canvasSize, setCanvasSize] = useState({
     width: typeof window !== "undefined" ? window.innerWidth : 800,
     height: typeof window !== "undefined" ? window.innerHeight : 600,
   });
   const [hasMounted, setHasMounted] = useState(false);
+  const [isTextureLoading, setIsTextureLoading] = useState(false);
 
   useGLTF.preload(avatarData);
 
@@ -110,50 +237,70 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
 
   if (!hasMounted) return null;
 
-
   return (
-    <div>
+    <div className="relative">
+      {isTextureLoading && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+          <DomSpinner />
+        </div>
+      )}
+
       <Canvas
+        shadows
+        gl={{ antialias: true, outputColorSpace: THREE.SRGBColorSpace }}
         style={{
           width: `${canvasSize.width}px`,
           height: `${canvasSize.height}px`,
           maxWidth: "100%",
         }}
-        camera={{ position: [2, 0, 0], fov: 70 }}
+        camera={{ position: [2.2, 0.25, 0], fov: 50 }}
         onCreated={({ gl }) => {
+          gl.outputColorSpace = THREE.SRGBColorSpace;
+          gl.toneMapping = THREE.ACESFilmicToneMapping;
+          gl.toneMappingExposure = 1.5;
+
           const renderer = gl as THREE.WebGLRenderer;
-          // renderer.outputEncoding = THREE.sRGBEncoding;
-          renderer.toneMapping = THREE.ACESFilmicToneMapping;
-          renderer.toneMappingExposure = 1.0;
-
-          renderer.getContext().canvas.addEventListener("webglcontextlost", (e) => {
-            e.preventDefault();
-            console.warn("WebGL context lost.");
-          });
+          renderer.shadowMap.enabled = true;
+          renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         }}
-
       >
-        <ambientLight intensity={1} />
-        <directionalLight position={[-5, 2, -2]} intensity={1} />
-        <Suspense fallback={<LoadingSpinner />}>
-          <Environment preset="studio" />
-          <Avatar
-            avatarData={avatarData}
-            objectList={objectList}
-            setObjectList={setObjectList}
-            selectedColorHexMap={selectedColorHexMap}
-          />
+        {/* Lighting setup */}
+        <ambientLight intensity={0.2} />
+
+        <directionalLight
+          position={[5, 8, 5]}
+          intensity={1.6}
+          castShadow
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+        />
+        <directionalLight position={[-5, 3, 5]} intensity={0.6} />
+        <directionalLight position={[0, 5, -6]} intensity={0.8} color={"#fff"} />
+
+        {/* Studio HDRI */}
+        <Environment
+          files="/hdri/studio_small_08_4k.hdr"
+          background={false}
+        />
+
+        <Suspense fallback={null}>
+          <Bounds margin={1.1}>
+            <Avatar
+              avatarData={avatarData}
+              objectList={objectList}
+              setObjectList={setObjectList}
+              selectedTextureMap={selectedTextureMap}
+              setIsTextureLoading={setIsTextureLoading}
+            />
+          </Bounds>
         </Suspense>
-
-        
-
 
         <OrbitControls
           enablePan={false}
-          enableZoom={true}
-          minDistance={1}
+          enableZoom
+          minDistance={1.2}
           maxDistance={5}
-          target={[0, 0, 0]}
+          target={[0, 0.5, 0]}
           maxPolarAngle={Math.PI}
         />
       </Canvas>
@@ -161,21 +308,13 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
   );
 };
 
-const LoadingSpinner = () => {
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += 0.05;
-    }
-  });
-
+// Loading spinner
+const DomSpinner: React.FC = () => {
   return (
-    <mesh ref={meshRef}>
-      <torusGeometry args={[0.5, 0.2, 16, 32]} />
-      <meshStandardMaterial color="white" />
-      
-    </mesh>
+    <div
+      aria-label="Loading"
+      className="animate-spin rounded-full h-12 w-12 border-4 border-white/70 border-t-transparent"
+    />
   );
 };
 

@@ -4,6 +4,17 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { ArrowLeft, ZoomIn, Save, Share2, Heart, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import dynamic from "next/dynamic";
+
+
+const ShoeAvatar = dynamic(() => import("@/components/shoe-avatar/ShoeAvatar"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg">
+      <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
+    </div>
+  ),
+});
 
 /* ----------------------
    Types & Product Config
@@ -399,6 +410,9 @@ export default function DerbyBuilderClean() {
     }
   };
 
+  const [objectList, setObjectList] = useState<any>();
+  const [selectedTextureMap, setSelectedTextureMap] = useState<Record<string, any>>({});
+
   // Show loading state
   if (loading) {
     return (
@@ -454,8 +468,7 @@ export default function DerbyBuilderClean() {
           <div className="space-y-6">
             {/* Main Product Image with Controls */}
             <div className="relative bg-gray-50 rounded-lg overflow-hidden">
-              {/* Interactive Controls */}
-              <div className="absolute top-4 left-4 z-10 flex gap-2">
+              {/* <div className="absolute top-4 left-4 z-10 flex gap-2">
                 <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors">
                   <ZoomIn className="w-4 h-4" />
                 </button>
@@ -467,7 +480,7 @@ export default function DerbyBuilderClean() {
                 </button>
               </div>
 
-              {/* Navigation Arrows */}
+              
               <button className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors z-10">
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -475,14 +488,22 @@ export default function DerbyBuilderClean() {
                 <ChevronRight className="w-5 h-5" />
               </button>
 
-              {/* Main Product Image */}
+              
               <div className="aspect-square flex items-center justify-center p-8">
                 <img
                   src={cfg.images?.[imageIndex] || '/placeholder/shoe-main.jpg'}
                   alt="Product"
                   className="max-w-full max-h-full object-contain"
                 />
-              </div>
+              </div> */}
+
+<ShoeAvatar
+          avatarData="/ShoeSoleFixed.glb"
+          objectList={objectList}
+          setObjectList={setObjectList}
+          // selectedPanelName={selectedPanelName}
+          selectedTextureMap={selectedTextureMap}
+        />
             </div>
 
             {/* Thumbnail Gallery */}
