@@ -336,7 +336,7 @@ export default function DerbyBuilderClean() {
           // Skip colors with null/undefined family
           return acc;
         }, []);
-        console.log("uniqueColors", uniqueColors.length);
+        console.log("uniqueColors", uniqueColors?.length);
         
         return uniqueColors;
       }
