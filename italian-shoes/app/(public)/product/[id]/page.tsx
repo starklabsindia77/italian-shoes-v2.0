@@ -523,8 +523,8 @@ export default function DerbyBuilderClean() {
                       key={t}
                       onClick={() => setActiveTab(t)}
                       className={`relative px-6 py-2 justify-center items-center text-sm font-medium rounded-full transition-all duration-200 ${activeTab === t
-                          ? "bg-red-500 text-white shadow-sm"
-                          : "text-gray-700 hover:text-gray-900"
+                        ? "bg-red-500 text-white shadow-sm"
+                        : "text-gray-700 hover:text-gray-900"
                         }`}
                     >
                       {t}
@@ -616,21 +616,212 @@ export default function DerbyBuilderClean() {
                   </div>
 
                   {/* Material Categories with Color Swatches */}
-
-                  
-                  {getAvailableMaterials().map((material: any) => (
-                    <div key={material.materialId}>
-                      <h3 className="font-medium mb-2 text-right">{material.materialName}</h3>
-                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-1 justify-end">
-                        {material.selectedColor?.map((color: any) => (
-                          <div key={color.id} onClick={() => setSelectedColor(color.id)} className={`rounded-md transition ${selectedColor === color.id ? "border-red-500 ring-1 ring-red-100" : "border-gray-200"}`}>
-                            <img src={color.imageUrl} alt={color.name} className="object-contain w-8 h-8" />
+                  <div className="space-y-6 h-80 overflow-y-auto">
+                    {getAvailableMaterials().map((material: any) => (
+                      <div key={material.materialId}>
+                        <div className="flex items-center gap-2 mb-3">
+                          <h4 className="text-sm font-medium text-gray-700 italic">{material.materialName}</h4>
+                          <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">?</span>
                           </div>
-                          
-                        ))}
+                        </div>
+                        <div className="flex flex-wrap gap-2 w-full">
+                          {material.selectedColor?.map((color: any) => (
+                            <div key={color.id} onClick={() => setSelectedColor(color.id)} className={`rounded-md transition flex-shrink-0 ${selectedColor === color.id ? "border-red-500 ring-1 ring-red-100" : "border-gray-200"}`}>
+                              <img src={color.imageUrl} alt={color.name} className="object-contain w-12 h-12" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Metallic finish premium leather */}
+                    {/* <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <h4 className="text-sm font-medium text-gray-700 italic">Metallic finish premium leather</h4>
+                        <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">?</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <button
+                            className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'metallic-brown-1' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                            style={{ backgroundColor: "#8B4513" }}
+                            onClick={() => setSelectedMaterial('metallic-brown-1')}
+                            title="Metallic Brown 1"
+                          />
+                          <button
+                            className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'metallic-brown-2' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                            style={{ backgroundColor: "#A0522D" }}
+                            onClick={() => setSelectedMaterial('metallic-brown-2')}
+                            title="Metallic Brown 2"
+                          />
+                          <button
+                            className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'metallic-brown-3' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                            style={{ backgroundColor: "#654321" }}
+                            onClick={() => setSelectedMaterial('metallic-brown-3')}
+                            title="Metallic Brown 3"
+                          />
+                          <button
+                            className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'metallic-gold' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                            style={{ backgroundColor: "#FFD700" }}
+                            onClick={() => setSelectedMaterial('metallic-gold')}
+                            title="Metallic Gold"
+                          />
+                          <button
+                            className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'metallic-orange' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                            style={{ backgroundColor: "#FF8C00" }}
+                            onClick={() => setSelectedMaterial('metallic-orange')}
+                            title="Metallic Orange"
+                          />
+                          <button
+                            className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'metallic-red-1' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                            style={{ backgroundColor: "#DC143C" }}
+                            onClick={() => setSelectedMaterial('metallic-red-1')}
+                            title="Metallic Red 1"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'metallic-burgundy' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                            style={{ backgroundColor: "#800020" }}
+                            onClick={() => setSelectedMaterial('metallic-burgundy')}
+                            title="Metallic Burgundy"
+                          />
+                          <button
+                            className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'metallic-teal' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                            style={{ backgroundColor: "#008B8B" }}
+                            onClick={() => setSelectedMaterial('metallic-teal')}
+                            title="Metallic Teal"
+                          />
+                          <button
+                            className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'metallic-blue-1' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                            style={{ backgroundColor: "#4169E1" }}
+                            onClick={() => setSelectedMaterial('metallic-blue-1')}
+                            title="Metallic Blue 1"
+                          />
+                          <button
+                            className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'metallic-navy' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                            style={{ backgroundColor: "#000080" }}
+                            onClick={() => setSelectedMaterial('metallic-navy')}
+                            title="Metallic Navy"
+                          />
+                          <button
+                            className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'metallic-green' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                            style={{ backgroundColor: "#228B22" }}
+                            onClick={() => setSelectedMaterial('metallic-green')}
+                            title="Metallic Green"
+                          />
+                        </div>
+              
+                        <div className="flex gap-2 ml-10">
+                          <button
+                            className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'metallic-black' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                            style={{ backgroundColor: "#2F2F2F" }}
+                            onClick={() => setSelectedMaterial('metallic-black')}
+                            title="Metallic Black"
+                          />
+                        </div>
                       </div>
                     </div>
-                    ))}
+
+
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <h4 className="text-sm font-medium text-gray-700 italic">Premium leather</h4>
+                        <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">?</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'premium-brown-1' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                          style={{ backgroundColor: "#8B4513" }}
+                          onClick={() => setSelectedMaterial('premium-brown-1')}
+                          title="Premium Brown 1"
+                        />
+                        <button
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'premium-tan' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                          style={{ backgroundColor: "#D2B48C" }}
+                          onClick={() => setSelectedMaterial('premium-tan')}
+                          title="Premium Tan"
+                        />
+                        <button
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'premium-red-1' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                          style={{ backgroundColor: "#DC143C" }}
+                          onClick={() => setSelectedMaterial('premium-red-1')}
+                          title="Premium Red 1"
+                        />
+                        <button
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'premium-red-2' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                          style={{ backgroundColor: "#B22222" }}
+                          onClick={() => setSelectedMaterial('premium-red-2')}
+                          title="Premium Red 2"
+                        />
+                        <button
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'premium-blue-grey' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                          style={{ backgroundColor: "#708090" }}
+                          onClick={() => setSelectedMaterial('premium-blue-grey')}
+                          title="Premium Blue Grey"
+                        />
+                        <button
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'premium-navy' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                          style={{ backgroundColor: "#000080" }}
+                          onClick={() => setSelectedMaterial('premium-navy')}
+                          title="Premium Navy"
+                        />
+                        <button
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'premium-olive' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                          style={{ backgroundColor: "#808000" }}
+                          onClick={() => setSelectedMaterial('premium-olive')}
+                          title="Premium Olive"
+                        />
+                        <button
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'premium-black' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                          style={{ backgroundColor: "#2F2F2F" }}
+                          onClick={() => setSelectedMaterial('premium-black')}
+                          title="Premium Black"
+                        />
+                      </div>
+                    </div>
+
+                   
+                    <div className="justify-end">
+                      <div className="flex items-center gap-2 mb-3">
+                        <h4 className="text-sm font-medium text-gray-700 italic">High shine premium leather</h4>
+                        <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">?</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'shine-brown' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                          style={{ backgroundColor: "#8B4513" }}
+                          onClick={() => setSelectedMaterial('shine-brown')}
+                          title="High Shine Brown"
+                        />
+                        <button
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'shine-black-1' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                          style={{ backgroundColor: "#000000" }}
+                          onClick={() => setSelectedMaterial('shine-black-1')}
+                          title="High Shine Black 1"
+                        />
+                        <button
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'shine-navy' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                          style={{ backgroundColor: "#000080" }}
+                          onClick={() => setSelectedMaterial('shine-navy')}
+                          title="High Shine Navy"
+                        />
+                        <button
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-105 ${selectedMaterial === 'shine-black-2' ? "border-red-500 ring-2 ring-red-200" : "border-gray-200 hover:border-gray-300"}`}
+                          style={{ backgroundColor: "#000000" }}
+                          onClick={() => setSelectedMaterial('shine-black-2')}
+                          title="High Shine Black 2"
+                        />
+                      </div>
+                    </div> */}
+                  </div>
                 </>
               )}
 
