@@ -488,25 +488,27 @@ export default function DerbyBuilderClean() {
               </div>
 
               {/* Size Selection */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
-                <select
-                  value={selectedSize || ''}
-                  onChange={(e) => setSelectedSize(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                >
-                  {(cfg.sizes || []).map((s: any) => (
-                    <option key={s.id} value={s.id}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <div className="mb-6 flex gap-4 items-end">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
+                  <select
+                    value={selectedSize || ''}
+                    onChange={(e) => setSelectedSize(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  >
+                    {(cfg.sizes || []).map((s: any) => (
+                      <option key={s.id} value={s.id}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              {/* Add to Cart Button */}
-              <button className="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors mb-4">
-                ADD TO CART
-              </button>
+                {/* Add to Cart Button */}
+                <button className="bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                  ADD TO CART
+                </button>
+              </div>
 
               {/* Shipping Info */}
               <div className="text-sm text-gray-600 mb-6">
