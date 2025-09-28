@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, X } from "lucide-react";
+import { Minus, Plus, X, Heart } from "lucide-react";
+import { useCartStore, useWishlistStore } from "@/lib/stores";
+import { useToast } from "@/components/hooks/use-toast";
 
 interface CartItemProps {
   id: string;
@@ -10,8 +12,29 @@ interface CartItemProps {
   price: number;
   originalPrice?: number;
   quantity: number;
-  onQuantityChange: (id: string, quantity: number) => void;
-  onRemove: (id: string) => void;
+  productId: string;
+  size?: {
+    id: string;
+    name: string;
+    region: string;
+  };
+  material?: {
+    id: string;
+    name: string;
+    color?: {
+      id: string;
+      name: string;
+      hexCode?: string;
+    };
+  };
+  style?: {
+    id: string;
+    name: string;
+  };
+  sole?: {
+    id: string;
+    name: string;
+  };
 }
 
 export const CartItem = ({
@@ -22,20 +45,50 @@ export const CartItem = ({
   price,
   originalPrice,
   quantity,
-  onQuantityChange,
-  onRemove,
+  productId,
+  size,
+  material,
+  style,
+  sole,
 }: CartItemProps) => {
   const [isRemoving, setIsRemoving] = useState(false);
+  const { updateQuantity, removeItem } = useCartStore();
+  const { addItem: addToWishlist, isItemInWishlist } = useWishlistStore();
+  const { toast } = useToast();
 
   const handleRemove = () => {
     setIsRemoving(true);
-    setTimeout(() => onRemove(id), 150);
+    setTimeout(() => removeItem(id), 150);
+    toast({
+      title: "Item removed",
+      description: "The item has been removed from your cart.",
+    });
   };
 
-  const updateQuantity = (newQuantity: number) => {
+  const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity >= 1) {
-      onQuantityChange(id, newQuantity);
+      updateQuantity(id, newQuantity);
     }
+  };
+
+  const handleMoveToWishlist = () => {
+    addToWishlist({
+      productId,
+      title,
+      price,
+      originalPrice,
+      image,
+      variant,
+      size,
+      material,
+      style,
+      sole,
+    });
+    removeItem(id);
+    toast({
+      title: "Moved to wishlist",
+      description: "The item has been moved to your wishlist.",
+    });
   };
 
   return (
@@ -63,15 +116,39 @@ export const CartItem = ({
               {title}
             </h3>
             <p className="text-muted-foreground text-sm mt-1">{variant}</p>
+            {/* Display customization options */}
+            <div className="text-xs text-muted-foreground mt-1 space-y-1">
+              {size && <p>Size: {size.name} ({size.region})</p>}
+              {material && (
+                <p>
+                  Material: {material.name}
+                  {material.color && ` - ${material.color.name}`}
+                </p>
+              )}
+              {style && <p>Style: {style.name}</p>}
+              {sole && <p>Sole: {sole.name}</p>}
+            </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRemove}
-            className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleMoveToWishlist}
+              className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
+              title="Move to wishlist"
+            >
+              <Heart className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRemove}
+              className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+              title="Remove from cart"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Price and Quantity */}
@@ -80,7 +157,7 @@ export const CartItem = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => updateQuantity(quantity - 1)}
+              onClick={() => handleQuantityChange(quantity - 1)}
               disabled={quantity <= 1}
               className="h-8 w-8 p-0"
             >
@@ -92,7 +169,7 @@ export const CartItem = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => updateQuantity(quantity + 1)}
+              onClick={() => handleQuantityChange(quantity + 1)}
               className="h-8 w-8 p-0"
             >
               <Plus className="h-3 w-3" />

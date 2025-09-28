@@ -1,71 +1,40 @@
 "use client";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CartItem } from "@/components/cart/CartItem";
 import { OrderSummary } from "@/components/cart/OrderSummary";
 import { ArrowLeft, ShoppingBag } from "lucide-react";
 import { useToast } from "@/components/hooks/use-toast";
-
-interface CartItemType {
-  id: string;
-  image?: string;
-  title: string;
-  variant: string;
-  price: number;
-  originalPrice?: number;
-  quantity: number;
-}
+import { useCartStore } from "@/lib/stores";
+import { useRouter } from "next/navigation";
 
 const Cart = () => {
   const { toast } = useToast();
-  const [cartItems, setCartItems] = useState<CartItemType[]>([
-    {
-      id: "1",
-      title: "Classic Cotton T-Shirt",
-      variant: "White / Large",
-      price: 29.99,
-      originalPrice: 39.99,
-      quantity: 2,
-    },
-    {
-      id: "2",
-      title: "Premium Denim Jeans",
-      variant: "Dark Blue / 32W x 34L",
-      price: 89.99,
-      quantity: 1,
-    },
-    {
-      id: "3",
-      title: "Canvas Sneakers",
-      variant: "White / Size 9",
-      price: 79.99,
-      quantity: 1,
-    },
-  ]);
+  const router = useRouter();
+  const { items: cartItems, getTotalPrice, clearCart } = useCartStore();
 
-  const handleQuantityChange = (id: string, quantity: number) => {
-    setCartItems(items =>
-      items.map(item => (item.id === id ? { ...item, quantity } : item))
-    );
-  };
-
-  const handleRemoveItem = (id: string) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-    toast({
-      title: "Item removed",
-      description: "The item has been removed from your cart.",
-    });
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = getTotalPrice();
   const shipping = subtotal > 100 ? 0 : 9.99;
   const taxes = subtotal * 0.08;
 
   const handleCheckout = () => {
+    if (cartItems.length === 0) {
+      toast({
+        title: "Cart is empty",
+        description: "Please add items to your cart before checkout.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     toast({
       title: "Proceeding to checkout",
       description: "Redirecting to secure checkout...",
     });
+    router.push('/checkout');
+  };
+
+  const handleContinueShopping = () => {
+    router.push('/');
   };
 
   if (cartItems.length === 0) {
@@ -77,7 +46,7 @@ const Cart = () => {
           <p className="text-muted-foreground mb-6">
             Looks like you haven't added anything to your cart yet.
           </p>
-          <Button size="lg" className="w-full">
+          <Button size="lg" className="w-full" onClick={handleContinueShopping}>
             Continue Shopping
           </Button>
         </div>
@@ -86,10 +55,10 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background px-4 py-8">
+    <div className="min-h-screen max-w-7xl bg-background py-8 container mx-auto">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="sm" className="p-2">
+        <Button variant="ghost" size="sm" className="p-2" onClick={handleContinueShopping}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
@@ -107,12 +76,10 @@ const Cart = () => {
             <CartItem
               key={item.id}
               {...item}
-              onQuantityChange={handleQuantityChange}
-              onRemove={handleRemoveItem}
             />
           ))}
 
-          <Button variant="outline" className="mt-4 w-full lg:w-auto">
+          <Button variant="outline" className="mt-4 w-full lg:w-auto" onClick={handleContinueShopping}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Continue Shopping
           </Button>
