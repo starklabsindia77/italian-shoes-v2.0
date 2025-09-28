@@ -13,11 +13,7 @@ interface CartItemProps {
   originalPrice?: number;
   quantity: number;
   productId: string;
-  size?: {
-    id: string;
-    name: string;
-    region: string;
-  };
+  size?: any;
   material?: {
     id: string;
     name: string;
@@ -55,6 +51,7 @@ export const CartItem = ({
   const { updateQuantity, removeItem } = useCartStore();
   const { addItem: addToWishlist, isItemInWishlist } = useWishlistStore();
   const { toast } = useToast();
+  console.log(size);
 
   const handleRemove = () => {
     setIsRemoving(true);
@@ -115,10 +112,10 @@ export const CartItem = ({
             <h3 className="font-medium text-foreground text-sm leading-tight">
               {title}
             </h3>
-            <p className="text-muted-foreground text-sm mt-1">{variant}</p>
+            {/* <p className="text-muted-foreground text-sm mt-1">{variant}</p> */}
             {/* Display customization options */}
             <div className="text-xs text-muted-foreground mt-1 space-y-1">
-              {size && <p>Size: {size.name} ({size.region})</p>}
+              {size && <p>Size: {size.value} ({size.region})</p>}
               {material && (
                 <p>
                   Material: {material.name}
@@ -179,11 +176,11 @@ export const CartItem = ({
           <div className="text-right">
             {originalPrice && originalPrice > price && (
               <p className="text-muted-foreground text-sm line-through">
-                ${originalPrice.toFixed(2)}
+                ₹{originalPrice.toFixed(2)}
               </p>
             )}
             <p className="font-semibold text-cart-price">
-              ${(price * quantity).toFixed(2)}
+              ₹{(price * quantity).toFixed(2)}
             </p>
           </div>
         </div>

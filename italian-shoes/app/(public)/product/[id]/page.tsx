@@ -5,6 +5,8 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { ArrowLeft, ZoomIn, Save, Share2, Heart, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import dynamic from "next/dynamic";
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { WishlistButton } from "@/components/wishlist/WishlistButton";
 
 
 const ShoeAvatar = dynamic(() => import("@/components/shoe-avatar/ShoeAvatar"), {
@@ -180,6 +182,7 @@ export default function DerbyBuilderClean() {
   const [appliedTextures, setAppliedTextures] = useState<Record<string, string | null>>({});
   const [inscription, setInscription] = useState({ toe: "", tongue: "" });
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedSizeInfo, setSelectedSizeInfo] = useState<any>(null);
 
   // Filter state for materials and colors
   const [selectedMaterialFilter, setSelectedMaterialFilter] = useState<string>("all");
@@ -477,42 +480,13 @@ export default function DerbyBuilderClean() {
           <div className="space-y-6">
             {/* Main Product Image with Controls */}
             <div className="relative bg-gray-50 rounded-lg overflow-hidden">
-              {/* <div className="absolute top-4 left-4 z-10 flex gap-2">
-                <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors">
-                  <ZoomIn className="w-4 h-4" />
-                </button>
-                <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors">
-                  <Save className="w-4 h-4" />
-                </button>
-                <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors">
-                  <Share2 className="w-4 h-4" />
-                </button>
-              </div>
-
-              
-              <button className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors z-10">
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors z-10">
-                <ChevronRight className="w-5 h-5" />
-              </button>
-
-              
-              <div className="aspect-square flex items-center justify-center p-8">
-                <img
-                  src={cfg.images?.[imageIndex] || '/placeholder/shoe-main.jpg'}
-                  alt="Product"
-                  className="max-w-full max-h-full object-contain"
-                />
-              </div> */}
-
-<ShoeAvatar
-          avatarData="/ShoeSoleFixed.glb"
-          objectList={objectList}
-          setObjectList={setObjectList}
-          // selectedPanelName={selectedPanelName}
-          selectedTextureMap={selectedTextureMap}
-        />
+              <ShoeAvatar
+                avatarData="/ShoeSoleFixed.glb"
+                objectList={objectList}
+                setObjectList={setObjectList}
+                // selectedPanelName={selectedPanelName}
+                selectedTextureMap={selectedTextureMap}
+              />
             </div>
 
             {/* Thumbnail Gallery */}
@@ -532,8 +506,8 @@ export default function DerbyBuilderClean() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{cfg.title || 'Men\'s Luxury Dress Shoes'}</h1>
               <div className="flex items-baseline gap-3 mb-4">
-                <div className="text-3xl font-bold text-gray-900">${cfg.price || 329}</div>
-                <div className="text-lg text-gray-500 line-through">${cfg.compareAtPrice || 519}</div>
+                <div className="text-3xl font-bold text-gray-900">₹{cfg.price || 329}</div>
+                <div className="text-lg text-gray-500 line-through">₹{cfg.compareAtPrice || 519}</div>
               </div>
 
               {/* Size Selection */}
@@ -542,7 +516,13 @@ export default function DerbyBuilderClean() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
                   <select
                     value={selectedSize || ''}
-                    onChange={(e) => setSelectedSize(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedSize(e.target.value);
+                      console.log(sizesData);
+                      const selectedInfo = sizesData.items.find((s: any) => s.id === e.target.value);
+                      console.log(selectedInfo);
+                      setSelectedSizeInfo(selectedInfo);
+                    }}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
                   >
                     {(cfg.sizes || []).map((s: any) => (
@@ -554,9 +534,20 @@ export default function DerbyBuilderClean() {
                 </div>
 
                 {/* Add to Cart Button */}
-                <button className="bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                <AddToCartButton
+            productId={cfg.productId}
+            title={cfg.title}
+            price={cfg.price}
+            originalPrice={cfg.compareAtPrice}
+            image={'/ShoeSoleFixed.glb'}
+            size={selectedSizeInfo}
+            variant="Default"
+            buttonVariant="default"
+            buttonSize="sm"
+          />
+                {/* <button className="bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors">
                   ADD TO CART
-                </button>
+                </button> */}
               </div>
 
               {/* Shipping Info */}

@@ -13,11 +13,7 @@ interface AddToCartButtonProps {
   image?: string;
   variant?: string;
   quantity?: number;
-  size?: {
-    id: string;
-    name: string;
-    region: string;
-  };
+  size?:any;
   material?: {
     id: string;
     name: string;
@@ -39,6 +35,8 @@ interface AddToCartButtonProps {
   buttonSize?: "default" | "sm" | "lg";
   className?: string;
   showIcon?: boolean;
+  notes?: string;
+  config?: any;
 }
 
 export const AddToCartButton = ({
@@ -57,6 +55,8 @@ export const AddToCartButton = ({
   buttonSize = "default",
   className = "bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors",
   showIcon = false,
+  notes,
+  config,
 }: AddToCartButtonProps) => {
   const { addItem, isItemInCart } = useCartStore();
   const { toast } = useToast();
@@ -80,6 +80,8 @@ export const AddToCartButton = ({
         material,
         style,
         sole,
+        notes,
+        config,
       });
       
       toast({

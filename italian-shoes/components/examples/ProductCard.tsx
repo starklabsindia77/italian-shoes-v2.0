@@ -141,6 +141,7 @@ export const ProductCard = ({
             price={product.price}
             originalPrice={product.originalPrice}
             image={product.image}
+            size={size}
             variant="Default"
             buttonVariant="default"
             buttonSize="sm"

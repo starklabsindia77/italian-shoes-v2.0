@@ -11,11 +11,7 @@ export interface CartItem {
   quantity: number;
   image?: string;
   // Product customization options
-  size?: {
-    id: string;
-    name: string;
-    region: string;
-  };
+  size?: any;
   material?: {
     id: string;
     name: string;
@@ -33,6 +29,8 @@ export interface CartItem {
     id: string;
     name: string;
   };
+  notes?: string;
+  config?: any;
   // Additional metadata
   addedAt: Date;
 }

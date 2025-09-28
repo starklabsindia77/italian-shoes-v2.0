@@ -91,16 +91,16 @@ const Cart = () => {
 
           <Button
             size="lg"
-            className="w-full mt-4 bg-black hover:bg-gray-900"
+            className="w-full mt-4 bg-black hover:bg-gray-900 text-white"
             onClick={handleCheckout}
           >
             Proceed to Checkout
           </Button>
 
-          {subtotal < 100 && (
+          {subtotal < 10000 && (
             <div className="bg-warning/10 border border-warning/20 rounded-lg p-4 mt-3">
               <p className="text-sm text-warning-foreground">
-                <strong>Free shipping</strong> on orders over $100. Add ${(100 - subtotal).toFixed(2)} more to qualify!
+                <strong>Free shipping</strong> on orders over ₹10000. Add ₹{(100 - subtotal).toFixed(2)} more to qualify!
               </p>
             </div>
           )}
