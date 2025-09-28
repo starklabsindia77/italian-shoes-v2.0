@@ -518,9 +518,7 @@ export default function DerbyBuilderClean() {
                     value={selectedSize || ''}
                     onChange={(e) => {
                       setSelectedSize(e.target.value);
-                      console.log(sizesData);
                       const selectedInfo = sizesData.items.find((s: any) => s.id === e.target.value);
-                      console.log(selectedInfo);
                       setSelectedSizeInfo(selectedInfo);
                     }}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
@@ -535,16 +533,17 @@ export default function DerbyBuilderClean() {
 
                 {/* Add to Cart Button */}
                 <AddToCartButton
-            productId={cfg.productId}
-            title={cfg.title}
-            price={cfg.price}
-            originalPrice={cfg.compareAtPrice}
-            image={'/ShoeSoleFixed.glb'}
-            size={selectedSizeInfo}
-            variant="Default"
-            buttonVariant="default"
-            buttonSize="sm"
-          />
+                  productId={cfg.productId}
+                  title={cfg.title}
+                  price={cfg.price}
+                  originalPrice={cfg.compareAtPrice}
+                  image={'/ShoeSoleFixed.glb'}
+                  size={selectedSizeInfo}
+                  variant="Default"
+                  buttonVariant="default"
+                  buttonSize="sm"
+                  config={selectedTextureMap}
+                />
                 {/* <button className="bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors">
                   ADD TO CART
                 </button> */}
