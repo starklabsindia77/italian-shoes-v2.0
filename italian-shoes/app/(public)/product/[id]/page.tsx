@@ -727,7 +727,7 @@ export default function DerbyBuilderClean() {
 
             {/* Customization Tabs */}
             <div>
-              <div className="mb-6">
+              <div className="mb-3">
                 <div className="relative inline-flex bg-gray-200 rounded-full h-8 shadow-sm w-full justify-center items-center">
                   {(["Materials", "Style", "Soles"] as const).map((t) => (
                     <button
@@ -735,7 +735,7 @@ export default function DerbyBuilderClean() {
                       onClick={() => setActiveTab(t)}
                       className={`relative px-6 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center ${
                         activeTab === t
-                          ?  "bg-red-500 text-white shadow-sm h-10 -my-1"
+                          ? "bg-red-500 text-white shadow-sm h-10 -my-1"
                           : "text-gray-700 hover:text-gray-900 h-8"
                       }`}
                     >
@@ -754,82 +754,84 @@ export default function DerbyBuilderClean() {
                   </p>
 
                   {/* Panel Selection */}
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Select a panel:
-                    </label>
-                    <div className="relative">
-                      {/* <select
-                        value={activePanel || ''}
-                        onChange={(e) => setActivePanel(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white"
-                      >
-                        {(cfg.panels || []).map((p: any) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select> */}
-                      <select
-                        value={selectedPanelName || ""}
-                        onChange={handlePanelChange}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white"
-                      >
-                        <option value="">-- Choose Panel --</option>
-                        {objectList?.map((obj: any) => (
-                          <option key={obj.name} value={obj.name}>
-                            {obj.name.replace("_", " ")}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                        <svg
-                          className="w-4 h-4 text-red-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                  <div className="mb-3">
+                    <div className="flex items-center gap-4">
+                      {/* Label */}
+                      <label className="text-sm font-light text-gray-400 whitespace-nowrap">
+                        Select a panel:
+                      </label>
+
+                      {/* Dropdown */}
+                      <div className="relative flex-1">
+                        <select
+                          value={selectedPanelName || ""}
+                          onChange={handlePanelChange}
+                          className="w-full h-8 border border-gray-500 rounded-full px-3 pr-10 focus:ring-red-600 focus:border-red-500 appearance-none bg-white py-1 text-sm"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
+                          {/* Placeholder */}
+                          <option value="" disabled hidden>
+                            -- Choose Panel --
+                          </option>
+
+                          {/* Items */}
+                          {objectList?.map((obj: any) => (
+                            <option key={obj.name} value={obj.name}>
+                              {obj.name.replace("_", " ")}
+                            </option>
+                          ))}
+                        </select>
+
+                        {/* Custom Dropdown Icon */}
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-0.5 pt-0.5 pb-0.5 pointer-events-none">
+                          <div className="bg-red-500 h-full w-8 flex items-center justify-center rounded-r-full">
+                            <svg
+                              className="w-4 h-4 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Material and Color Filters */}
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        All Materials
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={selectedMaterialFilter}
-                          onChange={(e) => {
-                            setSelectedMaterialFilter(e.target.value);
-                            // Reset color filter when material is selected
-                            setSelectedColorFilter("all");
-                            setSelectedColor(null);
-                          }}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white"
-                        >
-                          <option value="all">All Materials</option>
-                          {getAvailableMaterials().map((material: any) => (
-                            <option
-                              key={material.materialId}
-                              value={material.materialId}
-                            >
-                              {material.materialName}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <div className="flex justify-end gap-4 mb-3">
+                    {/* All Materials */}
+                    <div className="w-40 relative">
+                      <select
+                        value={selectedMaterialFilter}
+                        onChange={(e) => {
+                          setSelectedMaterialFilter(e.target.value);
+                          setSelectedColorFilter("all");
+                          setSelectedColor(null);
+                        }}
+                        className="w-full h-8 border border-gray-300 rounded-full px-3 pr-10 focus:ring-red-500 focus:border-red-500 appearance-none bg-white text-sm py-1"
+                      >
+                        <option value="all">All Materials</option>
+                        {getAvailableMaterials().map((material: any) => (
+                          <option
+                            key={material.materialId}
+                            value={material.materialId}
+                          >
+                            {material.materialName}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Icon with gray background */}
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-0.5 pt-0.2 pb-0.2 pointer-events-none">
+                        <div className="bg-gray-200 h-6 w-8 flex items-center justify-center rounded-r-full">
                           <svg
-                            className="w-4 h-4 text-red-600"
+                            className="w-4 h-4 text-gray-600"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -844,31 +846,31 @@ export default function DerbyBuilderClean() {
                         </div>
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        All colors
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={selectedColorFilter}
-                          onChange={(e) => {
-                            setSelectedColorFilter(e.target.value);
-                            // Reset material filter when color is selected directly
-                            setSelectedMaterialFilter("all");
-                            setSelectedColor(null);
-                          }}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white"
-                        >
-                          <option value="all">All colors</option>
-                          {getAvailableColors().map((color: any) => (
-                            <option key={color.id} value={color.id}>
-                              {color.family}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+
+                    {/* All Colors */}
+                    <div className="w-40 relative">
+                      <select
+                        value={selectedColorFilter}
+                        onChange={(e) => {
+                          setSelectedColorFilter(e.target.value);
+                          setSelectedMaterialFilter("all");
+                          setSelectedColor(null);
+                        }}
+                        className="w-full h-8 border border-gray-300 rounded-full px-3 pr-10 focus:ring-red-500 focus:border-red-500 appearance-none bg-white text-sm py-1"
+                      >
+                        <option value="all">All Colors</option>
+                        {getAvailableColors().map((color: any) => (
+                          <option key={color.id} value={color.id}>
+                            {color.family}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Icon with gray background */}
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-0.5 pt-0.2 pb-0.2 pointer-events-none">
+                        <div className="bg-gray-200 h-6 w-8 flex items-center justify-center rounded-r-full">
                           <svg
-                            className="w-4 h-4 text-red-600"
+                            className="w-4 h-4 text-gray-600"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
