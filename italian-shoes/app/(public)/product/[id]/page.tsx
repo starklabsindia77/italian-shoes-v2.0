@@ -1084,15 +1084,31 @@ export default function DerbyBuilderClean() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3">
-              <button className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-                <Heart className="w-4 h-4" />
-                Save to wishlist
-              </button>
-              <button className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-                <MessageCircle className="w-4 h-4" />
-                Send inquiry
-              </button>
+            <div>
+              {/* Top Divider */}
+              <div className="border-t border-gray-300"></div>
+
+              {/* Buttons */}
+              <div className="flex gap-4 justify-center py-1">
+                {/* Save to wishlist */}
+                <button className="flex-1 flex items-center justify-center gap-2 bg-white py-1 px-4 font-medium hover:bg-gray-50 transition-colors">
+                  <Heart className="w-5 h-5 text-red-600 fill-red-600" />
+                  <span className="underline decoration-gray-300">
+                    Save to wishlist
+                  </span>
+                </button>
+
+                {/* Send inquiry */}
+                <button className="flex-1 flex items-center justify-center gap-2 bg-white py-1 px-4 font-medium hover:bg-gray-50 transition-colors">
+                  <MessageCircle className="w-5 h-5 text-red-600 fill-red-600" />
+                  <span className="underline decoration-gray-300">
+                    Send inquiry
+                  </span>
+                </button>
+              </div>
+
+              {/* Bottom Divider */}
+              <div className="border-t border-gray-300"></div>
             </div>
           </div>
         </div>
