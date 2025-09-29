@@ -532,8 +532,8 @@ export default function DerbyBuilderClean() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{cfg.title || 'Men\'s Luxury Dress Shoes'}</h1>
               <div className="flex items-baseline gap-3 mb-4">
-                <div className="text-3xl font-bold text-gray-900">${cfg.price || 329}</div>
-                <div className="text-lg text-gray-500 line-through">${cfg.compareAtPrice || 519}</div>
+                <div className="text-3xl font-bold text-gray-900">₹{cfg.price}</div>
+                <div className="text-lg text-gray-500 line-through">₹{cfg.compareAtPrice || 20999}</div>
               </div>
 
               {/* Size Selection */}
