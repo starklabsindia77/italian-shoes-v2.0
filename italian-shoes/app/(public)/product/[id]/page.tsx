@@ -888,11 +888,12 @@ export default function DerbyBuilderClean() {
                   </div>
 
                   {/* Material Categories with Color Swatches */}
-                  <div className="space-y-6 h-80 overflow-y-auto">
+                  <div className="space-y-6 mt-4 h-80 overflow-y-auto">
                     {getAvailableMaterials().map((material: any) => (
                       <div key={material.materialId}>
-                        <div className="flex items-center gap-2 mb-3">
-                          <h4 className="text-sm font-medium text-gray-700 italic">
+                        {/* Material Name and Info */}
+                        <div className="flex items-center gap-2 mb-3 justify-end">
+                          <h4 className="text-sm font-normal text-gray-500 italic">
                             {material.materialName}
                           </h4>
                           <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
@@ -901,7 +902,9 @@ export default function DerbyBuilderClean() {
                             </span>
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-2 w-full">
+
+                        {/* Color Swatches */}
+                        <div className="flex flex-wrap gap-2 w-full justify-end">
                           {material.selectedColor?.map((color: any) => {
                             // If a color filter is selected, only show colors from that family
                             if (selectedColorFilter !== "all") {
@@ -913,7 +916,7 @@ export default function DerbyBuilderClean() {
                                 selectedColorData &&
                                 color.family !== selectedColorData.family
                               ) {
-                                return null; // Don't render this color
+                                return null;
                               }
                             }
 
