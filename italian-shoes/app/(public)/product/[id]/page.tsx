@@ -699,7 +699,7 @@ export default function DerbyBuilderClean() {
                   <select
                     value={selectedSize || ""}
                     onChange={(e) => setSelectedSize(e.target.value)}
-                    className="w-48 h-10 border border-gray-300 rounded-full px-4 pr-12 py-2 text-sm"
+                    className="w-48 h-10 border border-gray-300 rounded-full px-4 pr-12 py-2 text-sm focus:border-red-500"
                   >
                     <option value="" disabled>
                       Size
@@ -728,15 +728,15 @@ export default function DerbyBuilderClean() {
             {/* Customization Tabs */}
             <div>
               <div className="mb-6">
-                <div className="relative inline-flex bg-gray-200 rounded-full p-1 shadow-sm w-full justify-center items-center">
+                <div className="relative inline-flex bg-gray-200 rounded-full h-8 shadow-sm w-full justify-center items-center">
                   {(["Materials", "Style", "Soles"] as const).map((t) => (
                     <button
                       key={t}
                       onClick={() => setActiveTab(t)}
-                      className={`relative px-6 py-2 justify-center items-center text-sm font-medium rounded-full transition-all duration-200 ${
+                      className={`relative px-6 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center ${
                         activeTab === t
-                          ? "bg-red-500 text-white shadow-sm"
-                          : "text-gray-700 hover:text-gray-900"
+                          ?  "bg-red-500 text-white shadow-sm h-10 -my-1"
+                          : "text-gray-700 hover:text-gray-900 h-8"
                       }`}
                     >
                       {t}
