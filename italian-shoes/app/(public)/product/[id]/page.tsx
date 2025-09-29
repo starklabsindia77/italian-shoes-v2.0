@@ -699,7 +699,7 @@ export default function DerbyBuilderClean() {
                   <select
                     value={selectedSize || ""}
                     onChange={(e) => setSelectedSize(e.target.value)}
-                    className="w-40 h-9 border border-gray-300 rounded-full px-4 pr-10 py-1.5 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-48 h-10 border border-gray-300 rounded-full px-4 pr-12 py-2 text-sm"
                   >
                     <option value="" disabled>
                       Size
@@ -712,14 +712,14 @@ export default function DerbyBuilderClean() {
                   </select>
 
                   {/* Add to Cart Button */}
-                  <button className="bg-red-600 flex items-center justify-center h-9 sm:h-8 md:h-9 lg:h-10 text-white px-6 rounded-full font-normal hover:bg-red-700 transition-colors">
+                  <button className="bg-red-600 flex items-center justify-center h-10 text-white px-6 rounded-full font-normal hover:bg-red-700 transition-colors text-sm">
                     ADD TO CART
                   </button>
                 </div>
               </div>
 
               {/* Shipping Info */}
-              <div className="text-sm text-gray-600 mt-4">
+              <div className="text-xs text-gray-600 mt-2 text-right">
                 {cfg.shippingInfo ||
                   "Manufacturing and delivery to India in 5-10 days only"}
               </div>
