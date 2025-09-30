@@ -31,6 +31,10 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 
+function Skeleton({ className }: { className?: string }) {
+  return <div className={`animate-pulse rounded-md bg-muted ${className}`} />;
+}
+
 type Region = "US" | "EU" | "UK";
 
 type SizeItem = {
@@ -46,31 +50,6 @@ type SizeItem = {
   createdAt?: string;
   updatedAt?: string;
 };
-
-const FALLBACK: SizeItem[] = [
-  {
-    id: "size_us8",
-    sizeId: "us-8",
-    name: "US 8",
-    region: "US",
-    value: 8,
-    euEquivalent: "EU 41",
-    ukEquivalent: "UK 7",
-    isActive: true,
-    sortOrder: 80,
-  },
-  {
-    id: "size_us9",
-    sizeId: "us-9",
-    name: "US 9",
-    region: "US",
-    value: 9,
-    euEquivalent: "EU 42",
-    ukEquivalent: "UK 8",
-    isActive: true,
-    sortOrder: 90,
-  },
-];
 
 export default function SizesListPage() {
   const [items, setItems] = React.useState<SizeItem[]>([]);
@@ -88,7 +67,7 @@ export default function SizesListPage() {
       const data = await res.json();
       setItems((data.items ?? data ?? []) as SizeItem[]);
     } catch {
-      setItems(FALLBACK);
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -120,11 +99,8 @@ export default function SizesListPage() {
     }
   };
 
-  // ✅ Implement delete function inside the component
   const deleteSize = async (s: SizeItem) => {
-    // Optimistic UI update
     setItems((prev) => prev.filter((x) => x.id !== s.id));
-
     try {
       const req = fetch(`/api/sizes/${s.id}`, { method: "DELETE" }).then(
         async (r) => {
@@ -132,16 +108,13 @@ export default function SizesListPage() {
           return r.json();
         }
       );
-
       toast.promise(req, {
         loading: "Deleting…",
         success: "Deleted",
         error: "Failed to delete",
       });
-
       await req;
     } catch {
-      // Rollback if delete failed
       setItems((prev) => [...prev, s]);
     }
   };
@@ -154,6 +127,70 @@ export default function SizesListPage() {
     return copy;
   }, [items, sortAsc]);
 
+  // ✅ Skeleton UI while loading
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {/* Page header skeleton */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-[120px]" />
+            <Skeleton className="h-9 w-[100px]" />
+          </div>
+        </div>
+
+        {/* Card skeleton */}
+        <Card className="rounded-2xl">
+          <CardHeader className="pb-3">
+            <Skeleton className="h-5 w-24 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Search bar skeleton */}
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-[100px]" />
+              <Skeleton className="h-9 w-[120px]" />
+            </div>
+
+            <Separator />
+
+            {/* Table skeleton */}
+            <div className="overflow-hidden rounded-xl border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <TableHead key={i}>
+                        <Skeleton className="h-4 w-16" />
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 8 }).map((_, j) => (
+                        <TableCell key={j}>
+                          <Skeleton className="h-4 w-20" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ✅ Normal UI once loaded
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -262,7 +299,6 @@ export default function SizesListPage() {
                           Edit
                         </Link>
                       </Button>
-                      {/* ✅ Delete button */}
                       <Button
                         size="sm"
                         variant="destructive"

@@ -31,6 +31,95 @@ import {
   Trash2,
 } from "lucide-react";
 
+/* ------------------- shimmer utility ------------------- */
+function Shimmer({ className }: { className: string }) {
+  return (
+    <div
+      className={`relative overflow-hidden rounded-md bg-muted ${className}`}
+    >
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+    </div>
+  );
+}
+
+/* ------------------- skeleton component ------------------- */
+function StylesListSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <Shimmer className="h-6 w-32 mb-2" />
+          <Shimmer className="h-4 w-48" />
+        </div>
+        <div className="flex gap-2">
+          <Shimmer className="h-9 w-28" />
+          <Shimmer className="h-9 w-24" />
+        </div>
+      </div>
+
+      <Card className="rounded-2xl">
+        <CardHeader className="pb-3">
+          <Shimmer className="h-5 w-32 mb-2" />
+          <Shimmer className="h-4 w-48" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Search */}
+          <div className="flex gap-2">
+            <Shimmer className="h-9 flex-1" />
+            <Shimmer className="h-9 w-20" />
+          </div>
+
+          <Separator />
+
+          {/* Table */}
+          <div className="overflow-hidden rounded-xl border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>GLB</TableHead>
+                  <TableHead>Products</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Shimmer className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Shimmer className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Shimmer className="h-4 w-12" />
+                    </TableCell>
+                    <TableCell>
+                      <Shimmer className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Shimmer className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell className="flex justify-end gap-2">
+                      <Shimmer className="h-8 w-20" />
+                      <Shimmer className="h-8 w-16" />
+                      <Shimmer className="h-8 w-20" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/* ------------------- main component ------------------- */
 type StyleModelConfig = {
   glbUrl?: string | null;
   lighting?: string | null;
@@ -121,24 +210,26 @@ export default function StylesListPage() {
     }
   };
 
-  // Delete function
   const deleteStyle = async (s: StyleItem) => {
-    // Optimistically remove the style from UI
     setItems((prev) => prev.filter((x) => x.id !== s.id));
-
     try {
       const res = await fetch(`/api/styles/${s.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(await res.text());
       toast.success("Style deleted successfully");
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete style");
-      // Revert UI if deletion fails
       setItems((prev) => [...prev, s]);
     }
   };
 
+  /* ------------------- return ------------------- */
+  if (loading) {
+    return <StylesListSkeleton />;
+  }
+
   return (
     <div className="space-y-6">
+      {/* --- original UI --- */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Styles</h1>
@@ -193,7 +284,7 @@ export default function StylesListPage() {
                   <TableHead>GLB</TableHead>
                   <TableHead>Products</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="w-0"></TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -231,14 +322,12 @@ export default function StylesListPage() {
                         )}
                         {s.isActive ? "Disable" : "Enable"}
                       </Button>
-
                       <Button size="sm" asChild>
                         <Link href={`/styles/${s.id}`}>
                           <Edit3 className="mr-2 size-4" />
                           Edit
                         </Link>
                       </Button>
-
                       <Button
                         size="sm"
                         variant="destructive"
@@ -269,3 +358,12 @@ export default function StylesListPage() {
     </div>
   );
 }
+
+/* ------------------- shimmer keyframes ------------------- */
+/* Add this in globals.css or tailwind config:
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+*/

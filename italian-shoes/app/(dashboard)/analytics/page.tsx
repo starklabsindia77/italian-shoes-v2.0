@@ -2,21 +2,19 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { toast } from "sonner";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { RefreshCcw, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-type Currency = "USD" | "EUR" | "GBP";
+type Currency = "USD" | "EUR" | "GBP" | "INR";
 
 type OverviewPayload = {
   range: "7d" | "30d" | "90d";
@@ -92,6 +90,39 @@ export default function DashboardOverviewPage() {
 
   const d = data ?? FALLBACK;
   const maxRevenue = Math.max(...d.series.map((p) => p.revenue), 1);
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {/* Page header skeleton */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-[140px]" />
+            <Skeleton className="h-9 w-24" />
+          </div>
+        </div>
+
+        {/* KPI cards skeleton */}
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-2xl" />
+          ))}
+        </div>
+
+        {/* Revenue + top products skeleton */}
+        <div className="grid gap-6 xl:grid-cols-3">
+          <Skeleton className="h-64 rounded-2xl xl:col-span-2" />
+          <Skeleton className="h-64 rounded-2xl" />
+        </div>
+
+        {/* Recent orders skeleton */}
+        <Skeleton className="h-64 rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

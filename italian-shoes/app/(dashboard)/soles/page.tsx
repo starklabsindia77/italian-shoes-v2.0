@@ -30,6 +30,7 @@ import {
   ToggleRight,
   Trash2,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type SoleModelConfig = {
   glbUrl?: string | null;
@@ -138,51 +139,89 @@ export default function SolesListPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header + Actions */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Soles</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage available soles and their 3D configs.
-          </p>
+          {loading ? (
+            <>
+              <Skeleton className="h-6 w-32 mb-2" />
+              <Skeleton className="h-4 w-52" />
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-semibold tracking-tight">Soles</h1>
+              <p className="text-sm text-muted-foreground">
+                Manage available soles and their 3D configs.
+              </p>
+            </>
+          )}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={load} disabled={loading}>
-            <RefreshCcw
-              className={`mr-2 size-4 ${loading ? "animate-spin" : ""}`}
-            />
-            {loading ? "Refreshing…" : "Refresh"}
-          </Button>
-          <Button asChild>
-            <Link href="/soles/new">
-              <Plus className="mr-2 size-4" />
-              New Sole
-            </Link>
-          </Button>
+          {loading ? (
+            <>
+              <Skeleton className="h-9 w-24 rounded-md" />
+              <Skeleton className="h-9 w-28 rounded-md" />
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={load} disabled={loading}>
+                <RefreshCcw
+                  className={`mr-2 size-4 ${loading ? "animate-spin" : ""}`}
+                />
+                {loading ? "Refreshing…" : "Refresh"}
+              </Button>
+              <Button asChild>
+                <Link href="/soles/new">
+                  <Plus className="mr-2 size-4" />
+                  New Sole
+                </Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
       <Card className="rounded-2xl">
         <CardHeader className="pb-3">
-          <CardTitle>All Soles</CardTitle>
-          <CardDescription>
-            Search, toggle status, edit, or delete.
-          </CardDescription>
+          {loading ? (
+            <>
+              <Skeleton className="h-5 w-28 mb-2" />
+              <Skeleton className="h-4 w-56" />
+            </>
+          ) : (
+            <>
+              <CardTitle>All Soles</CardTitle>
+              <CardDescription>
+                Search, toggle status, edit, or delete.
+              </CardDescription>
+            </>
+          )}
         </CardHeader>
+
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Search soles…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") load();
-              }}
-            />
-            <Button onClick={load}>Search</Button>
-          </div>
+          {/* Search */}
+          {loading ? (
+            <div className="flex gap-2">
+              <Skeleton className="h-9 flex-1 rounded-md" />
+              <Skeleton className="h-9 w-24 rounded-md" />
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Input
+                placeholder="Search soles…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") load();
+                }}
+              />
+              <Button onClick={load}>Search</Button>
+            </div>
+          )}
 
           <Separator />
 
+          {/* Table */}
           <div className="overflow-hidden rounded-xl border">
             <Table>
               <TableHeader>
@@ -196,62 +235,86 @@ export default function SolesListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((s) => (
-                  <TableRow key={s.id}>
-                    <TableCell className="font-medium">{s.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {s.category}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {s.modelConfig?.glbUrl ? "Yes" : "—"}
-                    </TableCell>
-                    <TableCell>
-                      {typeof s._productsCount === "number"
-                        ? s._productsCount
-                        : "—"}
-                    </TableCell>
-                    <TableCell>
-                      {s.isActive ? (
-                        <Badge>Active</Badge>
-                      ) : (
-                        <Badge variant="secondary">Disabled</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => toggleActive(s)}
-                      >
+                {loading ? (
+                  // Show shimmer rows while loading
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell>
+                        <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 w-12 animate-pulse rounded bg-muted" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 w-16 animate-pulse rounded bg-muted" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-6 w-20 animate-pulse rounded-full bg-muted" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-8 w-24 animate-pulse rounded bg-muted" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : items.length > 0 ? (
+                  items.map((s) => (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-medium">{s.name}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {s.category}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {s.modelConfig?.glbUrl ? "Yes" : "—"}
+                      </TableCell>
+                      <TableCell>
+                        {typeof s._productsCount === "number"
+                          ? s._productsCount
+                          : "—"}
+                      </TableCell>
+                      <TableCell>
                         {s.isActive ? (
-                          <ToggleLeft className="mr-2 size-4" />
+                          <Badge>Active</Badge>
                         ) : (
-                          <ToggleRight className="mr-2 size-4" />
+                          <Badge variant="secondary">Disabled</Badge>
                         )}
-                        {s.isActive ? "Disable" : "Enable"}
-                      </Button>
+                      </TableCell>
+                      <TableCell className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toggleActive(s)}
+                        >
+                          {s.isActive ? (
+                            <ToggleLeft className="mr-2 size-4" />
+                          ) : (
+                            <ToggleRight className="mr-2 size-4" />
+                          )}
+                          {s.isActive ? "Disable" : "Enable"}
+                        </Button>
 
-                      <Button size="sm" asChild>
-                        <Link href={`/soles/${s.id}`}>
-                          <Edit3 className="mr-2 size-4" />
-                          Edit
-                        </Link>
-                      </Button>
+                        <Button size="sm" asChild>
+                          <Link href={`/soles/${s.id}`}>
+                            <Edit3 className="mr-2 size-4" />
+                            Edit
+                          </Link>
+                        </Button>
 
-                      {/* Delete button */}
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => deleteSole(s)}
-                        className="cursor-pointer text-white"
-                      >
-                        <Trash2 className="mr-2 size-4" />
-                        Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {items.length === 0 && !loading && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => deleteSole(s)}
+                          className="cursor-pointer text-white"
+                        >
+                          <Trash2 className="mr-2 size-4" />
+                          Delete
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
                   <TableRow>
                     <TableCell
                       colSpan={6}

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import * as React from "react";
@@ -31,6 +32,13 @@ import {
   ArrowUpDown,
   Trash2,
 } from "lucide-react";
+
+// ✅ Simple Skeleton component
+function Skeleton({ className }: { className?: string }) {
+  return (
+    <div className={`animate-pulse rounded-md bg-muted ${className}`} />
+  );
+}
 
 type PanelGroup = "FRONT" | "SIDE" | "BACK" | "TOP" | "SOLE" | "LINING";
 
@@ -98,16 +106,13 @@ export default function PanelsListPage() {
   };
 
   const deletePanel = async (p: PanelItem) => {
-    // Remove item optimistically
     setItems((prev) => prev.filter((x) => x.id !== p.id));
-
     try {
       const res = await fetch(`/api/panels/${p.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(await res.text());
       toast.success("Panel deleted successfully");
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete panel");
-      // Revert UI if deletion fails
       setItems((prev) => [...prev, p]);
     }
   };
@@ -184,57 +189,74 @@ export default function PanelsListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sorted.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="font-medium">{p.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {p.group}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {p.panelId}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {p.position}
-                    </TableCell>
-                    <TableCell>
-                      {p.isActive ? (
-                        <Badge>Active</Badge>
-                      ) : (
-                        <Badge variant="secondary">Disabled</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => toggleActive(p)}
-                      >
+                {loading ? (
+                  // ✅ Skeleton rows while loading
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell className="flex justify-end gap-2">
+                        <Skeleton className="h-8 w-20" />
+                        <Skeleton className="h-8 w-14" />
+                        <Skeleton className="h-8 w-20" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : sorted.length > 0 ? (
+                  sorted.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-medium">{p.name}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {p.group}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {p.panelId}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {p.position}
+                      </TableCell>
+                      <TableCell>
                         {p.isActive ? (
-                          <ToggleLeft className="mr-2 size-4" />
+                          <Badge>Active</Badge>
                         ) : (
-                          <ToggleRight className="mr-2 size-4" />
+                          <Badge variant="secondary">Disabled</Badge>
                         )}
-                        {p.isActive ? "Disable" : "Enable"}
-                      </Button>
-                      <Button size="sm" asChild>
-                        <Link href={`/panels/${p.id}`}>
-                          <Edit3 className="mr-2 size-4" />
-                          Edit
-                        </Link>
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => deletePanel(p)}
-                        className="cursor-pointer text-white"
-                      >
-                        <Trash2 className="mr-2 size-4" />
-                        Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {items.length === 0 && !loading && (
+                      </TableCell>
+                      <TableCell className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toggleActive(p)}
+                        >
+                          {p.isActive ? (
+                            <ToggleLeft className="mr-2 size-4" />
+                          ) : (
+                            <ToggleRight className="mr-2 size-4" />
+                          )}
+                          {p.isActive ? "Disable" : "Enable"}
+                        </Button>
+                        <Button size="sm" asChild>
+                          <Link href={`/panels/${p.id}`}>
+                            <Edit3 className="mr-2 size-4" />
+                            Edit
+                          </Link>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => deletePanel(p)}
+                          className="cursor-pointer text-white"
+                        >
+                          <Trash2 className="mr-2 size-4" />
+                          Delete
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
                   <TableRow>
                     <TableCell
                       colSpan={6}
