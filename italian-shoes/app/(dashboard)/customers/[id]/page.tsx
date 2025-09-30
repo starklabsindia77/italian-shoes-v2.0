@@ -4,11 +4,14 @@ import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton"; // Add skeleton
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Tabs, TabsContent, TabsList, TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,7 +19,12 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, RefreshCcw, Save } from "lucide-react";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 
 type CustomerItem = {
@@ -51,8 +59,20 @@ const FALLBACK_CUSTOMER: CustomerItem = {
 };
 
 const FALLBACK_ORDERS: OrderLite[] = [
-  { id: "ord_1001", orderNumber: "1001", status: "delivered", total: 19999, currency: "USD" },
-  { id: "ord_1002", orderNumber: "1002", status: "in_production", total: 12999, currency: "USD" },
+  {
+    id: "ord_1001",
+    orderNumber: "1001",
+    status: "delivered",
+    total: 19999,
+    currency: "USD",
+  },
+  {
+    id: "ord_1002",
+    orderNumber: "1002",
+    status: "in_production",
+    total: 12999,
+    currency: "USD",
+  },
 ];
 
 export default function CustomerEditPage() {
@@ -63,7 +83,7 @@ export default function CustomerEditPage() {
   const [customer, setCustomer] = React.useState<CustomerItem | null>(null);
   const [orders, setOrders] = React.useState<OrderLite[]>([]);
 
-  const load = async () => {
+  const load = React.useCallback(async () => {
     setLoading(true);
     try {
       const r = await fetch(`/api/customers/${id}`, { cache: "no-store" });
@@ -74,9 +94,10 @@ export default function CustomerEditPage() {
       setCustomer(FALLBACK_CUSTOMER);
     }
 
-    // optional orders list
     try {
-      const r2 = await fetch(`/api/orders?customerId=${id}`, { cache: "no-store" });
+      const r2 = await fetch(`/api/orders?customerId=${id}`, {
+        cache: "no-store",
+      });
       if (r2.ok) {
         const d2 = await r2.json();
         setOrders(d2.items ?? d2 ?? FALLBACK_ORDERS);
@@ -88,9 +109,19 @@ export default function CustomerEditPage() {
     }
 
     setLoading(false);
-  };
+  }, [id]); // memoized with useCallback
 
-  React.useEffect(() => { if (id) load(); /* eslint-disable-next-line */ }, [id]);
+  React.useEffect(() => {
+    if (id) load();
+  }, [id, load]); // ✅ now ESLint is happy
+
+  React.useEffect(() => {
+    if (id) load();
+  }, [id, load]); // now ESLint is happy
+
+  React.useEffect(() => {
+    if (id) load();
+  }, [id]);
 
   const save = async () => {
     if (!customer) return;
@@ -110,14 +141,97 @@ export default function CustomerEditPage() {
       return res.json();
     };
     const p = run();
-    toast.promise(p, { loading: "Saving…", success: "Saved", error: "Failed to save" });
+    toast.promise(p, {
+      loading: "Saving…",
+      success: "Saved",
+      error: "Failed to save",
+    });
     await p;
     setSaving(false);
   };
 
   if (!customer) return null;
 
-  const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "—";
+  const fullName =
+    [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "—";
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {/* header skeleton */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-9 w-28 rounded-md" />
+            <div>
+              <Skeleton className="h-6 w-32 mb-1" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-9 w-28 rounded-md" />
+            <Skeleton className="h-9 w-20 rounded-md" />
+          </div>
+        </div>
+
+        {/* tabs skeleton */}
+        <Skeleton className="h-10 w-full rounded-md" />
+
+        {/* overview tab skeleton */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full rounded-md" />
+          ))}
+        </div>
+
+        {/* addresses tab skeleton */}
+        <Skeleton className="h-24 w-full rounded-2xl" />
+
+        {/* orders table skeleton */}
+        <Card className="rounded-2xl">
+          <CardContent>
+            <div className="overflow-hidden rounded-xl border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>
+                      <Skeleton className="h-4 w-16" />
+                    </TableHead>
+                    <TableHead>
+                      <Skeleton className="h-4 w-16" />
+                    </TableHead>
+                    <TableHead>
+                      <Skeleton className="h-4 w-16" />
+                    </TableHead>
+                    <TableHead>
+                      <Skeleton className="h-4 w-16" />
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -125,16 +239,27 @@ export default function CustomerEditPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button asChild variant="ghost" size="sm">
-            <Link href="/customers"><ArrowLeft className="mr-2 size-4" />Back</Link>
+            <Link href="/customers">
+              <ArrowLeft className="mr-2 size-4" />
+              Back
+            </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{fullName}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {fullName}
+            </h1>
             <p className="text-sm text-muted-foreground">{customer.email}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={load}><RefreshCcw className="mr-2 size-4" />Refresh</Button>
-          <Button onClick={save} disabled={saving}><Save className="mr-2 size-4" />Save</Button>
+          <Button variant="outline" onClick={load}>
+            <RefreshCcw className="mr-2 size-4" />
+            Refresh
+          </Button>
+          <Button onClick={save} disabled={saving}>
+            <Save className="mr-2 size-4" />
+            Save
+          </Button>
         </div>
       </div>
 
@@ -150,32 +275,42 @@ export default function CustomerEditPage() {
           <Card className="rounded-2xl">
             <CardHeader className="pb-3">
               <CardTitle>Details</CardTitle>
-              <CardDescription>Contact information and account type.</CardDescription>
+              <CardDescription>
+                Contact information and account type.
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-2">
               <Field label="Email">
                 <Input
                   type="email"
                   value={customer.email}
-                  onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
+                  onChange={(e) =>
+                    setCustomer({ ...customer, email: e.target.value })
+                  }
                 />
               </Field>
               <Field label="Phone (optional)">
                 <Input
                   value={customer.phone ?? ""}
-                  onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
+                  onChange={(e) =>
+                    setCustomer({ ...customer, phone: e.target.value })
+                  }
                 />
               </Field>
               <Field label="First Name (optional)">
                 <Input
                   value={customer.firstName ?? ""}
-                  onChange={(e) => setCustomer({ ...customer, firstName: e.target.value })}
+                  onChange={(e) =>
+                    setCustomer({ ...customer, firstName: e.target.value })
+                  }
                 />
               </Field>
               <Field label="Last Name (optional)">
                 <Input
                   value={customer.lastName ?? ""}
-                  onChange={(e) => setCustomer({ ...customer, lastName: e.target.value })}
+                  onChange={(e) =>
+                    setCustomer({ ...customer, lastName: e.target.value })
+                  }
                 />
               </Field>
               <div className="md:col-span-2">
@@ -194,11 +329,14 @@ export default function CustomerEditPage() {
           <Card className="rounded-2xl">
             <CardHeader className="pb-3">
               <CardTitle>Addresses</CardTitle>
-              <CardDescription>Billing & shipping addresses (UI stub).</CardDescription>
+              <CardDescription>
+                Billing & shipping addresses (UI stub).
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Wire this tab to <code>/api/customers/{`[id]`}/addresses</code> if/when you add address CRUD.
+                Wire this tab to <code>/api/customers/{`[id]`}/addresses</code>{" "}
+                if/when you add address CRUD.
               </p>
             </CardContent>
           </Card>
@@ -209,7 +347,9 @@ export default function CustomerEditPage() {
           <Card className="rounded-2xl">
             <CardHeader className="pb-3">
               <CardTitle>Orders</CardTitle>
-              <CardDescription>Recent orders for this customer.</CardDescription>
+              <CardDescription>
+                Recent orders for this customer.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-hidden rounded-xl border">
@@ -225,15 +365,26 @@ export default function CustomerEditPage() {
                   <TableBody>
                     {orders.map((o) => (
                       <TableRow key={o.id}>
-                        <TableCell className="font-medium">{o.orderNumber}</TableCell>
-                        <TableCell className="text-muted-foreground">{o.status}</TableCell>
-                        <TableCell>{formatCurrency(o.total, o.currency)}</TableCell>
-                        <TableCell className="text-muted-foreground">{o.createdAt?.slice(0, 10) ?? "—"}</TableCell>
+                        <TableCell className="font-medium">
+                          {o.orderNumber}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {o.status}
+                        </TableCell>
+                        <TableCell>
+                          {formatCurrency(o.total, o.currency)}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {o.createdAt?.slice(0, 10) ?? "—"}
+                        </TableCell>
                       </TableRow>
                     ))}
                     {orders.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4} className="py-6 text-center text-sm text-muted-foreground">
+                        <TableCell
+                          colSpan={4}
+                          className="py-6 text-center text-sm text-muted-foreground"
+                        >
                           No orders yet.
                         </TableCell>
                       </TableRow>
@@ -249,7 +400,13 @@ export default function CustomerEditPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="grid gap-2">
       <Label className="text-sm">{label}</Label>
@@ -258,9 +415,16 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function formatCurrency(cents: number, currency: "USD" | "EUR" | "GBP" = "USD") {
+function formatCurrency(
+  cents: number,
+  currency: "USD" | "EUR" | "GBP" = "USD"
+) {
   try {
-    return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format((cents ?? 0) / 100);
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    }).format((cents ?? 0) / 100);
   } catch {
     return `$${(cents ?? 0) / 100}`;
   }

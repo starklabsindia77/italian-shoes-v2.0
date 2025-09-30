@@ -16,9 +16,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 type Currency = "USD" | "EUR" | "GBP" | "INR";
 
-type OverviewPayload = {
-  range: "7d" | "30d" | "90d";
-};
+// type OverviewPayload = {
+//   range: "7d" | "30d" | "90d";
+// };
 
 type Kpis = {
   revenue: number;         // cents
@@ -68,25 +68,29 @@ const FALLBACK: Overview = {
 };
 
 export default function DashboardOverviewPage() {
-  const [range, setRange] = React.useState<OverviewPayload["range"]>("7d");
+  const [range, setRange] = React.useState<"7d" | "30d" | "90d">("7d");
   const [data, setData] = React.useState<Overview | null>(null);
   const [loading, setLoading] = React.useState(true);
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/analytics/overview?range=${range}`, { cache: "no-store" });
-      if (!res.ok) throw new Error();
-      const d = (await res.json()) as Overview;
-      setData(d ?? FALLBACK);
-    } catch {
-      setData(FALLBACK);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const load = React.useCallback(async () => {
+  setLoading(true);
+  try {
+    const res = await fetch(`/api/analytics/overview?range=${range}`, { cache: "no-store" });
+    if (!res.ok) throw new Error();
+    const d = (await res.json()) as Overview;
+    setData(d ?? FALLBACK);
+  } catch {
+    setData(FALLBACK);
+  } finally {
+    setLoading(false);
+  }
+}, [range]); // include range here
 
-  React.useEffect(() => { load(); /* eslint-disable-next-line */ }, [range]);
+
+ React.useEffect(() => {
+  load();
+}, [load]);
+
 
   const d = data ?? FALLBACK;
   const maxRevenue = Math.max(...d.series.map((p) => p.revenue), 1);
@@ -132,7 +136,8 @@ export default function DashboardOverviewPage() {
           <p className="text-sm text-muted-foreground">Sales, orders, and customers at a glance.</p>
         </div>
         <div className="flex gap-2">
-          <Select value={range} onValueChange={(v: any) => setRange(v)}>
+          <Select value={range} onValueChange={(v: "7d" | "30d" | "90d") => setRange(v)}>
+
             <SelectTrigger className="w-[140px]"><SelectValue placeholder="Range" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="7d">Last 7 days</SelectItem>

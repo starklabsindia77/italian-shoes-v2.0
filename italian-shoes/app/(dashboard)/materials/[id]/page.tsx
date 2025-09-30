@@ -36,7 +36,7 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
-import { ColorsCard } from "./colors-card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Material = {
   id: string;
@@ -111,7 +111,7 @@ export default function MaterialEditPage() {
   };
 
   React.useEffect(() => {
-    if (id) load(); /* eslint-disable-next-line */
+    if (id) load();
   }, [id]);
 
   const saveOverview = async () => {
@@ -140,7 +140,6 @@ export default function MaterialEditPage() {
     setSaving(false);
   };
 
-  // Colors API helpers (graceful if not implemented)
   const createColor = async (
     payload: Omit<MaterialColor, "id" | "position">
   ) => {
@@ -162,7 +161,6 @@ export default function MaterialEditPage() {
       const created = await p;
       setColors((prev) => [...prev, created]);
     } catch {
-      // if API missing, mimic creation
       const fake: MaterialColor = { id: `local_${Date.now()}`, ...payload };
       setColors((prev) => [...prev, fake]);
     }
@@ -172,7 +170,6 @@ export default function MaterialEditPage() {
     c: MaterialColor,
     patch: Partial<MaterialColor>
   ) => {
-    // optimistic
     setColors((prev) =>
       prev.map((x) => (x.id === c.id ? { ...x, ...patch } : x))
     );
@@ -192,9 +189,7 @@ export default function MaterialEditPage() {
         error: "Failed to update",
       });
       await p;
-    } catch {
-      // ignore; page refresh will reconcile
-    }
+    } catch {}
   };
 
   const deleteColor = async (c: MaterialColor) => {
@@ -218,8 +213,81 @@ export default function MaterialEditPage() {
     }
   };
 
-  if (!material) return null;
+  if (loading || !material) {
+    // FULL-PAGE SKELETON
+    return (
+      <div className="space-y-6 animate-pulse">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between gap-3">
+          <Skeleton className="h-9 w-32 rounded-lg" />
+          <Skeleton className="h-9 w-32 rounded-lg" />
+        </div>
 
+        {/* Overview skeleton */}
+        <Card className="rounded-2xl">
+          <CardHeader className="pb-3">
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent className="grid gap-6 md:grid-cols-2">
+            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-24 w-full rounded-md md:col-span-2" />
+            <Skeleton className="h-12 w-full rounded-md md:col-span-2" />
+          </CardContent>
+        </Card>
+
+        {/* Colors skeleton */}
+        <Card className="rounded-2xl">
+          <CardHeader className="pb-3">
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Add color form skeleton */}
+            <div className="grid gap-3 md:grid-cols-5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full rounded-md" />
+              ))}
+              <Skeleton className="h-10 w-32 rounded-md col-span-1" />
+            </div>
+
+            <Separator />
+
+            {/* Table skeleton */}
+            <div className="overflow-hidden rounded-xl border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {["Name", "Type", "Hex", "Image", "Status", ""].map(
+                      (col, i) => (
+                        <TableHead key={i}>
+                          <Skeleton className="h-4 w-16" />
+                        </TableHead>
+                      )
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 6 }).map((_, j) => (
+                        <TableCell key={j}>
+                          <Skeleton className="h-6 w-full rounded-md" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ACTUAL UI
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -327,6 +395,7 @@ export default function MaterialEditPage() {
   );
 }
 
+// ColorsTab and helper components remain the same
 function ColorsTab({
   list,
   onCreate,
@@ -351,13 +420,12 @@ function ColorsTab({
 
     await onCreate({
       name: name.trim(),
-      family: type || undefined, // optional field
-      colorCode: hex || undefined, // optional field
-      imageUrl: imageUrl || undefined, // optional field
-      isActive: active, // boolean
+      family: type || undefined,
+      colorCode: hex || undefined,
+      imageUrl: imageUrl || undefined,
+      isActive: active,
     });
 
-    // Clear inputs
     setName("");
     setType("");
     setHex("");
@@ -374,7 +442,6 @@ function ColorsTab({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Add Color Form */}
         <div className="grid gap-3 md:grid-cols-5">
           <Field label="Name">
             <Input value={name} onChange={(e) => setName(e.target.value)} />
@@ -409,7 +476,6 @@ function ColorsTab({
 
         <Separator />
 
-        {/* Color List Table */}
         <div className="overflow-hidden rounded-xl border">
           <Table>
             <TableHeader>
@@ -446,11 +512,16 @@ function ColorsTab({
                     />
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {/* {c.imageUrl ?? "—"} */}
                     {c.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={c.imageUrl ?? ""} alt={c.name} width={32} height={32} />
-                    ) : "—"}
+                      <img
+                        src={c.imageUrl ?? ""}
+                        alt={c.name}
+                        width={32}
+                        height={32}
+                      />
+                    ) : (
+                      "—"
+                    )}
                   </TableCell>
                   <TableCell>
                     {c.isActive ? (

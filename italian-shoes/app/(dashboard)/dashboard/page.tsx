@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { LucideIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -30,6 +31,38 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+/* ---------- types ---------- */
+type Kpi = {
+  label: string;
+  value: string;
+  icon: LucideIcon;
+  sub: string;
+};
+
+type Order = {
+  id: string;
+  number: string;
+  customer: string;
+  total: number;
+  currency: string;
+  status: string;
+};
+
+type Board = {
+  DESIGN_RECEIVED: number;
+  IN_PRODUCTION: number;
+  QUALITY_CHECK: number;
+  READY_TO_SHIP: number;
+  SHIPPED: number;
+};
+
+type DashboardData = {
+  kpis: Kpi[];
+  recent: Order[];
+  board: Board;
+};
+
+/* ---------- helpers ---------- */
 function formatCurrency(cents: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -38,7 +71,6 @@ function formatCurrency(cents: number, currency = "USD") {
   }).format(cents / 100);
 }
 
-/* ---------- tiny UI helpers ---------- */
 function RowStat({
   label,
   value,
@@ -76,38 +108,83 @@ function OrderBadge({ status }: { status: string }) {
   return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
 }
 
+/* ---------- main page ---------- */
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
-
-  // Fake API/data fetch simulation
-  const [data, setData] = useState({
-    kpis: [] as Array<{ label: string; value: string; icon: any; sub: string }>,
-    recent: [] as Array<{
-      id: string;
-      number: string;
-      customer: string;
-      total: number;
-      currency: string;
-      status: string;
-    }>,
-    board: {} as Record<string, number>,
+  const [data, setData] = useState<DashboardData>({
+    kpis: [],
+    recent: [],
+    board: {
+      DESIGN_RECEIVED: 0,
+      IN_PRODUCTION: 0,
+      QUALITY_CHECK: 0,
+      READY_TO_SHIP: 0,
+      SHIPPED: 0,
+    },
   });
 
   useEffect(() => {
     setTimeout(() => {
-      // Fake API data
       setData({
         kpis: [
-          { label: "Gross Sales (30d)", value: formatCurrency(238400), icon: DollarSign, sub: "+12% vs prev." },
-          { label: "Orders (30d)", value: "184", icon: ShoppingCart, sub: "+8 new today" },
-          { label: "In Production", value: "23", icon: Factory, sub: "7 in QC" },
-          { label: "Low Stock Variants", value: "9", icon: Package, sub: "Reorder soon" },
+          {
+            label: "Gross Sales (30d)",
+            value: formatCurrency(238400),
+            icon: DollarSign,
+            sub: "+12% vs prev.",
+          },
+          {
+            label: "Orders (30d)",
+            value: "184",
+            icon: ShoppingCart,
+            sub: "+8 new today",
+          },
+          {
+            label: "In Production",
+            value: "23",
+            icon: Factory,
+            sub: "7 in QC",
+          },
+          {
+            label: "Low Stock Variants",
+            value: "9",
+            icon: Package,
+            sub: "Reorder soon",
+          },
         ],
         recent: [
-          { id: "ord_10234", number: "MTO-10234", customer: "A. Romano", total: 18999, currency: "USD", status: "IN_PRODUCTION" },
-          { id: "ord_10233", number: "MTO-10233", customer: "S. Marino", total: 14999, currency: "USD", status: "QUALITY_CHECK" },
-          { id: "ord_10232", number: "MTO-10232", customer: "P. Bianchi", total: 21999, currency: "USD", status: "READY_TO_SHIP" },
-          { id: "ord_10231", number: "MTO-10231", customer: "M. Conti", total: 16999, currency: "USD", status: "DESIGN_RECEIVED" },
+          {
+            id: "ord_10234",
+            number: "MTO-10234",
+            customer: "A. Romano",
+            total: 18999,
+            currency: "USD",
+            status: "IN_PRODUCTION",
+          },
+          {
+            id: "ord_10233",
+            number: "MTO-10233",
+            customer: "S. Marino",
+            total: 14999,
+            currency: "USD",
+            status: "QUALITY_CHECK",
+          },
+          {
+            id: "ord_10232",
+            number: "MTO-10232",
+            customer: "P. Bianchi",
+            total: 21999,
+            currency: "USD",
+            status: "READY_TO_SHIP",
+          },
+          {
+            id: "ord_10231",
+            number: "MTO-10231",
+            customer: "M. Conti",
+            total: 16999,
+            currency: "USD",
+            status: "DESIGN_RECEIVED",
+          },
         ],
         board: {
           DESIGN_RECEIVED: 6,
@@ -122,6 +199,7 @@ export default function DashboardPage() {
   }, []);
 
   if (loading) {
+    /* skeleton UI unchanged */
     return (
       <div className="space-y-6 animate-pulse">
         {/* Header skeleton */}
@@ -223,10 +301,10 @@ export default function DashboardPage() {
     );
   }
 
-  // Render actual dashboard content
+  /* actual dashboard */
   return (
     <div className="space-y-6">
-      {/* Header row */}
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
@@ -321,7 +399,11 @@ export default function DashboardPage() {
             <RowStat label="In production" value={data.board.IN_PRODUCTION} />
             <RowStat label="Quality check" value={data.board.QUALITY_CHECK} />
             <RowStat label="Ready to ship" value={data.board.READY_TO_SHIP} />
-            <RowStat label="Shipped (7d)" value={data.board.SHIPPED} icon={<Truck className="size-4" />} />
+            <RowStat
+              label="Shipped (7d)"
+              value={data.board.SHIPPED}
+              icon={<Truck className="size-4" />}
+            />
             <div className="pt-1">
               <Button asChild className="w-full">
                 <Link href="/production">Open board</Link>

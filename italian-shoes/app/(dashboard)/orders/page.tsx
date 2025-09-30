@@ -2,19 +2,31 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { toast } from "sonner";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { RefreshCcw, Edit3, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,7 +48,12 @@ type PaymentStatus =
   | "refunded"
   | "partially_refunded";
 
-type FulfillmentStatus = "unfulfilled" | "in_production" | "ready_to_ship" | "shipped" | "delivered";
+type FulfillmentStatus =
+  | "unfulfilled"
+  | "in_production"
+  | "ready_to_ship"
+  | "shipped"
+  | "delivered";
 
 type OrderLite = {
   id: string;
@@ -47,7 +64,7 @@ type OrderLite = {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   fulfillmentStatus: FulfillmentStatus;
-  total: number;           
+  total: number;
   currency: Currency;
   createdAt?: string;
   updatedAt?: string;
@@ -82,19 +99,23 @@ const FALLBACK: OrderLite[] = [
   },
 ];
 
+type BadgeVariant = "default" | "secondary" | "outline";
+
 export default function OrdersListPage() {
   const [items, setItems] = React.useState<OrderLite[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [q, setQ] = React.useState("");
   const [status, setStatus] = React.useState<OrderStatus | "all">("all");
 
-  const load = async () => {
+  const load = React.useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ limit: "50" });
       if (q) params.set("q", q);
       if (status !== "all") params.set("status", status);
-      const res = await fetch(`/api/orders?${params.toString()}`, { cache: "no-store" });
+      const res = await fetch(`/api/orders?${params.toString()}`, {
+        cache: "no-store",
+      });
       const data = await res.json();
       setItems((data.items ?? data ?? []) as OrderLite[]);
     } catch {
@@ -102,9 +123,11 @@ export default function OrdersListPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [q, status]);
 
-  React.useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  React.useEffect(() => {
+    load();
+  }, [load]);
 
   if (loading) {
     // Skeleton loading UI
@@ -142,7 +165,9 @@ export default function OrdersListPage() {
                 <TableHeader>
                   <TableRow>
                     {Array.from({ length: 8 }).map((_, i) => (
-                      <TableHead key={i}><Skeleton className="h-4 w-16" /></TableHead>
+                      <TableHead key={i}>
+                        <Skeleton className="h-4 w-16" />
+                      </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
@@ -171,17 +196,24 @@ export default function OrdersListPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Orders</h1>
-          <p className="text-sm text-muted-foreground">Browse and manage orders & manufacturing status.</p>
+          <p className="text-sm text-muted-foreground">
+            Browse and manage orders & manufacturing status.
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={load}><RefreshCcw className="mr-2 size-4" />Refresh</Button>
+          <Button variant="outline" onClick={load}>
+            <RefreshCcw className="mr-2 size-4" />
+            Refresh
+          </Button>
         </div>
       </div>
 
       <Card className="rounded-2xl">
         <CardHeader className="pb-3">
           <CardTitle>All Orders</CardTitle>
-          <CardDescription>Search by order number, email, or name. Filter by status.</CardDescription>
+          <CardDescription>
+            Search by order number, email, or name. Filter by status.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-3 md:grid-cols-[1fr_200px_120px]">
@@ -189,10 +221,17 @@ export default function OrdersListPage() {
               placeholder="Search orders…"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") load(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") load();
+              }}
             />
-            <Select value={status} onValueChange={(v: OrderStatus | "all") => setStatus(v)}>
-              <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+            <Select
+              value={status}
+              onValueChange={(v: OrderStatus | "all") => setStatus(v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="design_received">Design Received</SelectItem>
@@ -204,7 +243,10 @@ export default function OrdersListPage() {
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={load}><Search className="mr-2 size-4" />Search</Button>
+            <Button onClick={load}>
+              <Search className="mr-2 size-4" />
+              Search
+            </Button>
           </div>
 
           <Separator />
@@ -228,24 +270,33 @@ export default function OrdersListPage() {
                   <TableRow key={o.id}>
                     <TableCell className="font-medium">{o.orderNumber}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {o.customerName ?? "—"}<br />
+                      {o.customerName ?? "—"}
+                      <br />
                       <span className="text-xs">{o.customerEmail ?? "—"}</span>
                     </TableCell>
                     <TableCell>{badgeForStatus(o.status)}</TableCell>
                     <TableCell>{badgeForPayment(o.paymentStatus)}</TableCell>
                     <TableCell>{badgeForFulfillment(o.fulfillmentStatus)}</TableCell>
                     <TableCell>{formatCurrency(o.total, o.currency)}</TableCell>
-                    <TableCell className="text-muted-foreground">{o.createdAt?.slice(0, 10) ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {o.createdAt?.slice(0, 10) ?? "—"}
+                    </TableCell>
                     <TableCell className="flex justify-end">
                       <Button size="sm" asChild>
-                        <Link href={`/orders/${o.id}`}><Edit3 className="mr-2 size-4" />Open</Link>
+                        <Link href={`/orders/${o.id}`}>
+                          <Edit3 className="mr-2 size-4" />
+                          Open
+                        </Link>
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))}
                 {items.length === 0 && !loading && (
                   <TableRow>
-                    <TableCell colSpan={8} className="py-6 text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={8}
+                      className="py-6 text-center text-sm text-muted-foreground"
+                    >
                       No orders found.
                     </TableCell>
                   </TableRow>
@@ -259,7 +310,7 @@ export default function OrdersListPage() {
   );
 }
 
-// Badge & formatting functions remain the same
+// Badge & formatting functions
 function badgeForStatus(s: OrderStatus) {
   const map: Record<OrderStatus, string> = {
     design_received: "Design Received",
@@ -270,24 +321,31 @@ function badgeForStatus(s: OrderStatus) {
     delivered: "Delivered",
     cancelled: "Cancelled",
   };
-  const variant = s === "cancelled" ? "secondary" : s === "delivered" ? "default" : "outline";
-  return <Badge variant={variant as any}>{map[s]}</Badge>;
+  const variant: BadgeVariant =
+    s === "cancelled" ? "secondary" : s === "delivered" ? "default" : "outline";
+  return <Badge variant={variant}>{map[s]}</Badge>;
 }
 
 function badgeForPayment(s: PaymentStatus) {
-  const variant = s === "paid" ? "default" : s === "pending" ? "secondary" : "outline";
-  return <Badge variant={variant as any}>{s.replaceAll("_", " ")}</Badge>;
+  const variant: BadgeVariant =
+    s === "paid" ? "default" : s === "pending" ? "secondary" : "outline";
+  return <Badge variant={variant}>{s.replaceAll("_", " ")}</Badge>;
 }
 
 function badgeForFulfillment(s: FulfillmentStatus) {
+  const variant: BadgeVariant =
+    s === "delivered" ? "default" : s === "unfulfilled" ? "secondary" : "outline";
   const label = s.replaceAll("_", " ");
-  const variant = s === "delivered" ? "default" : s === "unfulfilled" ? "secondary" : "outline";
-  return <Badge variant={variant as any}>{label}</Badge>;
+  return <Badge variant={variant}>{label}</Badge>;
 }
 
 function formatCurrency(cents: number, currency: Currency = "USD") {
   try {
-    return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format((cents ?? 0) / 100);
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    }).format((cents ?? 0) / 100);
   } catch {
     return `$${(cents ?? 0) / 100}`;
   }

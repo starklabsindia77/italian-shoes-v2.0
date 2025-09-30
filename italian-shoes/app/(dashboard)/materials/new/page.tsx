@@ -34,10 +34,9 @@ export default function MaterialCreatePage() {
     isActive: true,
   });
   const [saving, setSaving] = React.useState(false);
-  const [colors, setColors] = React.useState<any[]>([]);
+  // const [colors, setColors] = React.useState<any[]>([]);
 
   const onSubmit = async () => {
-    // show popup if either field missing
     if (!form.name.trim() || !form.category.trim()) {
       toast.error("Add the Material Details");
       return;
@@ -53,10 +52,8 @@ export default function MaterialCreatePage() {
         body: JSON.stringify(form),
       });
 
-      // helpful debug info in console + user toast
       console.log("POST /api/materials =>", res.status, res.statusText);
 
-      // explicit 404 handling so you see what's wrong
       if (res.status === 404) {
         toast.error(
           "API route not found (404). Check that /api/materials exists."
@@ -64,12 +61,11 @@ export default function MaterialCreatePage() {
         return;
       }
 
-      // read body text so we can show helpful message if it's not JSON
       const text = await res.text();
-      let data: any = {};
+      let data: unknown = {};
       try {
         data = text ? JSON.parse(text) : {};
-      } catch (e) {
+      } catch {
         data = text;
       }
 
@@ -77,28 +73,18 @@ export default function MaterialCreatePage() {
         const msg =
           typeof data === "string"
             ? data
-            : data?.message ?? JSON.stringify(data).slice(0, 300);
+            : (data as { message?: string })?.message ??
+              JSON.stringify(data).slice(0, 300);
         toast.error(`Failed to create: ${res.status} ${msg}`);
         return;
       }
 
-      // success
       toast.success("Material created");
-
-      // always go back to list page
       router.push("/materials");
-
-      // server should return created.id
-      // const id = data?.id;
-      // if (id) {
-      //   router.push(`/materials/${id}`);
-      // } else {
-      //   // fallback: refresh list or go back
-      //   router.push("/materials");
-      // }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Network / fetch error:", err);
-      toast.error("Network error: " + (err?.message ?? err));
+      const message = err instanceof Error ? err.message : String(err);
+      toast.error("Network error: " + message);
     } finally {
       setSaving(false);
     }

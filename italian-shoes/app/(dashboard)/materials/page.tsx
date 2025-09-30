@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -68,7 +67,6 @@ export default function MaterialsListPage() {
   const [items, setItems] = React.useState<Material[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [query, setQuery] = React.useState("");
-  const router = useRouter();
 
   const load = async () => {
     setLoading(true);
@@ -94,9 +92,7 @@ export default function MaterialsListPage() {
 
   const toggleActive = async (m: Material) => {
     setItems((prev) =>
-      prev.map((x) =>
-        x.id === m.id ? { ...x, isActive: !x.isActive } : x
-      )
+      prev.map((x) => (x.id === m.id ? { ...x, isActive: !x.isActive } : x))
     );
     try {
       const res = await fetch(`/api/materials/${m.id}`, {
@@ -107,9 +103,7 @@ export default function MaterialsListPage() {
       toast.success("Status updated");
     } catch {
       setItems((prev) =>
-        prev.map((x) =>
-          x.id === m.id ? { ...x, isActive: m.isActive } : x
-        )
+        prev.map((x) => (x.id === m.id ? { ...x, isActive: m.isActive } : x))
       );
       toast.error("Failed to update status");
     }
@@ -121,7 +115,7 @@ export default function MaterialsListPage() {
       const res = await fetch(`/api/materials/${m.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(await res.text());
       toast.success("Material deleted successfully");
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete material");
       setItems((prev) => [...prev, m]);
     }
