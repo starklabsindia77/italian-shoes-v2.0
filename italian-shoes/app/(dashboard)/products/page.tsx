@@ -19,6 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MoreHorizontal, Plus, Search, Trash2, Pencil, RefreshCw } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Product = {
   id: string;
@@ -37,33 +38,6 @@ type ApiList<T> = {
   limit: number;
 };
 
-// const FALLBACK: ApiList<Product> = {
-//   items: [
-//     {
-//       id: "fake_1",
-//       productId: "oxford-001",
-//       title: "Premium Oxford Shoes",
-//       vendor: "Italian Shoes Company",
-//       price: 12999,
-//       currency: "USD",
-//       isActive: true,
-//       createdAt: new Date().toISOString(),
-//     },
-//     {
-//       id: "fake_2",
-//       productId: "derby-002",
-//       title: "Classic Derby",
-//       vendor: "Italian Shoes Company",
-//       price: 11999,
-//       currency: "USD",
-//       isActive: true,
-//       createdAt: new Date().toISOString(),
-//     },
-//   ],
-//   total: 2,
-//   limit: 20,
-// };
-
 function formatCurrency(cents: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -81,7 +55,6 @@ export default function ProductsPage() {
   const [page, setPage] = useState<number>(Number(sp.get("page") ?? 1));
   const limit = 20;
 
-  // debounce for search
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const qParam = q.trim();
 
@@ -98,12 +71,8 @@ export default function ProductsPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as ApiList<Product>;
       setList(data);
-    } catch (e) {
-      // fall back to static data
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("Products API failed, using fallback data:", e);
-      }
-      // setList(FALLBACK);
+    } catch {
+      setList({ items: [], total: 0, limit });
     } finally {
       setLoading(false);
     }
@@ -111,19 +80,15 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // keep URL in sync (q + page)
   useEffect(() => {
     const params = new URLSearchParams();
     if (qParam) params.set("q", qParam);
     if (page !== 1) params.set("page", String(page));
     router.replace(`/products${params.toString() ? `?${params}` : ""}`);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qParam, page]);
 
-  // handlers
   const onSearchChange = (v: string) => {
     setQ(v);
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -167,6 +132,70 @@ export default function ProductsPage() {
     }
   };
 
+  // Full page skeleton
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <Skeleton className="h-7 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-9 w-24 rounded-lg" />
+            <Skeleton className="h-9 w-32 rounded-lg" />
+          </div>
+        </div>
+
+        <Card className="rounded-2xl">
+          <CardHeader className="pb-3">
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <Skeleton className="h-9 w-80 rounded-lg" />
+            </div>
+
+            <div className="overflow-hidden rounded-xl border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {Array.from({ length: 7 }).map((_, i) => (
+                      <TableHead key={i}>
+                        <Skeleton className="h-4 w-16" />
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 7 }).map((_, j) => (
+                        <TableCell key={j}>
+                          <Skeleton className="h-4 w-24 rounded" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between text-sm">
+              <Skeleton className="h-4 w-48" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-16 rounded-lg" />
+                <Skeleton className="h-8 w-16 rounded-lg" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Actual UI
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -194,7 +223,6 @@ export default function ProductsPage() {
           <CardDescription>Search & paginate through products</CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Filters */}
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <div className="relative">
               <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -207,7 +235,6 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          {/* Table */}
           <div className="overflow-hidden rounded-xl border">
             <Table>
               <TableHeader>
@@ -247,7 +274,7 @@ export default function ProductsPage() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {!loading && list.items.length === 0 && (
+                {list.items.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
                       No products found.
@@ -258,7 +285,6 @@ export default function ProductsPage() {
             </Table>
           </div>
 
-          {/* Footer: pagination */}
           <div className="mt-4 flex items-center justify-between text-sm">
             <div className="text-muted-foreground">
               Page <span className="font-medium text-foreground">{page}</span> of{" "}
@@ -274,13 +300,6 @@ export default function ProductsPage() {
               </Button>
             </div>
           </div>
-
-          {loading && (
-            <>
-              <Separator className="my-4" />
-              <div className="text-xs text-muted-foreground">Loading…</div>
-            </>
-          )}
         </CardContent>
       </Card>
     </div>

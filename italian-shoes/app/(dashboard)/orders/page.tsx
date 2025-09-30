@@ -17,6 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { RefreshCcw, Edit3, Search } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Currency = "USD" | "EUR" | "GBP";
 type OrderStatus =
@@ -46,7 +47,7 @@ type OrderLite = {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   fulfillmentStatus: FulfillmentStatus;
-  total: number;           // cents
+  total: number;           
   currency: Currency;
   createdAt?: string;
   updatedAt?: string;
@@ -105,6 +106,66 @@ export default function OrdersListPage() {
 
   React.useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
+  if (loading) {
+    // Skeleton loading UI
+    return (
+      <div className="space-y-6 animate-pulse">
+        {/* Header */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <Skeleton className="h-7 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-[100px] rounded-lg" />
+          </div>
+        </div>
+
+        <Card className="rounded-2xl">
+          <CardHeader className="pb-3">
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Search & filters */}
+            <div className="grid gap-3 md:grid-cols-[1fr_200px_120px]">
+              <Skeleton className="h-9 w-full rounded-lg" />
+              <Skeleton className="h-9 w-full rounded-lg" />
+              <Skeleton className="h-9 w-full rounded-lg" />
+            </div>
+
+            <Separator />
+
+            {/* Table headers */}
+            <div className="overflow-hidden rounded-xl border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <TableHead key={i}><Skeleton className="h-4 w-16" /></TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 8 }).map((_, j) => (
+                        <TableCell key={j}>
+                          <Skeleton className="h-4 w-20 rounded" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Actual UI
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -198,6 +259,7 @@ export default function OrdersListPage() {
   );
 }
 
+// Badge & formatting functions remain the same
 function badgeForStatus(s: OrderStatus) {
   const map: Record<OrderStatus, string> = {
     design_received: "Design Received",

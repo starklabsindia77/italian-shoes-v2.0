@@ -1,5 +1,8 @@
 // app/(dashboard)/page.tsx
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -25,6 +28,7 @@ import {
   Plus,
   Truck,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function formatCurrency(cents: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
@@ -34,78 +38,192 @@ function formatCurrency(cents: number, currency = "USD") {
   }).format(cents / 100);
 }
 
-export default async function DashboardPage() {
-  // You can replace these with real queries
-  const kpis = [
-    {
-      label: "Gross Sales (30d)",
-      value: formatCurrency(238400, "USD"),
-      icon: DollarSign,
-      sub: "+12% vs prev.",
-    },
-    {
-      label: "Orders (30d)",
-      value: "184",
-      icon: ShoppingCart,
-      sub: "+8 new today",
-    },
-    {
-      label: "In Production",
-      value: "23",
-      icon: Factory,
-      sub: "7 in QC",
-    },
-    {
-      label: "Low Stock Variants",
-      value: "9",
-      icon: Package,
-      sub: "Reorder soon",
-    },
-  ];
+/* ---------- tiny UI helpers ---------- */
+function RowStat({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: number | string;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border p-3">
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className="text-sm">{label}</span>
+      </div>
+      <span className="text-sm font-semibold">{value}</span>
+    </div>
+  );
+}
 
-  const recent = [
-    {
-      id: "ord_10234",
-      number: "MTO-10234",
-      customer: "A. Romano",
-      total: 18999,
-      currency: "USD",
-      status: "IN_PRODUCTION",
-    },
-    {
-      id: "ord_10233",
-      number: "MTO-10233",
-      customer: "S. Marino",
-      total: 14999,
-      currency: "USD",
-      status: "QUALITY_CHECK",
-    },
-    {
-      id: "ord_10232",
-      number: "MTO-10232",
-      customer: "P. Bianchi",
-      total: 21999,
-      currency: "USD",
-      status: "READY_TO_SHIP",
-    },
-    {
-      id: "ord_10231",
-      number: "MTO-10231",
-      customer: "M. Conti",
-      total: 16999,
-      currency: "USD",
-      status: "DESIGN_RECEIVED",
-    },
-  ] as const;
-
-  const board = {
-    DESIGN_RECEIVED: 6,
-    IN_PRODUCTION: 23,
-    QUALITY_CHECK: 7,
-    READY_TO_SHIP: 5,
-    SHIPPED: 41,
+function OrderBadge({ status }: { status: string }) {
+  const map: Record<
+    string,
+    { variant: "default" | "secondary" | "destructive" | "outline"; label: string }
+  > = {
+    DESIGN_RECEIVED: { variant: "secondary", label: "Design received" },
+    IN_PRODUCTION: { variant: "default", label: "In production" },
+    QUALITY_CHECK: { variant: "outline", label: "Quality check" },
+    READY_TO_SHIP: { variant: "default", label: "Ready to ship" },
+    SHIPPED: { variant: "secondary", label: "Shipped" },
+    DELIVERED: { variant: "secondary", label: "Delivered" },
+    CANCELLED: { variant: "destructive", label: "Cancelled" },
   };
+  const cfg = map[status] || { variant: "outline", label: status };
+  return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
+}
 
+export default function DashboardPage() {
+  const [loading, setLoading] = useState(true);
+
+  // Fake API/data fetch simulation
+  const [data, setData] = useState({
+    kpis: [] as Array<{ label: string; value: string; icon: any; sub: string }>,
+    recent: [] as Array<{
+      id: string;
+      number: string;
+      customer: string;
+      total: number;
+      currency: string;
+      status: string;
+    }>,
+    board: {} as Record<string, number>,
+  });
+
+  useEffect(() => {
+    setTimeout(() => {
+      // Fake API data
+      setData({
+        kpis: [
+          { label: "Gross Sales (30d)", value: formatCurrency(238400), icon: DollarSign, sub: "+12% vs prev." },
+          { label: "Orders (30d)", value: "184", icon: ShoppingCart, sub: "+8 new today" },
+          { label: "In Production", value: "23", icon: Factory, sub: "7 in QC" },
+          { label: "Low Stock Variants", value: "9", icon: Package, sub: "Reorder soon" },
+        ],
+        recent: [
+          { id: "ord_10234", number: "MTO-10234", customer: "A. Romano", total: 18999, currency: "USD", status: "IN_PRODUCTION" },
+          { id: "ord_10233", number: "MTO-10233", customer: "S. Marino", total: 14999, currency: "USD", status: "QUALITY_CHECK" },
+          { id: "ord_10232", number: "MTO-10232", customer: "P. Bianchi", total: 21999, currency: "USD", status: "READY_TO_SHIP" },
+          { id: "ord_10231", number: "MTO-10231", customer: "M. Conti", total: 16999, currency: "USD", status: "DESIGN_RECEIVED" },
+        ],
+        board: {
+          DESIGN_RECEIVED: 6,
+          IN_PRODUCTION: 23,
+          QUALITY_CHECK: 7,
+          READY_TO_SHIP: 5,
+          SHIPPED: 41,
+        },
+      });
+      setLoading(false);
+    }, 1500);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        {/* Header skeleton */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-1">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-72" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-9 w-28 rounded-lg" />
+            <Skeleton className="h-9 w-36 rounded-lg" />
+          </div>
+        </div>
+
+        {/* KPI cards skeleton */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="rounded-2xl">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-5 w-5" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-24 mb-1" />
+                <Skeleton className="h-3 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Recent Orders Skeleton */}
+        <div className="grid gap-4 lg:grid-cols-4">
+          <Card className="lg:col-span-3 rounded-2xl">
+            <CardHeader className="pb-3">
+              <Skeleton className="h-5 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-xl border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <TableHead key={i}>
+                          <Skeleton className="h-4 w-24" />
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        {Array.from({ length: 5 }).map((_, j) => (
+                          <TableCell key={j}>
+                            <Skeleton className="h-4 w-20" />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="mt-3 flex justify-end">
+                <Skeleton className="h-8 w-32 rounded-lg" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Production Queue Skeleton */}
+          <Card className="rounded-2xl">
+            <CardHeader className="pb-3">
+              <Skeleton className="h-5 w-40 mb-2" />
+              <Skeleton className="h-4 w-48" />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-8 w-full rounded-lg" />
+              ))}
+              <div className="pt-1">
+                <Skeleton className="h-10 w-full rounded-lg" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions Skeleton */}
+        <Card className="rounded-2xl">
+          <CardHeader className="pb-3">
+            <Skeleton className="h-5 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-9 w-36 rounded-lg" />
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Render actual dashboard content
   return (
     <div className="space-y-6">
       {/* Header row */}
@@ -131,7 +249,7 @@ export default async function DashboardPage() {
 
       {/* KPI cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {kpis.map(({ label, value, icon: Icon, sub }) => (
+        {data.kpis.map(({ label, value, icon: Icon, sub }) => (
           <Card key={label} className="rounded-2xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{label}</CardTitle>
@@ -165,7 +283,7 @@ export default async function DashboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recent.map((o) => (
+                  {data.recent.map((o) => (
                     <TableRow key={o.id}>
                       <TableCell className="font-medium">{o.number}</TableCell>
                       <TableCell>{o.customer}</TableCell>
@@ -199,11 +317,11 @@ export default async function DashboardPage() {
             <CardDescription>Live snapshot</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <RowStat label="Design received" value={board.DESIGN_RECEIVED} />
-            <RowStat label="In production" value={board.IN_PRODUCTION} />
-            <RowStat label="Quality check" value={board.QUALITY_CHECK} />
-            <RowStat label="Ready to ship" value={board.READY_TO_SHIP} />
-            <RowStat label="Shipped (7d)" value={board.SHIPPED} icon={<Truck className="size-4" />} />
+            <RowStat label="Design received" value={data.board.DESIGN_RECEIVED} />
+            <RowStat label="In production" value={data.board.IN_PRODUCTION} />
+            <RowStat label="Quality check" value={data.board.QUALITY_CHECK} />
+            <RowStat label="Ready to ship" value={data.board.READY_TO_SHIP} />
+            <RowStat label="Shipped (7d)" value={data.board.SHIPPED} icon={<Truck className="size-4" />} />
             <div className="pt-1">
               <Button asChild className="w-full">
                 <Link href="/production">Open board</Link>
@@ -242,44 +360,4 @@ export default async function DashboardPage() {
       </Card>
     </div>
   );
-}
-
-/* ---------- tiny UI helpers ---------- */
-
-function RowStat({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: number | string;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-lg border p-3">
-      <div className="flex items-center gap-2">
-        {icon}
-        <span className="text-sm">{label}</span>
-      </div>
-      <span className="text-sm font-semibold">{value}</span>
-    </div>
-  );
-}
-
-function OrderBadge({ status }: { status: string }) {
-  const map: Record<
-    string,
-    { variant: "default" | "secondary" | "destructive" | "outline"; label: string }
-  > = {
-    DESIGN_RECEIVED: { variant: "secondary", label: "Design received" },
-    IN_PRODUCTION: { variant: "default", label: "In production" },
-    QUALITY_CHECK: { variant: "outline", label: "Quality check" },
-    READY_TO_SHIP: { variant: "default", label: "Ready to ship" },
-    SHIPPED: { variant: "secondary", label: "Shipped" },
-    DELIVERED: { variant: "secondary", label: "Delivered" },
-    CANCELLED: { variant: "destructive", label: "Cancelled" },
-  };
-
-  const cfg = map[status] || { variant: "outline", label: status };
-  return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
 }
