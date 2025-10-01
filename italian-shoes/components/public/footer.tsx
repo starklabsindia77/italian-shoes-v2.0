@@ -1,5 +1,6 @@
 import React from 'react';
 import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
+import Image from 'next/image';
 
 const Footer: React.FC = () => (
   <footer className="bg-[#1c1c1c] text-gray-300">
@@ -7,7 +8,7 @@ const Footer: React.FC = () => (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Logo Column */}
         <div>
-          <img src={`https://italianshoescompany.com/cdn/shop/files/logo-italian2.png?v=1696415899&width=150`} alt="Logo"  />
+          <Image src={`https://italianshoescompany.com/cdn/shop/files/logo-italian2.png?v=1696415899&width=150`} alt="Logo"  />
           <div className="flex space-x-4 mt-4">
             <a href="#" className="hover:text-white">
               <Facebook className="w-5 h-5" />

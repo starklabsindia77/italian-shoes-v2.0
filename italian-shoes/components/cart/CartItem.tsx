@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, X } from "lucide-react";
+import Image from "next/image";
+
 
 interface CartItemProps {
   id: string;
@@ -47,7 +49,7 @@ export const CartItem = ({
       {/* Product Image */}
       {image && (
         <div className="flex-shrink-0">
-          <img
+          <Image
             src={image}
             alt={title}
             className="w-20 h-20 object-cover rounded-md"

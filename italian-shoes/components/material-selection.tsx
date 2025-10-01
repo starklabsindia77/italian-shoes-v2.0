@@ -1,19 +1,30 @@
 "use client";
 
 import * as React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Plus, X, PaintBucket } from "lucide-react";
+import { PaintBucket } from "lucide-react";
+
+export interface ColorFamily {
+  id: string;
+  name: string;
+}
 
 export interface MaterialColor {
   id: string;
   name: string;
-  hexCode?: any;
-  imageUrl?: any;
-  family?: any;
+  hexCode?: string | null;
+  imageUrl?: string | null;
+  family?: ColorFamily | null;
   isActive: boolean;
 }
 
@@ -41,17 +52,22 @@ interface MaterialSelectionProps {
   loading?: boolean;
 }
 
-export function MaterialSelection({ 
-  materials, 
-  selectedMaterials, 
-  onSelectionChange, 
-  loading = false 
+export function MaterialSelection({
+  materials,
+  selectedMaterials,
+  onSelectionChange,
+  loading = false,
 }: MaterialSelectionProps) {
-  const [expandedMaterials, setExpandedMaterials] = React.useState<Set<string>>(new Set());
+  const [expandedMaterials, setExpandedMaterials] = React.useState<Set<string>>(
+    new Set()
+  );
 
-  const toggleMaterialExpansion = (e: React.MouseEvent<HTMLButtonElement>, materialId: string) => {
+  const toggleMaterialExpansion = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    materialId: string
+  ) => {
     e.preventDefault();
-    setExpandedMaterials(prev => {
+    setExpandedMaterials((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(materialId)) {
         newSet.delete(materialId);
@@ -63,11 +79,15 @@ export function MaterialSelection({
   };
 
   const toggleMaterialSelection = (material: Material) => {
-    const isSelected = selectedMaterials.some(sm => sm.materialId === material.id);
-    
+    const isSelected = selectedMaterials.some(
+      (sm) => sm.materialId === material.id
+    );
+
     if (isSelected) {
       // Remove material
-      onSelectionChange(selectedMaterials.filter(sm => sm.materialId !== material.id));
+      onSelectionChange(
+        selectedMaterials.filter((sm) => sm.materialId !== material.id)
+      );
     } else {
       // Add material with no colors selected by default
       const newSelection: SelectedMaterial = {
@@ -75,27 +95,33 @@ export function MaterialSelection({
         materialName: material.name,
         selectedColorIds: [],
         selectedColor: [],
-        selectAllColors: false
+        selectAllColors: false,
       };
       onSelectionChange([...selectedMaterials, newSelection]);
     }
   };
 
   const toggleColorSelection = (materialId: string, colorId: string) => {
-    const material = selectedMaterials.find(sm => sm.materialId === materialId);
-    const materialData = materials.find(m => m.id === materialId);
+    const material = selectedMaterials.find(
+      (sm) => sm.materialId === materialId
+    );
+    const materialData = materials.find((m) => m.id === materialId);
     if (!material || !materialData) return;
 
-    const color = materialData.colors.find(c => c.id === colorId);
+    const color = materialData.colors.find((c) => c.id === colorId);
     if (!color) return;
 
     const isColorSelected = material.selectedColorIds.includes(colorId);
     let newSelectedColorIds: string[];
     let newSelectedColor: MaterialColor[];
-    
+
     if (isColorSelected) {
-      newSelectedColorIds = material.selectedColorIds.filter(id => id !== colorId);
-      newSelectedColor = material.selectedColor?.filter(c => c.id !== colorId);
+      newSelectedColorIds = material.selectedColorIds.filter(
+        (id) => id !== colorId
+      );
+      newSelectedColor = material.selectedColor?.filter(
+        (c) => c.id !== colorId
+      );
     } else {
       newSelectedColorIds = [...material.selectedColorIds, colorId];
       newSelectedColor = [...material.selectedColor, color];
@@ -105,43 +131,48 @@ export function MaterialSelection({
       ...material,
       selectedColorIds: newSelectedColorIds,
       selectedColor: newSelectedColor,
-      selectAllColors: newSelectedColorIds.length === materialData.colors.filter(c => c.isActive).length
+      selectAllColors:
+        newSelectedColorIds.length ===
+        materialData.colors.filter((c) => c.isActive).length,
     };
-    
 
     onSelectionChange(
-      selectedMaterials.map(sm => sm.materialId === materialId ? updatedMaterial : sm)
+      selectedMaterials.map((sm) =>
+        sm.materialId === materialId ? updatedMaterial : sm
+      )
     );
   };
 
   const toggleSelectAllColors = (materialId: string) => {
-    const material = selectedMaterials.find(sm => sm.materialId === materialId);
-    const materialData = materials.find(m => m.id === materialId);
+    const material = selectedMaterials.find(
+      (sm) => sm.materialId === materialId
+    );
+    const materialData = materials.find((m) => m.id === materialId);
     if (!material || !materialData) return;
 
-    const activeColors = materialData.colors.filter(c => c.isActive);
+    const activeColors = materialData.colors.filter((c) => c.isActive);
     const newSelectAllColors = !material.selectAllColors;
-    
+
     const updatedMaterial: SelectedMaterial = {
       ...material,
-      selectedColorIds: newSelectAllColors ? activeColors.map(c => c.id) : [],
+      selectedColorIds: newSelectAllColors ? activeColors.map((c) => c.id) : [],
       selectedColor: newSelectAllColors ? activeColors : [],
-      selectAllColors: newSelectAllColors
+      selectAllColors: newSelectAllColors,
     };
 
- 
-
     onSelectionChange(
-      selectedMaterials.map(sm => sm.materialId === materialId ? updatedMaterial : sm)
+      selectedMaterials.map((sm) =>
+        sm.materialId === materialId ? updatedMaterial : sm
+      )
     );
   };
 
   const isMaterialSelected = (materialId: string) => {
-    return selectedMaterials.some(sm => sm.materialId === materialId);
+    return selectedMaterials.some((sm) => sm.materialId === materialId);
   };
 
   const getSelectedMaterial = (materialId: string) => {
-    return selectedMaterials.find(sm => sm.materialId === materialId);
+    return selectedMaterials.find((sm) => sm.materialId === materialId);
   };
 
   if (loading) {
@@ -153,7 +184,7 @@ export function MaterialSelection({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />
             ))}
           </div>
@@ -167,24 +198,28 @@ export function MaterialSelection({
       <CardHeader className="pb-3">
         <CardTitle>Material Selection</CardTitle>
         <CardDescription>
-          Select materials and their available colors for this product. 
-          You can choose all colors or specific ones for each material.
+          Select materials and their available colors for this product. You can
+          choose all colors or specific ones for each material.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {materials.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            No materials available. Create materials first in the Materials section.
+            No materials available. Create materials first in the Materials
+            section.
           </div>
         ) : (
           materials.map((material) => {
             const isSelected = isMaterialSelected(material.id);
             const selectedMaterial = getSelectedMaterial(material.id);
-            const activeColors = material.colors.filter(c => c.isActive);
+            const activeColors = material.colors.filter((c) => c.isActive);
             const isExpanded = expandedMaterials.has(material.id);
 
             return (
-              <div key={material.id} className="border rounded-lg p-4 space-y-3">
+              <div
+                key={material.id}
+                className="border rounded-lg p-4 space-y-3"
+              >
                 {/* Material Header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -195,14 +230,16 @@ export function MaterialSelection({
                     <div>
                       <div className="font-medium">{material.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {material.category} • {activeColors.length} colors available
+                        {material.category} • {activeColors.length} colors
+                        available
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     {isSelected && (
                       <Badge variant="secondary">
-                        {selectedMaterial?.selectedColorIds.length || 0} colors selected
+                        {selectedMaterial?.selectedColorIds.length || 0} colors
+                        selected
                       </Badge>
                     )}
                     <Button
@@ -229,25 +266,34 @@ export function MaterialSelection({
                         </div>
                         <Checkbox
                           checked={selectedMaterial?.selectAllColors || false}
-                          onCheckedChange={() => toggleSelectAllColors(material.id)}
+                          onCheckedChange={() =>
+                            toggleSelectAllColors(material.id)
+                          }
                         />
                       </div>
 
                       {/* Individual Color Selection */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {activeColors.map((color) => {
-                          const isColorSelected = selectedMaterial?.selectedColorIds.includes(color.id) || false;
-                          
+                          const isColorSelected =
+                            selectedMaterial?.selectedColorIds.includes(
+                              color.id
+                            ) || false;
+
                           return (
                             <div
                               key={color.id}
                               className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                                isColorSelected ? 'bg-primary/5 border-primary' : 'hover:bg-muted/50'
+                                isColorSelected
+                                  ? "bg-primary/5 border-primary"
+                                  : "hover:bg-muted/50"
                               }`}
                             >
                               <Checkbox
                                 checked={isColorSelected}
-                                onCheckedChange={() => toggleColorSelection(material.id, color.id)}
+                                onCheckedChange={() =>
+                                  toggleColorSelection(material.id, color.id)
+                                }
                               />
                               <div className="flex-1 flex items-center space-x-2">
                                 {color.hexCode && (
@@ -278,10 +324,15 @@ export function MaterialSelection({
               <h4 className="font-medium mb-2">Selected Materials Summary</h4>
               <div className="space-y-1">
                 {selectedMaterials.map((sm) => (
-                  <div key={sm.materialId} className="flex items-center justify-between text-sm">
+                  <div
+                    key={sm.materialId}
+                    className="flex items-center justify-between text-sm"
+                  >
                     <span>{sm.materialName}</span>
                     <span className="text-muted-foreground">
-                      {sm.selectAllColors ? 'All colors' : `${sm.selectedColorIds.length} colors`}
+                      {sm.selectAllColors
+                        ? "All colors"
+                        : `${sm.selectedColorIds.length} colors`}
                     </span>
                   </div>
                 ))}
