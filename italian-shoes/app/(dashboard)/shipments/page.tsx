@@ -4,19 +4,47 @@ import * as React from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCcw, Search, ExternalLink, Truck, PackageCheck, LocateFixed, FileDown } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  RefreshCcw,
+  Search,
+  ExternalLink,
+  Truck,
+  PackageCheck,
+  LocateFixed,
+  FileDown,
+} from "lucide-react";
 
-type ShipStatus = "pending" | "picked_up" | "in_transit" | "delivered" | "failed";
+type ShipStatus =
+  | "pending"
+  | "picked_up"
+  | "in_transit"
+  | "delivered"
+  | "failed";
 
 type Shipment = {
   id: string;
@@ -29,8 +57,8 @@ type Shipment = {
   labelUrl?: string | null;
   status: ShipStatus;
   estimatedDelivery?: string | null; // ISO date
-  actualDelivery?: string | null;    // ISO date
-  createdAt?: string | null;         // ISO date
+  actualDelivery?: string | null; // ISO date
+  createdAt?: string | null; // ISO date
 };
 
 const FALLBACK: Shipment[] = [
@@ -80,13 +108,15 @@ export default function ShipmentsPage() {
   const [q, setQ] = React.useState("");
   const [status, setStatus] = React.useState<ShipStatus | "all">("all");
 
-  const load = async () => {
+  const load = React.useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ limit: "100" });
       if (q) params.set("q", q);
       if (status !== "all") params.set("status", status);
-      const r = await fetch(`/api/shipments?${params.toString()}`, { cache: "no-store" });
+      const r = await fetch(`/api/shipments?${params.toString()}`, {
+        cache: "no-store",
+      });
       if (!r.ok) throw new Error();
       const d = await r.json();
       setItems((d.items ?? d ?? []) as Shipment[]);
@@ -95,19 +125,32 @@ export default function ShipmentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [q, status]);
 
-  React.useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  React.useEffect(() => {
+    load();
+  }, [load]);
+
+  React.useEffect(() => {
+    load();
+  }, []);
 
   // PATCH helper
   const patch = async (id: string, body: Partial<Shipment>) => {
     const run = async () => {
-      const res = await fetch(`/api/shipments/${id}`, { method: "PUT", body: JSON.stringify(body) });
+      const res = await fetch(`/api/shipments/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(body),
+      });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     };
     const p = run();
-    toast.promise(p, { loading: "Updating…", success: "Updated", error: "Failed to update" });
+    toast.promise(p, {
+      loading: "Updating…",
+      success: "Updated",
+      error: "Failed to update",
+    });
     await p;
     await load();
   };
@@ -120,7 +163,11 @@ export default function ShipmentsPage() {
       return res.json();
     };
     const p = run();
-    toast.promise(p, { loading: "Syncing tracking…", success: "Tracking synced", error: "Failed to sync" });
+    toast.promise(p, {
+      loading: "Syncing tracking…",
+      success: "Tracking synced",
+      error: "Failed to sync",
+    });
     await p;
     await load();
   };
@@ -132,7 +179,11 @@ export default function ShipmentsPage() {
       return res.json();
     };
     const p = run();
-    toast.promise(p, { loading: "Requesting label…", success: "Label ready", error: "Failed to request label" });
+    toast.promise(p, {
+      loading: "Requesting label…",
+      success: "Label ready",
+      error: "Failed to request label",
+    });
     await p;
     await load();
   };
@@ -143,12 +194,20 @@ export default function ShipmentsPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Shipments</h1>
-          <p className="text-sm text-muted-foreground">Labels, tracking, and delivery status.</p>
+          <p className="text-sm text-muted-foreground">
+            Labels, tracking, and delivery status.
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={load}><RefreshCcw className="mr-2 size-4" />Refresh</Button>
+          <Button variant="outline" onClick={load}>
+            <RefreshCcw className="mr-2 size-4" />
+            Refresh
+          </Button>
           <Button asChild variant="secondary">
-            <Link href="/dashboard/orders?status=ready_to_ship"><PackageCheck className="mr-2 size-4" />Create Shipment</Link>
+            <Link href="/dashboard/orders?status=ready_to_ship">
+              <PackageCheck className="mr-2 size-4" />
+              Create Shipment
+            </Link>
           </Button>
         </div>
       </div>
@@ -156,7 +215,9 @@ export default function ShipmentsPage() {
       <Card className="rounded-2xl">
         <CardHeader className="pb-3">
           <CardTitle>All Shipments</CardTitle>
-          <CardDescription>Search by order number, AWB, courier, or customer. Filter by status.</CardDescription>
+          <CardDescription>
+            Search by order number, AWB, courier, or customer. Filter by status.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-3 md:grid-cols-[1fr_200px_120px]">
@@ -164,10 +225,17 @@ export default function ShipmentsPage() {
               placeholder="Search shipments… (e.g., 1005, DHL123, Maria)"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") load(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") load();
+              }}
             />
-            <Select value={status} onValueChange={(v: ShipStatus | "all") => setStatus(v)}>
-              <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+            <Select
+              value={status}
+              onValueChange={(v: ShipStatus | "all") => setStatus(v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
@@ -177,7 +245,10 @@ export default function ShipmentsPage() {
                 <SelectItem value="failed">Failed</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={load}><Search className="mr-2 size-4" />Search</Button>
+            <Button onClick={load}>
+              <Search className="mr-2 size-4" />
+              Search
+            </Button>
           </div>
 
           <Separator />
@@ -199,44 +270,77 @@ export default function ShipmentsPage() {
                 {items.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">
-                      <Link className="underline underline-offset-2" href={`/dashboard/orders/${s.orderId}`}>
+                      <Link
+                        className="underline underline-offset-2"
+                        href={`/dashboard/orders/${s.orderId}`}
+                      >
                         {s.orderNumber}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{s.customer ?? "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{s.courierName ?? "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{s.awbNumber ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {s.customer ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {s.courierName ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {s.awbNumber ?? "—"}
+                    </TableCell>
                     <TableCell>{statusBadge(s.status)}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {s.actualDelivery
                         ? `Delivered ${fmtDate(s.actualDelivery)}`
                         : s.estimatedDelivery
-                          ? `ETA ${fmtDate(s.estimatedDelivery)}`
-                          : "—"}
+                        ? `ETA ${fmtDate(s.estimatedDelivery)}`
+                        : "—"}
                     </TableCell>
                     <TableCell className="flex justify-end gap-2">
                       {/* Open tracking */}
-                      <Button size="sm" variant="outline" asChild disabled={!s.trackingUrl}>
-                        <a href={s.trackingUrl ?? "#"} target="_blank" rel="noreferrer">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        asChild
+                        disabled={!s.trackingUrl}
+                      >
+                        <a
+                          href={s.trackingUrl ?? "#"}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           <ExternalLink className="mr-2 size-4" /> Track
                         </a>
                       </Button>
                       {/* Request label (optional endpoint) */}
-                      <Button size="sm" variant="outline" onClick={() => doLabel(s.id)}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => doLabel(s.id)}
+                      >
                         <FileDown className="mr-2 size-4" /> Label
                       </Button>
                       {/* Sync tracking (optional endpoint) */}
-                      <Button size="sm" variant="outline" onClick={() => doTrack(s.id)}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => doTrack(s.id)}
+                      >
                         <LocateFixed className="mr-2 size-4" /> Sync
                       </Button>
                       {/* Quick status actions */}
                       {s.status !== "picked_up" && (
-                        <Button size="sm" variant="secondary" onClick={() => patch(s.id, { status: "picked_up" })}>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => patch(s.id, { status: "picked_up" })}
+                        >
                           <Truck className="mr-2 size-4" /> Picked up
                         </Button>
                       )}
                       {s.status !== "in_transit" && (
-                        <Button size="sm" onClick={() => patch(s.id, { status: "in_transit" })}>
+                        <Button
+                          size="sm"
+                          onClick={() => patch(s.id, { status: "in_transit" })}
+                        >
                           <Truck className="mr-2 size-4" /> In transit
                         </Button>
                       )}
@@ -244,7 +348,10 @@ export default function ShipmentsPage() {
                         <Button
                           size="sm"
                           onClick={() =>
-                            patch(s.id, { status: "delivered", actualDelivery: new Date().toISOString() })
+                            patch(s.id, {
+                              status: "delivered",
+                              actualDelivery: new Date().toISOString(),
+                            })
                           }
                         >
                           <PackageCheck className="mr-2 size-4" /> Delivered
@@ -255,7 +362,10 @@ export default function ShipmentsPage() {
                 ))}
                 {items.length === 0 && !loading && (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-6 text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={7}
+                      className="py-6 text-center text-sm text-muted-foreground"
+                    >
                       No shipments found.
                     </TableCell>
                   </TableRow>
@@ -272,10 +382,14 @@ export default function ShipmentsPage() {
 function statusBadge(s: ShipStatus) {
   const label = s.replaceAll("_", " ");
   const variant =
-    s === "delivered" ? "default" :
-    s === "pending" ? "secondary" :
-    s === "failed" ? "secondary" : "outline";
-  return <Badge variant={variant as any}>{label}</Badge>;
+    s === "delivered"
+      ? "default"
+      : s === "pending"
+      ? "secondary"
+      : s === "failed"
+      ? "secondary"
+      : "outline";
+  return <Badge variant={variant}>{label}</Badge>;
 }
 
 function fmtDate(iso?: string | null) {

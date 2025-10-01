@@ -17,7 +17,6 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { MoreHorizontal, Plus, Search, Trash2, Pencil, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 

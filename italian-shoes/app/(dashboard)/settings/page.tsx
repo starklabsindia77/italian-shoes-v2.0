@@ -68,7 +68,7 @@ export default function SettingsPage() {
       const r = await fetch("/api/settings", { cache: "no-store" });
       if (!r.ok) throw new Error();
       const d = await r.json();
-      setData({ ...(FALLBACK as any), ...(d ?? {}) });
+      setData({ ...(FALLBACK), ...(d ?? {}) });
     } catch {
       setData(FALLBACK);
     } finally {

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from "@/components/ui/tabs";
@@ -16,21 +17,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
 import {
   Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import {
-  ArrowLeft, Check, CircleOff, Factory, Plus, RefreshCw, Save, Sparkles, Trash2,
+  ArrowLeft, RefreshCw, Save, Sparkles
 } from "lucide-react";
 import { MaterialSelection, Material, SelectedMaterial } from "@/components/material-selection";
 import { StyleSoleSelection, Style, Sole, SelectedItem } from "@/components/style-sole-selection";
@@ -79,28 +74,28 @@ type ProductOptionValue = {
   isActive: boolean;
 };
 
-type ProductOption = {
-  id: string;
-  code: string;
-  name: string;
-  type: OptionType;
-  position: number;
-  isActive: boolean;
-  values: ProductOptionValue[];
-};
+// type ProductOption = {
+//   id: string;
+//   code: string;
+//   name: string;
+//   type: OptionType;
+//   position: number;
+//   isActive: boolean;
+//   values: ProductOptionValue[];
+// };
 
-type Variant = {
-  id: string;
-  sku: string;
-  price: number;
-  isActive: boolean;
-};
+// type Variant = {
+//   id: string;
+//   sku: string;
+//   price: number;
+//   isActive: boolean;
+// };
 
-type Size = { id: string; sizeId: string; name: string; region: "US" | "EU" | "UK"; value: number };
-type ProductSize = { id: string; sizeId: string; width: "STANDARD" | "WIDE" | "EXTRA_WIDE" | "NARROW" };
+// type Size = { id: string; sizeId: string; name: string; region: "US" | "EU" | "UK"; value: number };
+// type ProductSize = { id: string; sizeId: string; width: "STANDARD" | "WIDE" | "EXTRA_WIDE" | "NARROW" };
 
 type Panel = { id: string; panelId: string; name: string; group?: string | null };
-type ProductPanel = { id: string; panelId: string; panel?: Panel; isCustomizable: boolean };
+// type ProductPanel = { id: string; panelId: string; panel?: Panel; isCustomizable: boolean };
 
 /* ---------------- fallback (if API fails) ---------------- */
 const FALLBACK_PRODUCT: Product = {
@@ -124,7 +119,7 @@ const FALLBACK_PRODUCT: Product = {
 
 export default function ProductEditPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
+
 
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -156,6 +151,87 @@ export default function ProductEditPage() {
     mode: "onChange",
   });
 
+  if (loading) {
+  return (
+    <div className="space-y-6 p-6 animate-pulse">
+      {/* Header Skeleton */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-9 w-24 rounded-lg" /> {/* Back button */}
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-64" /> {/* Product title */}
+            <Skeleton className="h-4 w-32" /> {/* Product ID */}
+          </div>
+        </div>
+        <Skeleton className="h-9 w-24 rounded-lg" /> {/* Refresh button */}
+      </div>
+
+      {/* Tabs Skeleton */}
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-40" />
+        <Skeleton className="h-96 w-full rounded-2xl" />
+      </div>
+
+      {/* Basic Info Skeleton */}
+      <Card className="rounded-2xl">
+        <CardHeader className="pb-3">
+          <Skeleton className="h-6 w-32 mb-2" />
+          <Skeleton className="h-4 w-48" />
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-20 w-full rounded-lg" />
+        </CardContent>
+      </Card>
+
+      {/* Pricing Skeleton */}
+      <Card className="rounded-2xl">
+        <CardHeader className="pb-3">
+          <Skeleton className="h-6 w-32 mb-2" />
+          <Skeleton className="h-4 w-48" />
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+        </CardContent>
+      </Card>
+
+      {/* 3D Assets Skeleton */}
+      <Card className="rounded-2xl">
+        <CardHeader className="pb-3">
+          <Skeleton className="h-6 w-32 mb-2" />
+          <Skeleton className="h-4 w-48" />
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+        </CardContent>
+      </Card>
+
+      {/* Materials/Styles/Soles Skeleton */}
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Card key={i} className="rounded-2xl">
+          <CardHeader className="pb-3">
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-40 w-full rounded-2xl" />
+          </CardContent>
+        </Card>
+      ))}
+
+      {/* Action Buttons Skeleton */}
+      <div className="flex justify-end gap-2 pt-6 border-t">
+        <Skeleton className="h-10 w-24 rounded-lg" />
+        <Skeleton className="h-10 w-36 rounded-lg" />
+      </div>
+    </div>
+  );
+}
+
+
   // Wizard state
   const steps = React.useMemo(
     () => [
@@ -186,7 +262,7 @@ export default function ProductEditPage() {
   const handleNext = React.useCallback(async () => {
     const fields = activeStep.validate as readonly (keyof FormValues)[];
     if (fields.length > 0) {
-      const ok = await form.trigger(fields as any, { shouldFocus: true });
+      const ok = await form.trigger(fields as (keyof FormValues)[], { shouldFocus: true });
       if (!ok) return;
     }
     goToStep(activeStepIndex + 1);
@@ -615,7 +691,7 @@ export default function ProductEditPage() {
                     <CardContent className="grid gap-4">
                       <div className="grid gap-4 md:grid-cols-2">
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="metaTitle"
                           render={({ field }) => (
                             <FormItem>
@@ -626,7 +702,7 @@ export default function ProductEditPage() {
                           )}
                         />
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="metaKeywords"
                           render={({ field }) => (
                             <FormItem>
@@ -638,7 +714,7 @@ export default function ProductEditPage() {
                         />
                       </div>
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="metaDescription"
                         render={({ field }) => (
                           <FormItem>
@@ -669,7 +745,7 @@ export default function ProductEditPage() {
                     <CardContent className="grid gap-4">
                       <div className="grid gap-4 md:grid-cols-2">
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="price"
                           render={({ field }) => (
                             <FormItem>
@@ -691,7 +767,7 @@ export default function ProductEditPage() {
                           )}
                         />
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="compareAtPrice"
                           render={({ field }) => (
                             <FormItem>
@@ -711,7 +787,7 @@ export default function ProductEditPage() {
                         />
                       </div>
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="currency"
                         render={({ field }) => (
                           <FormItem>
@@ -737,7 +813,7 @@ export default function ProductEditPage() {
                           <div className="text-xs text-muted-foreground">Visible on storefront</div>
                         </div>
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="isActive"
                           render={({ field }) => (
                             <FormItem>
@@ -769,7 +845,7 @@ export default function ProductEditPage() {
                     </CardHeader>
                     <CardContent className="grid gap-4">
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="glbUrl"
                         render={({ field }) => (
                           <FormItem>
@@ -781,7 +857,7 @@ export default function ProductEditPage() {
                       />
                       <div className="grid gap-4 md:grid-cols-2">
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="glbLighting"
                           render={({ field }) => (
                             <FormItem>
@@ -792,7 +868,7 @@ export default function ProductEditPage() {
                           )}
                         />
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="glbEnvironment"
                           render={({ field }) => (
                             <FormItem>

@@ -57,7 +57,7 @@ export default function SizesListPage() {
   const [query, setQuery] = React.useState("");
   const [sortAsc, setSortAsc] = React.useState(true);
 
-  const load = async () => {
+  const load = React.useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(
@@ -71,7 +71,11 @@ export default function SizesListPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [query]); // include any dependencies used inside load
+
+  React.useEffect(() => {
+    load();
+  }, [load]);
 
   React.useEffect(() => {
     load();
