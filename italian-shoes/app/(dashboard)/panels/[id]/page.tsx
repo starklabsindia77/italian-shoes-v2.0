@@ -14,11 +14,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, RefreshCcw, Save } from "lucide-react";
 
+// ✅ Reusable skeleton
+function Skeleton({ className }: { className?: string }) {
+  return <div className={`animate-pulse rounded-md bg-muted ${className}`} />;
+}
+
 type PanelGroup = "front" | "side" | "back" | "top" | "sole" | "lining";
 
 type PanelItem = {
   id: string;
-  panelId: string;        // slug
+  panelId: string; // slug
   name: string;
   group: PanelGroup;
   description?: string | null;
@@ -86,8 +91,56 @@ export default function PanelEditPage() {
     setSaving(false);
   };
 
-  if (!panel) return null;
+  // ✅ Full page skeleton while loading
+  if (loading || !panel) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-9 w-20" />
+            <div>
+              <Skeleton className="h-7 w-32 mb-2" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-24 rounded-lg" />
+            <Skeleton className="h-9 w-20 rounded-lg" />
+          </div>
+        </div>
 
+        {/* Card skeleton */}
+        <Card className="rounded-2xl">
+          <CardHeader className="pb-3">
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-40" />
+          </CardHeader>
+          <CardContent className="grid gap-6 md:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="grid gap-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-9 w-full" />
+              </div>
+            ))}
+            <div className="md:col-span-2 grid gap-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+            <div className="md:col-span-2 flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <Skeleton className="h-4 w-16 mb-1" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+              <Skeleton className="h-6 w-12 rounded-full" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ✅ Actual UI
   return (
     <div className="space-y-6">
       {/* Header */}

@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton"; // ✅ add skeleton
 import { RefreshCcw, Play, CheckCheck, PackageOpen } from "lucide-react";
 
 type OrderLite = {
@@ -43,7 +43,6 @@ export default function ProductionQueuePage() {
   const load = async () => {
     setLoading(true);
     try {
-      // you can support multi-status fetch on backend e.g. /api/orders?status=in_production,quality_check,ready_to_ship,design_received
       const r = await fetch(`/api/orders?limit=200`, { cache: "no-store" });
       const d = await r.json();
       setOrders((d.items ?? d ?? []) as OrderLite[]);
@@ -54,7 +53,9 @@ export default function ProductionQueuePage() {
     }
   };
 
-  React.useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  React.useEffect(() => {
+    load();
+  }, []);
 
   const byStage = React.useMemo(() => {
     const g: Record<string, OrderLite[]> = {
@@ -81,6 +82,42 @@ export default function ProductionQueuePage() {
     await load();
   };
 
+  // ✅ skeleton screen while loading
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <Skeleton className="h-6 w-40 mb-2" />
+            <Skeleton className="h-4 w-60" />
+          </div>
+          <Skeleton className="h-9 w-24 rounded-lg" />
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="rounded-2xl">
+              <CardHeader className="pb-3">
+                <Skeleton className="h-5 w-32 mb-2" />
+                <Skeleton className="h-4 w-48" />
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {Array.from({ length: 3 }).map((_, j) => (
+                  <div key={j} className="flex items-center justify-between gap-4">
+                    <Skeleton className="h-5 w-12" />
+                    <Skeleton className="h-5 w-28" />
+                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-8 w-16 rounded-lg" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -88,7 +125,10 @@ export default function ProductionQueuePage() {
           <h1 className="text-2xl font-semibold tracking-tight">Production Queue</h1>
           <p className="text-sm text-muted-foreground">Move orders across manufacturing stages.</p>
         </div>
-        <Button variant="outline" onClick={load}><RefreshCcw className="mr-2 size-4" />Refresh</Button>
+        <Button variant="outline" onClick={load}>
+          <RefreshCcw className="mr-2 size-4" />
+          Refresh
+        </Button>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">

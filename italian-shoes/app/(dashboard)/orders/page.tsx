@@ -113,11 +113,14 @@ export default function OrdersListPage() {
       const params = new URLSearchParams({ limit: "50" });
       if (q) params.set("q", q);
       if (status !== "all") params.set("status", status);
+
       const res = await fetch(`/api/orders?${params.toString()}`, {
         cache: "no-store",
       });
-      const data = await res.json();
-      setItems((data.items ?? data ?? []) as OrderLite[]);
+
+      type OrdersResponse = { items?: OrderLite[] };
+      const data: OrdersResponse = await res.json();
+      setItems(data.items ?? []);
     } catch {
       setItems(FALLBACK);
     } finally {
@@ -129,28 +132,26 @@ export default function OrdersListPage() {
     load();
   }, [load]);
 
+  // 🔹 Fullscreen Skeleton UI
   if (loading) {
-    // Skeleton loading UI
     return (
-      <div className="space-y-6 animate-pulse">
+      <div className="p-6 space-y-6 animate-pulse">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <Skeleton className="h-7 w-32 mb-2" />
-            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-8 w-40 mb-2" />
+            <Skeleton className="h-4 w-56" />
           </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-9 w-[100px] rounded-lg" />
-          </div>
+          <Skeleton className="h-9 w-24 rounded-lg" />
         </div>
 
+        {/* Filters */}
         <Card className="rounded-2xl">
           <CardHeader className="pb-3">
             <Skeleton className="h-6 w-32 mb-2" />
-            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-4 w-60" />
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Search & filters */}
             <div className="grid gap-3 md:grid-cols-[1fr_200px_120px]">
               <Skeleton className="h-9 w-full rounded-lg" />
               <Skeleton className="h-9 w-full rounded-lg" />
@@ -159,24 +160,24 @@ export default function OrdersListPage() {
 
             <Separator />
 
-            {/* Table headers */}
+            {/* Table Skeleton */}
             <div className="overflow-hidden rounded-xl border">
               <Table>
                 <TableHeader>
                   <TableRow>
                     {Array.from({ length: 8 }).map((_, i) => (
                       <TableHead key={i}>
-                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-4 w-20" />
                       </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}>
-                      {Array.from({ length: 8 }).map((_, j) => (
-                        <TableCell key={j}>
-                          <Skeleton className="h-4 w-20 rounded" />
+                  {Array.from({ length: 8 }).map((_, row) => (
+                    <TableRow key={row}>
+                      {Array.from({ length: 8 }).map((_, col) => (
+                        <TableCell key={col}>
+                          <Skeleton className="h-4 w-24 rounded" />
                         </TableCell>
                       ))}
                     </TableRow>
@@ -190,9 +191,9 @@ export default function OrdersListPage() {
     );
   }
 
-  // Actual UI
+  // 🔹 Actual UI
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Orders</h1>
@@ -268,16 +269,24 @@ export default function OrdersListPage() {
               <TableBody>
                 {items.map((o) => (
                   <TableRow key={o.id}>
-                    <TableCell className="font-medium">{o.orderNumber}</TableCell>
+                    <TableCell className="font-medium">
+                      {o.orderNumber}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {o.customerName ?? "—"}
                       <br />
-                      <span className="text-xs">{o.customerEmail ?? "—"}</span>
+                      <span className="text-xs">
+                        {o.customerEmail ?? "—"}
+                      </span>
                     </TableCell>
                     <TableCell>{badgeForStatus(o.status)}</TableCell>
                     <TableCell>{badgeForPayment(o.paymentStatus)}</TableCell>
-                    <TableCell>{badgeForFulfillment(o.fulfillmentStatus)}</TableCell>
-                    <TableCell>{formatCurrency(o.total, o.currency)}</TableCell>
+                    <TableCell>
+                      {badgeForFulfillment(o.fulfillmentStatus)}
+                    </TableCell>
+                    <TableCell>
+                      {formatCurrency(o.total, o.currency)}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {o.createdAt?.slice(0, 10) ?? "—"}
                     </TableCell>
@@ -310,7 +319,7 @@ export default function OrdersListPage() {
   );
 }
 
-// Badge & formatting functions
+// Utility functions
 function badgeForStatus(s: OrderStatus) {
   const map: Record<OrderStatus, string> = {
     design_received: "Design Received",
@@ -334,7 +343,11 @@ function badgeForPayment(s: PaymentStatus) {
 
 function badgeForFulfillment(s: FulfillmentStatus) {
   const variant: BadgeVariant =
-    s === "delivered" ? "default" : s === "unfulfilled" ? "secondary" : "outline";
+    s === "delivered"
+      ? "default"
+      : s === "unfulfilled"
+      ? "secondary"
+      : "outline";
   const label = s.replaceAll("_", " ");
   return <Badge variant={variant}>{label}</Badge>;
 }

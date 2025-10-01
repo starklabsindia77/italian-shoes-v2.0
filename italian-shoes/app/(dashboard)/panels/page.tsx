@@ -80,7 +80,7 @@ export default function PanelsListPage() {
   };
 
   React.useEffect(() => {
-    load(); /* eslint-disable-next-line */
+    load(); 
   }, []);
 
   const toggleActive = async (p: PanelItem) => {
