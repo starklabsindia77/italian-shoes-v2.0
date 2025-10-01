@@ -56,7 +56,7 @@ export default function StyleCreatePage() {
     const p = run();
     toast.promise(p, { loading: "Creating…", success: "Style created", error: "Failed to create" });
     try {
-      const created = await p;
+      // const created = await p;
       router.push(`/styles`);
     } finally {
       setSaving(false);

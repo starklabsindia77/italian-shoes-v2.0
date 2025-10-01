@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, RefreshCcw, Save } from "lucide-react";
 
 type SoleModelConfig = {
@@ -68,7 +67,6 @@ export default function SoleEditPage() {
 
   React.useEffect(() => {
     if (id) load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const saveOverview = async () => {

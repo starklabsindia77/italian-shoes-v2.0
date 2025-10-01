@@ -4,11 +4,13 @@ import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Tabs, TabsContent, TabsList, TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, RefreshCcw, Save } from "lucide-react";
 
 type StyleModelConfig = {
@@ -44,7 +45,11 @@ const FALLBACK_STYLE: StyleItem = {
   category: "oxford",
   isActive: true,
   description: "Classic cap toe oxford",
-  modelConfig: { glbUrl: "/glb/styles/captoe.glb", lighting: "directional", environment: "studio" },
+  modelConfig: {
+    glbUrl: "/glb/styles/captoe.glb",
+    lighting: "directional",
+    environment: "studio",
+  },
 };
 
 export default function StyleEditPage() {
@@ -54,7 +59,7 @@ export default function StyleEditPage() {
   const [saving, setSaving] = React.useState(false);
   const [style, setStyle] = React.useState<StyleItem | null>(null);
 
-  const load = async () => {
+  const load = React.useCallback(async () => {
     setLoading(true);
     try {
       const r = await fetch(`/api/styles/${id}`, { cache: "no-store" });
@@ -66,9 +71,15 @@ export default function StyleEditPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  React.useEffect(() => { if (id) load(); /* eslint-disable-next-line */ }, [id]);
+  React.useEffect(() => {
+    if (id) load();
+  }, [id, load]);
+
+  React.useEffect(() => {
+    if (id) load();
+  }, [id]);
 
   const saveOverview = async () => {
     if (!style) return;
@@ -87,7 +98,11 @@ export default function StyleEditPage() {
       return res.json();
     };
     const p = run();
-    toast.promise(p, { loading: "Saving…", success: "Saved", error: "Failed to save" });
+    toast.promise(p, {
+      loading: "Saving…",
+      success: "Saved",
+      error: "Failed to save",
+    });
     await p;
     setSaving(false);
   };
@@ -103,7 +118,11 @@ export default function StyleEditPage() {
       return res.json();
     };
     const p = run();
-    toast.promise(p, { loading: "Saving…", success: "Saved", error: "Failed to save" });
+    toast.promise(p, {
+      loading: "Saving…",
+      success: "Saved",
+      error: "Failed to save",
+    });
     await p;
   };
 
@@ -114,16 +133,29 @@ export default function StyleEditPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button asChild variant="ghost" size="sm">
-            <Link href="/styles"><ArrowLeft className="mr-2 size-4" />Back</Link>
+            <Link href="/styles">
+              <ArrowLeft className="mr-2 size-4" />
+              Back
+            </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{style.name}</h1>
-            <p className="text-sm text-muted-foreground">Category: {style.category}</p>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {style.name}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Category: {style.category}
+            </p>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={load}><RefreshCcw className="mr-2 size-4" />Refresh</Button>
-          <Button onClick={saveOverview} disabled={saving}><Save className="mr-2 size-4" />Save</Button>
+          <Button variant="outline" onClick={load}>
+            <RefreshCcw className="mr-2 size-4" />
+            Refresh
+          </Button>
+          <Button onClick={saveOverview} disabled={saving}>
+            <Save className="mr-2 size-4" />
+            Save
+          </Button>
         </div>
       </div>
 
@@ -143,22 +175,41 @@ export default function StyleEditPage() {
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-2">
               <Field label="Name">
-                <Input value={style.name} onChange={(e) => setStyle({ ...style, name: e.target.value })} />
+                <Input
+                  value={style.name}
+                  onChange={(e) => setStyle({ ...style, name: e.target.value })}
+                />
               </Field>
               <Field label="Category (slug)">
-                <Input value={style.category} onChange={(e) => setStyle({ ...style, category: e.target.value })} />
+                <Input
+                  value={style.category}
+                  onChange={(e) =>
+                    setStyle({ ...style, category: e.target.value })
+                  }
+                />
               </Field>
               <div className="md:col-span-2">
                 <Field label="Description">
-                  <Textarea rows={6} value={style.description ?? ""} onChange={(e) => setStyle({ ...style, description: e.target.value })} />
+                  <Textarea
+                    rows={6}
+                    value={style.description ?? ""}
+                    onChange={(e) =>
+                      setStyle({ ...style, description: e.target.value })
+                    }
+                  />
                 </Field>
               </div>
               <div className="md:col-span-2 flex items-center justify-between rounded-lg border p-3">
                 <div>
                   <div className="text-sm font-medium">Active</div>
-                  <div className="text-xs text-muted-foreground">Visible & selectable for products</div>
+                  <div className="text-xs text-muted-foreground">
+                    Visible & selectable for products
+                  </div>
                 </div>
-                <Switch checked={style.isActive} onCheckedChange={(v) => setStyle({ ...style, isActive: v })} />
+                <Switch
+                  checked={style.isActive}
+                  onCheckedChange={(v) => setStyle({ ...style, isActive: v })}
+                />
               </div>
             </CardContent>
           </Card>
@@ -175,23 +226,50 @@ export default function StyleEditPage() {
               <Field label="GLB URL">
                 <Input
                   value={style.modelConfig?.glbUrl ?? ""}
-                  onChange={(e) => setStyle({ ...style, modelConfig: { ...(style.modelConfig ?? {}), glbUrl: e.target.value } })}
+                  onChange={(e) =>
+                    setStyle({
+                      ...style,
+                      modelConfig: {
+                        ...(style.modelConfig ?? {}),
+                        glbUrl: e.target.value,
+                      },
+                    })
+                  }
                 />
               </Field>
               <Field label="Lighting">
                 <Input
                   value={style.modelConfig?.lighting ?? ""}
-                  onChange={(e) => setStyle({ ...style, modelConfig: { ...(style.modelConfig ?? {}), lighting: e.target.value } })}
+                  onChange={(e) =>
+                    setStyle({
+                      ...style,
+                      modelConfig: {
+                        ...(style.modelConfig ?? {}),
+                        lighting: e.target.value,
+                      },
+                    })
+                  }
                 />
               </Field>
               <Field label="Environment">
                 <Input
                   value={style.modelConfig?.environment ?? ""}
-                  onChange={(e) => setStyle({ ...style, modelConfig: { ...(style.modelConfig ?? {}), environment: e.target.value } })}
+                  onChange={(e) =>
+                    setStyle({
+                      ...style,
+                      modelConfig: {
+                        ...(style.modelConfig ?? {}),
+                        environment: e.target.value,
+                      },
+                    })
+                  }
                 />
               </Field>
               <div className="md:col-span-3">
-                <Button onClick={saveModel}><Save className="mr-2 size-4" />Save Model</Button>
+                <Button onClick={saveModel}>
+                  <Save className="mr-2 size-4" />
+                  Save Model
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -202,7 +280,10 @@ export default function StyleEditPage() {
           <Card className="rounded-2xl">
             <CardHeader className="pb-3">
               <CardTitle>Linked Products</CardTitle>
-              <CardDescription>Products using this style (UI stub — wire to /api/products?styleId=… if needed).</CardDescription>
+              <CardDescription>
+                Products using this style (UI stub — wire to
+                /api/products?styleId=… if needed).
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Badge variant="secondary">Coming soon</Badge>
@@ -214,7 +295,13 @@ export default function StyleEditPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="grid gap-2">
       <Label className="text-sm">{label}</Label>
