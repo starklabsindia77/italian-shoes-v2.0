@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -33,7 +33,7 @@ import { ProductCreateSchema as ServerProductCreateSchema } from "@/lib/validato
 
 /* ---------------- types ---------------- */
 type Currency = "USD" | "EUR" | "GBP" | "INR";
-type OptionType = "SIZE" | "WIDTH" | "STYLE" | "SOLE" | "COLOR" | "MATERIAL" | "CUSTOM";
+// type OptionType = "SIZE" | "WIDTH" | "STYLE" | "SOLE" | "COLOR" | "MATERIAL" | "CUSTOM";
 
 /** -------- Local UI schema (compatible with server) -------- */
 const ProductEditSchema = ServerProductCreateSchema.extend({
@@ -66,13 +66,13 @@ type Product = {
   updatedAt?: string;
 };
 
-type ProductOptionValue = {
-  id: string;
-  value: string;
-  label: string;
-  position: number;
-  isActive: boolean;
-};
+// type ProductOptionValue = {
+//   id: string;
+//   value: string;
+//   label: string;
+//   position: number;
+//   isActive: boolean;
+// };
 
 // type ProductOption = {
 //   id: string;
@@ -94,7 +94,7 @@ type ProductOptionValue = {
 // type Size = { id: string; sizeId: string; name: string; region: "US" | "EU" | "UK"; value: number };
 // type ProductSize = { id: string; sizeId: string; width: "STANDARD" | "WIDE" | "EXTRA_WIDE" | "NARROW" };
 
-type Panel = { id: string; panelId: string; name: string; group?: string | null };
+// type Panel = { id: string; panelId: string; name: string; group?: string | null };
 // type ProductPanel = { id: string; panelId: string; panel?: Panel; isCustomizable: boolean };
 
 /* ---------------- fallback (if API fails) ---------------- */
