@@ -8,9 +8,9 @@ export async function GET(req: Request) {
     const q = sp.get("q")?.trim();
     const { skip, limit } = pagination(req);
 
-    const where = q
-      ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { soleId: { contains: q, mode: "insensitive" } }] }
-      : {};
+    // const where = q
+    //   ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { soleId: { contains: q, mode: "insensitive" } }] }
+    //   : {};
 
     const [items, total] = await Promise.all([
       prisma.sole.findMany({ 

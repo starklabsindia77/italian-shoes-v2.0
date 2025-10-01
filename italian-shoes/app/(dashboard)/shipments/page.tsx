@@ -131,10 +131,6 @@ export default function ShipmentsPage() {
     load();
   }, [load]);
 
-  React.useEffect(() => {
-    load();
-  }, []);
-
   // PATCH helper
   const patch = async (id: string, body: Partial<Shipment>) => {
     const run = async () => {

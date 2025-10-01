@@ -44,6 +44,8 @@ type Settings = {
   // (optional) roles/permissions would usually be separate; stubbed in UI
 };
 
+
+
 const FALLBACK: Settings = {
   general: {
     storeName: "Italian Shoes",

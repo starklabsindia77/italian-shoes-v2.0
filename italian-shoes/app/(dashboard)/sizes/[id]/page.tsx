@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
@@ -59,7 +60,7 @@ export default function SizeEditPage() {
     }
   };
 
-  React.useEffect(() => { if (id) load(); /* eslint-disable-next-line */ }, [id]);
+  React.useEffect(() => { if (id) load(); }, [id,load]);
 
   const save = async () => {
     if (!size) return;
@@ -87,6 +88,34 @@ export default function SizeEditPage() {
   };
 
   if (!size) return null;
+
+    // Skeleton while loading
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-8 w-48" /> {/* Title */}
+          <Skeleton className="h-6 w-32" /> {/* Subtitle */}
+        </div>
+
+        <Card className="rounded-2xl">
+          <CardHeader className="pb-3">
+            <Skeleton className="h-6 w-32" /> {/* Card Title */}
+            <Skeleton className="h-4 w-48 mt-1" /> {/* Card Description */}
+          </CardHeader>
+          <CardContent className="grid gap-6 md:grid-cols-2">
+            <Skeleton className="h-10 w-full" /> {/* Display Name */}
+            <Skeleton className="h-10 w-full" /> {/* Region */}
+            <Skeleton className="h-10 w-full" /> {/* Numeric Value */}
+            <Skeleton className="h-10 w-full" /> {/* EU Equivalent */}
+            <Skeleton className="h-10 w-full" /> {/* UK Equivalent */}
+            <Skeleton className="h-10 w-full" /> {/* Sort Order */}
+            <Skeleton className="h-12 w-full md:col-span-2" /> {/* Active Switch */}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -8,9 +8,9 @@ export async function GET(req: Request) {
     const q = sp.get("q")?.trim();
     const { skip, limit } = pagination(req);
 
-    const where = q
-      ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { panelId: { contains: q, mode: "insensitive" } }] }
-      : {};
+    // const where = q
+    //   ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { panelId: { contains: q, mode: "insensitive" } }] }
+    //   : {};
 
     // Fix: Ensure 'mode' is of correct type (QueryMode) for Prisma
     

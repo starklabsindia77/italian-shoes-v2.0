@@ -58,20 +58,25 @@ export default function SizesListPage() {
   const [sortAsc, setSortAsc] = React.useState(true);
 
   const load = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `/api/sizes?limit=300${query ? `&q=${encodeURIComponent(query)}` : ""}`,
-        { cache: "no-store" }
-      );
-      const data = await res.json();
-      setItems((data.items ?? data ?? []) as SizeItem[]);
-    } catch {
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [query]); // include any dependencies used inside load
+  setLoading(true);
+  try {
+    const res = await fetch(
+      `/api/sizes?limit=300${query ? `&q=${encodeURIComponent(query)}` : ""}`,
+      { cache: "no-store" }
+    );
+    const data = await res.json();
+    setItems((data.items ?? data ?? []) as SizeItem[]);
+  } catch {
+    setItems([]);
+  } finally {
+    setLoading(false);
+  }
+}, [query]); // include any dependencies used inside load
+
+// ✅ useEffect that runs on mount & whenever load changes
+React.useEffect(() => {
+  load();
+}, [load]); // now correct
 
   React.useEffect(() => {
     load();

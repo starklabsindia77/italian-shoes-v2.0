@@ -79,7 +79,7 @@ export default function StyleEditPage() {
 
   React.useEffect(() => {
     if (id) load();
-  }, [id]);
+  }, [id,load]);
 
   const saveOverview = async () => {
     if (!style) return;

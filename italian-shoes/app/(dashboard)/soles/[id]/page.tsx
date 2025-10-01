@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, RefreshCcw, Save } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 type SoleModelConfig = {
   glbUrl?: string | null;
@@ -67,7 +69,7 @@ export default function SoleEditPage() {
 
   React.useEffect(() => {
     if (id) load();
-  }, [id]);
+  }, [id,load]);
 
   const saveOverview = async () => {
     if (!sole) return;
@@ -108,6 +110,23 @@ export default function SoleEditPage() {
   };
 
   if (!sole) return null;
+
+   // Show skeleton while loading
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" /> {/* Title */}
+        <Skeleton className="h-6 w-32" /> {/* Category */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Skeleton className="h-10 w-full" /> {/* Name input */}
+          <Skeleton className="h-10 w-full" /> {/* Category input */}
+          <Skeleton className="h-24 w-full md:col-span-2" /> {/* Description textarea */}
+          <Skeleton className="h-10 w-full" /> {/* Image URL */}
+          <Skeleton className="h-12 w-full md:col-span-2" /> {/* Active switch */}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

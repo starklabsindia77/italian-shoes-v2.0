@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ok, server } from "@/lib/api-helpers";
 
-export async function GET(req: Request) {
+export async function GET(_req: Request) {
   try {
     const styles = await prisma.style.findMany({
       where: { isActive: true },

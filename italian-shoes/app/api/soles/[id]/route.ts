@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { ok, bad, server, notFound, requireAdmin } from "@/lib/api-helpers";
+import { ok, server, notFound, requireAdmin } from "@/lib/api-helpers";
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {

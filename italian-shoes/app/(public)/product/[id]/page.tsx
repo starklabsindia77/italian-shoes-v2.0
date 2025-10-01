@@ -3,16 +3,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import {
-  ArrowLeft,
-  ZoomIn,
-  Save,
-  Share2,
-  Heart,
-  MessageCircle,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Heart, MessageCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const ShoeAvatar = dynamic(
@@ -36,16 +27,16 @@ type Panel = {
   meshName?: string;
   thumbnail?: string;
 };
-type Material = {
-  id: string;
-  name: string;
-  thumbnail?: string;
-  description?: string;
-  textures?: string[];
-};
+// type Material = {
+//   id: string;
+//   name: string;
+//   thumbnail?: string;
+//   description?: string;
+//   textures?: string[];
+// };
 type Style = { id: string; name: string; thumbnail?: string; glb?: string };
 type Sole = { id: string; name: string; thumbnail?: string; height?: string };
-type Color = { id: string; name: string; textureUrl: string };
+// type Color = { id: string; name: string; textureUrl: string };
 
 const product = {
   id: "mens-luxury-dress-shoes",
@@ -194,42 +185,42 @@ const product = {
    Small Presentational Components
    ---------------------- */
 
-const Badge: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700">
-    {children}
-  </span>
-);
+// const Badge: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+//   <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+//     {children}
+//   </span>
+// );
 
-const Toolbar: React.FC<{ onClear: () => void }> = ({ onClear }) => (
-  <div className="absolute top-3 left-3 flex gap-2 z-20">
-    <button className="bg-white p-2 rounded-md shadow-sm text-sm">Undo</button>
-    <button className="bg-white p-2 rounded-md shadow-sm text-sm">Redo</button>
-    <button
-      onClick={onClear}
-      className="bg-white p-2 rounded-md shadow-sm text-sm text-red-600"
-    >
-      Clear
-    </button>
-  </div>
-);
+// const Toolbar: React.FC<{ onClear: () => void }> = ({ onClear }) => (
+//   <div className="absolute top-3 left-3 flex gap-2 z-20">
+//     <button className="bg-white p-2 rounded-md shadow-sm text-sm">Undo</button>
+//     <button className="bg-white p-2 rounded-md shadow-sm text-sm">Redo</button>
+//     <button
+//       onClick={onClear}
+//       className="bg-white p-2 rounded-md shadow-sm text-sm text-red-600"
+//     >
+//       Clear
+//     </button>
+//   </div>
+// );
 
-const ViewerPlaceholder: React.FC<{
-  src: string;
-  panels: Panel[];
-  activePanel?: string | null;
-  appliedTextures: Record<string, string | null>;
-}> = ({ src, panels, activePanel, appliedTextures }) => (
-  <div className="relative bg-white border rounded-lg overflow-hidden h-[540px] flex items-center justify-center">
-    <div className="absolute top-3 right-3 z-10 text-xs text-gray-500 bg-white p-2 rounded-md">
-      Double tap to zoom
-    </div>
-    <img
-      src={src}
-      alt="shoe"
-      className="object-contain max-h-full max-w-full"
-    />
-  </div>
-);
+// const ViewerPlaceholder: React.FC<{
+//   src: string;
+//   panels: Panel[];
+//   activePanel?: string | null;
+//   appliedTextures: Record<string, string | null>;
+// }> = ({ src, panels, activePanel, appliedTextures }) => (
+//   <div className="relative bg-white border rounded-lg overflow-hidden h-[540px] flex items-center justify-center">
+//     <div className="absolute top-3 right-3 z-10 text-xs text-gray-500 bg-white p-2 rounded-md">
+//       Double tap to zoom
+//     </div>
+//     <img
+//       src={src}
+//       alt="shoe"
+//       className="object-contain max-h-full max-w-full"
+//     />
+//   </div>
+// );
 
 /* ----------------------
    Main Builder Component
@@ -246,7 +237,7 @@ export default function DerbyBuilderClean() {
   const [error, setError] = useState<string | null>(null);
 
   // UI-only state
-  const [imageIndex, setImageIndex] = useState(0);
+  // const [imageIndex, setImageIndex] = useState(0);
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
     "Materials" | "Style" | "Soles" | "Colors" | "Inscription"
@@ -508,38 +499,38 @@ export default function DerbyBuilderClean() {
     }
   };
 
-  const getFilteredMaterialCategories = () => {
-    if (!materialsData?.materials) return cfg.materialCategories || [];
+  // const getFilteredMaterialCategories = () => {
+  //   if (!materialsData?.materials) return cfg.materialCategories || [];
 
-    // Transform API materials data to match the expected format
-    return materialsData.materials.map((material: any) => ({
-      id: material.id,
-      name: material.name,
-      colors: material.colors.map((color: any) => ({
-        id: color.id,
-        name: color.name,
-        hex: color.hexCode || "#000000",
-      })),
-    }));
-  };
+  //   // Transform API materials data to match the expected format
+  //   return materialsData.materials.map((material: any) => ({
+  //     id: material.id,
+  //     name: material.name,
+  //     colors: material.colors.map((color: any) => ({
+  //       id: color.id,
+  //       name: color.name,
+  //       hex: color.hexCode || "#000000",
+  //     })),
+  //   }));
+  // };
 
-  const actionsCount = useMemo(
-    () =>
-      [
-        selectedMaterial,
-        selectedStyle,
-        selectedSole,
-        selectedColor,
-        ...Object.values(appliedTextures),
-      ].filter(Boolean).length,
-    [
-      selectedMaterial,
-      selectedStyle,
-      selectedSole,
-      selectedColor,
-      appliedTextures,
-    ]
-  );
+  // const actionsCount = useMemo(
+  //   () =>
+  //     [
+  //       selectedMaterial,
+  //       selectedStyle,
+  //       selectedSole,
+  //       selectedColor,
+  //       ...Object.values(appliedTextures),
+  //     ].filter(Boolean).length,
+  //   [
+  //     selectedMaterial,
+  //     selectedStyle,
+  //     selectedSole,
+  //     selectedColor,
+  //     appliedTextures,
+  //   ]
+  // );
 
   const applyTexture = (textureUrl: string) => {
     if (!activePanel) return;
@@ -547,21 +538,21 @@ export default function DerbyBuilderClean() {
     setSelectedColor(textureUrl);
   };
 
-  const clearAll = () => {
-    if (cfg.panels && cfg.panels.length > 0) {
-      setActivePanel(cfg.panels[0].id);
-      setAppliedTextures(
-        Object.fromEntries(cfg.panels.map((p: any) => [p.id, null]))
-      );
-    }
-    setSelectedMaterial(null);
-    setSelectedSole(null);
-    setSelectedColor(null);
-    setInscription({ toe: "", tongue: "" });
-    if (cfg.sizes && cfg.sizes.length > 0) {
-      setSelectedSize(cfg.sizes[0].id);
-    }
-  };
+  // const clearAll = () => {
+  //   if (cfg.panels && cfg.panels.length > 0) {
+  //     setActivePanel(cfg.panels[0].id);
+  //     setAppliedTextures(
+  //       Object.fromEntries(cfg.panels.map((p: any) => [p.id, null]))
+  //     );
+  //   }
+  //   setSelectedMaterial(null);
+  //   setSelectedSole(null);
+  //   setSelectedColor(null);
+  //   setInscription({ toe: "", tongue: "" });
+  //   if (cfg.sizes && cfg.sizes.length > 0) {
+  //     setSelectedSize(cfg.sizes[0].id);
+  //   }
+  // };
 
   const [objectList, setObjectList] = useState<any>();
   const [selectedTextureMap, setSelectedTextureMap] = useState<
@@ -614,8 +605,8 @@ export default function DerbyBuilderClean() {
             <h1 className="text-xl font-semibold text-gray-900">
               {cfg.title || "Men's Luxury Dress Shoes"}
             </h1>
-            Home &gt; Create Design &gt; Create Men's Shoes &gt; Men`s Derby
-            Shoes
+            Home &gt; Create Design &gt; Create Men&apos;s Shoes &gt; Men&apos;s
+            Derby Shoes
           </div>
           {/* Divider */}
           <div className="w-full border-t border-gray-300 mt-4"></div>

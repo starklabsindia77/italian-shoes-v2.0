@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useReducer, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import Image from "next/image";
 
 /**
  * CartUI.tsx
@@ -143,7 +144,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.warn("Cart load error:", e);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist + broadcast whenever state changes
@@ -241,7 +241,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 // Intentionally keep deps conservative — effect should re-run when `state.updatedAt` or STORAGE_KEY/CHANNEL_NAME change.
 // We used a ref technique above; include STORAGE_KEY and CHANNEL_NAME if they're not module constants.
-}, [state.updatedAt]);
+}, [state.updatedAt,state.version]);
 
   // Public actions (optimistic; server sync separate)
   async function addItem(item: Omit<CartItem, "id">, qty = 1) {
@@ -370,7 +370,7 @@ function CartDrawer({ initialOpen = false }: { initialOpen?: boolean }) {
           <ul className="space-y-4">
             {cart.items.map((item) => (
               <li key={item.id} className="flex items-start gap-3">
-                <img src={item.image ?? "/placeholder-100.png"} alt={item.name} className="w-20 h-20 object-cover rounded" />
+                <Image src={item.image ?? "/placeholder-100.png"} alt={item.name} className="w-20 h-20 object-cover rounded" />
                 <div className="flex-1">
                   <div className="flex justify-between">
                     <div>

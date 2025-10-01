@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckoutProgress } from "@/components/checkout/CheckoutProgressProps";
@@ -12,7 +11,8 @@ import { ContactForm } from "@/components/checkout/ContactForm";
 import { Shield, Lock } from "lucide-react";
 
 const Checkout = () => {
-  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [currentStep] = useState<number>(1);
+
   const [selectedShipping, setSelectedShipping] = useState<{ name: string; price: number }>({ name: "Standard", price: 15 });
 
   const orderItems = [
