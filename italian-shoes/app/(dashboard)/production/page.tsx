@@ -70,7 +70,7 @@ export default function ProductionQueuePage() {
     return g;
   }, [orders]);
 
-  const patch = async (id: string, body: any) => {
+  const patch = async (id: string, body: Record<string, unknown>) => {
     const run = async () => {
       const res = await fetch(`/api/orders/${id}`, { method: "PUT", body: JSON.stringify(body) });
       if (!res.ok) throw new Error(await res.text());
@@ -233,5 +233,5 @@ function StageCard({
 function statusBadge(s: OrderLite["status"]) {
   const label = s.replaceAll("_", " ");
   const variant = s === "cancelled" ? "secondary" : s === "delivered" ? "default" : "outline";
-  return <Badge variant={variant as any}>{label}</Badge>;
+  return <Badge variant={variant}>{label}</Badge>;
 }

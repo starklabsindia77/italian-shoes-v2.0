@@ -285,7 +285,7 @@ function ClientShell({ children }: { children: React.ReactNode }) {
                           </span>
                           {session?.user?.role && (
                             <span className="text-xs text-muted-foreground">
-                              Role: {(session.user as any).role}
+                              Role: {(session.user).role}
                             </span>
                           )}
                         </div>

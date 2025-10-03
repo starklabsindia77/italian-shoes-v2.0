@@ -45,7 +45,6 @@ type Settings = {
 };
 
 
-
 const FALLBACK: Settings = {
   general: {
     storeName: "Italian Shoes",

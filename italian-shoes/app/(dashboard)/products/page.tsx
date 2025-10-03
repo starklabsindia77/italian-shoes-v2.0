@@ -1,23 +1,43 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
-  DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Plus, Search, Trash2, Pencil, RefreshCw } from "lucide-react";
+import {
+  MoreHorizontal,
+  Plus,
+  Search,
+  Trash2,
+  Pencil,
+  RefreshCw,
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Product = {
@@ -49,7 +69,11 @@ export default function ProductsPage() {
   const router = useRouter();
   const sp = useSearchParams();
   const [loading, setLoading] = useState(true);
-  const [list, setList] = useState<ApiList<Product>>({ items: [], total: 0, limit: 20 });
+  const [list, setList] = useState<ApiList<Product>>({
+    items: [],
+    total: 0,
+    limit: 20,
+  });
   const [q, setQ] = useState(sp.get("q") ?? "");
   const [page, setPage] = useState<number>(Number(sp.get("page") ?? 1));
   const limit = 20;
@@ -57,36 +81,44 @@ export default function ProductsPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const qParam = q.trim();
 
-  const totalPages = useMemo(() => Math.max(1, Math.ceil((list?.total ?? 0) / (list?.limit ?? limit))), [list]);
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil((list?.total ?? 0) / (list?.limit ?? limit))),
+    [list]
+  );
 
-  const fetchProducts = async (opts?: { q?: string; page?: number }) => {
-    const qp = new URLSearchParams();
-    qp.set("limit", String(limit));
-    qp.set("page", String(opts?.page ?? page));
-    if (opts?.q || qParam) qp.set("q", (opts?.q ?? qParam));
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/products?${qp.toString()}`, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = (await res.json()) as ApiList<Product>;
-      setList(data);
-    } catch {
-      setList({ items: [], total: 0, limit });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchProducts = useCallback(
+    async (opts?: { q?: string; page?: number }) => {
+      const qp = new URLSearchParams();
+      qp.set("limit", String(limit));
+      qp.set("page", String(opts?.page ?? page));
+      if (opts?.q || qParam) qp.set("q", opts?.q ?? qParam);
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/products?${qp.toString()}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = (await res.json()) as ApiList<Product>;
+        setList(data);
+      } catch {
+        setList({ items: [], total: 0, limit });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, qParam, limit]
+  );
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (qParam) params.set("q", qParam);
     if (page !== 1) params.set("page", String(page));
     router.replace(`/products${params.toString() ? `?${params}` : ""}`);
-  }, [qParam, page]);
+  }, [qParam, page, router]);
 
   const onSearchChange = (v: string) => {
     setQ(v);
@@ -200,7 +232,9 @@ export default function ProductsPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Products</h1>
-          <p className="text-sm text-muted-foreground">Manage catalog, options, and variants.</p>
+          <p className="text-sm text-muted-foreground">
+            Manage catalog, options, and variants.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={onRefresh}>
@@ -240,7 +274,9 @@ export default function ProductsPage() {
                 <TableRow>
                   <TableHead className="w-[36px]"></TableHead>
                   <TableHead>Title</TableHead>
-                  <TableHead className="hidden md:table-cell">Product ID</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Product ID
+                  </TableHead>
                   <TableHead className="hidden md:table-cell">Vendor</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Status</TableHead>
@@ -249,15 +285,25 @@ export default function ProductsPage() {
               </TableHeader>
               <TableBody>
                 {list.items.map((p) => (
-                  <TableRow key={p.id} className={p.isActive ? "" : "opacity-70"}>
+                  <TableRow
+                    key={p.id}
+                    className={p.isActive ? "" : "opacity-70"}
+                  >
                     <TableCell className="text-muted-foreground">#</TableCell>
                     <TableCell className="font-medium">
-                      <Link href={`/products/${p.id}`} className="hover:underline">
+                      <Link
+                        href={`/products/${p.id}`}
+                        className="hover:underline"
+                      >
                         {p.title}
                       </Link>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{p.productId}</TableCell>
-                    <TableCell className="hidden md:table-cell">{p.vendor ?? "—"}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {p.productId}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {p.vendor ?? "—"}
+                    </TableCell>
                     <TableCell>{formatCurrency(p.price, p.currency)}</TableCell>
                     <TableCell>
                       {p.isActive ? (
@@ -275,7 +321,10 @@ export default function ProductsPage() {
                 ))}
                 {list.items.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={7}
+                      className="py-8 text-center text-sm text-muted-foreground"
+                    >
                       No products found.
                     </TableCell>
                   </TableRow>
@@ -286,15 +335,28 @@ export default function ProductsPage() {
 
           <div className="mt-4 flex items-center justify-between text-sm">
             <div className="text-muted-foreground">
-              Page <span className="font-medium text-foreground">{page}</span> of{" "}
-              <span className="font-medium text-foreground">{totalPages}</span> ·{" "}
-              <span className="font-medium text-foreground">{list.total}</span> total
+              Page <span className="font-medium text-foreground">{page}</span>{" "}
+              of{" "}
+              <span className="font-medium text-foreground">{totalPages}</span>{" "}
+              ·{" "}
+              <span className="font-medium text-foreground">{list.total}</span>{" "}
+              total
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={onPrev} disabled={page <= 1 || loading}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onPrev}
+                disabled={page <= 1 || loading}
+              >
                 Prev
               </Button>
-              <Button variant="outline" size="sm" onClick={onNext} disabled={page >= totalPages || loading}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onNext}
+                disabled={page >= totalPages || loading}
+              >
                 Next
               </Button>
             </div>
@@ -305,7 +367,13 @@ export default function ProductsPage() {
   );
 }
 
-function RowActions({ id, onDelete }: { id: string; onDelete: (id: string) => void }) {
+function RowActions({
+  id,
+  onDelete,
+}: {
+  id: string;
+  onDelete: (id: string) => void;
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

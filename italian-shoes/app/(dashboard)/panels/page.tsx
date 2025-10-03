@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import * as React from "react";
@@ -35,9 +34,7 @@ import {
 
 // ✅ Simple Skeleton component
 function Skeleton({ className }: { className?: string }) {
-  return (
-    <div className={`animate-pulse rounded-md bg-muted ${className}`} />
-  );
+  return <div className={`animate-pulse rounded-md bg-muted ${className}`} />;
 }
 
 type PanelGroup = "FRONT" | "SIDE" | "BACK" | "TOP" | "SOLE" | "LINING";
@@ -61,7 +58,7 @@ export default function PanelsListPage() {
   const [query, setQuery] = React.useState("");
   const [sortAsc, setSortAsc] = React.useState(true);
 
-  const load = async () => {
+  const load = React.useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(
@@ -77,10 +74,14 @@ export default function PanelsListPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [query]); // ✅ depends only on query
 
   React.useEffect(() => {
-    load(); 
+    load();
+  }, [load]); // ✅ no warning
+
+  React.useEffect(() => {
+    load();
   }, []);
 
   const toggleActive = async (p: PanelItem) => {
@@ -193,11 +194,21 @@ export default function PanelsListPage() {
                   // ✅ Skeleton rows while loading
                   Array.from({ length: 6 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-28" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-12" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
                       <TableCell className="flex justify-end gap-2">
                         <Skeleton className="h-8 w-20" />
                         <Skeleton className="h-8 w-14" />

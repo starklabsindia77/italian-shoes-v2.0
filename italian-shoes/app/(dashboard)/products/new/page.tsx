@@ -98,7 +98,7 @@ export default function ProductNewPage() {
   const handleNext = React.useCallback(async () => {
     const fields = activeStep.validate as readonly (keyof FormValues)[];
     if (fields.length > 0) {
-      const ok = await form.trigger(fields as any, { shouldFocus: true });
+      const ok = await form.trigger(fields, { shouldFocus: true });
       if (!ok) return; // stay on step until valid
     }
     goToStep(activeStepIndex + 1);
@@ -238,12 +238,12 @@ export default function ProductNewPage() {
       const created = await toast.promise(run(), {
         loading: "Creating product…",
         success: "Product created",
-        error: (e) => (typeof e === "object" && e && "message" in e ? (e as any).message : String(e)) || "Failed to create",
+        error: (e) => (typeof e === "object" && e && "message" in e ? (e).message : String(e)) || "Failed to create",
       });
       // Support both { id } object and string/number id response
-      const id = typeof created === "object" && created !== null && "id" in created
-        ? (created as any).id
-        : created;
+      // const id = typeof created === "object" && created !== null && "id" in created
+      //   ? (created as any).id
+      //   : created;
       router.push(`/products`);
     } catch {
       // keep on page
@@ -298,7 +298,7 @@ export default function ProductNewPage() {
                     </CardHeader>
                     <CardContent className="grid gap-4">
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="title"
                         render={({ field }) => (
                           <FormItem>
@@ -310,7 +310,7 @@ export default function ProductNewPage() {
                       />
                       <div className="grid gap-4 md:grid-cols-2">
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="productId"
                           render={({ field }) => (
                             <FormItem>
@@ -322,7 +322,7 @@ export default function ProductNewPage() {
                           )}
                         />
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="vendor"
                           render={({ field }) => (
                             <FormItem>
@@ -334,7 +334,7 @@ export default function ProductNewPage() {
                         />
                       </div>
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="description"
                         render={({ field }) => (
                           <FormItem>
@@ -364,7 +364,7 @@ export default function ProductNewPage() {
                     <CardContent className="grid gap-4">
                       <div className="grid gap-4 md:grid-cols-2">
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="metaTitle"
                           render={({ field }) => (
                             <FormItem>
@@ -375,7 +375,7 @@ export default function ProductNewPage() {
                           )}
                         />
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="metaKeywords"
                           render={({ field }) => (
                             <FormItem>
@@ -387,7 +387,7 @@ export default function ProductNewPage() {
                         />
                       </div>
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="metaDescription"
                         render={({ field }) => (
                           <FormItem>
@@ -418,7 +418,7 @@ export default function ProductNewPage() {
                     <CardContent className="grid gap-4">
                       <div className="grid gap-4 md:grid-cols-2">
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="price"
                           render={({ field }) => (
                             <FormItem>
@@ -440,7 +440,7 @@ export default function ProductNewPage() {
                           )}
                         />
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="compareAtPrice"
                           render={({ field }) => (
                             <FormItem>
@@ -460,7 +460,7 @@ export default function ProductNewPage() {
                         />
                       </div>
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="currency"
                         render={({ field }) => (
                           <FormItem>
@@ -486,7 +486,7 @@ export default function ProductNewPage() {
                           <div className="text-xs text-muted-foreground">Visible on storefront</div>
                         </div>
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="isActive"
                           render={({ field }) => (
                             <FormItem>
@@ -518,7 +518,7 @@ export default function ProductNewPage() {
                     </CardHeader>
                     <CardContent className="grid gap-4">
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="glbUrl"
                         render={({ field }) => (
                           <FormItem>
@@ -530,7 +530,7 @@ export default function ProductNewPage() {
                       />
                       <div className="grid gap-4 md:grid-cols-2">
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="glbLighting"
                           render={({ field }) => (
                             <FormItem>
@@ -541,7 +541,7 @@ export default function ProductNewPage() {
                           )}
                         />
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="glbEnvironment"
                           render={({ field }) => (
                             <FormItem>

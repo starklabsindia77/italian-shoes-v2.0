@@ -121,7 +121,7 @@ export default function CustomerEditPage() {
 
   React.useEffect(() => {
     if (id) load();
-  }, [id]);
+  }, [id, load]);
 
   const save = async () => {
     if (!customer) return;

@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
+import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -92,7 +93,7 @@ export default function MaterialEditPage() {
   const [material, setMaterial] = React.useState<Material | null>(null);
   const [colors, setColors] = React.useState<MaterialColor[]>([]);
 
-  const load = async () => {
+  const load = React.useCallback(async () => {
     setLoading(true);
     try {
       const r = await fetch(`/api/materials/${id}?include=colors`, {
@@ -108,11 +109,12 @@ export default function MaterialEditPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   React.useEffect(() => {
     if (id) load();
-  }, [id]);
+  }, [id, load]); // ✅ include load now
+
 
   const saveOverview = async () => {
     if (!material) return;
@@ -513,7 +515,7 @@ function ColorsTab({
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {c.imageUrl ? (
-                      <img
+                      <Image
                         src={c.imageUrl ?? ""}
                         alt={c.name}
                         width={32}

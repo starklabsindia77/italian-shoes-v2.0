@@ -40,25 +40,25 @@ export function ColorsCard({ materialId }: { materialId: string }) {
   const [hex, setHex] = React.useState("#000000");
   const [imageUrl, setImageUrl] = React.useState("");
   const [active, setActive] = React.useState(true);
+const load = React.useCallback(async () => {
+  setLoading(true);
+  try {
+    const res = await fetch(`/api/materials/${materialId}/colors`, {
+      cache: "no-store",
+    });
+    const data = await res.json();
+    setItems(data.items ?? []);
+  } catch {
+    setItems([]);
+  } finally {
+    setLoading(false);
+  }
+}, [materialId]);
 
-  const load = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/materials/${materialId}/colors`, {
-        cache: "no-store",
-      });
-      const data = await res.json();
-      setItems(data.items ?? []);
-    } catch {
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [materialId]); // only changes when materialId changes
-
-  React.useEffect(() => {
-    load();
-  }, [load]); // now load is stable, no ESLint warning
+React.useEffect(() => {
+  load();
+}, [load]);
+ // only changes when materialId changes
 
   React.useEffect(() => {
     load();

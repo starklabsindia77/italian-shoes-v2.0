@@ -625,7 +625,7 @@ export default function ProductEditPage() {
                     </CardHeader>
                     <CardContent className="grid gap-4">
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="title"
                         render={({ field }) => (
                           <FormItem>
@@ -637,7 +637,7 @@ export default function ProductEditPage() {
                       />
                       <div className="grid gap-4 md:grid-cols-2">
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="productId"
                           render={({ field }) => (
                             <FormItem>
@@ -649,7 +649,7 @@ export default function ProductEditPage() {
                           )}
                         />
                         <FormField
-                          control={form.control as any}
+                          control={form.control}
                           name="vendor"
                           render={({ field }) => (
                             <FormItem>
@@ -661,7 +661,7 @@ export default function ProductEditPage() {
                         />
                       </div>
                       <FormField
-                        control={form.control as any}
+                        control={form.control}
                         name="description"
                         render={({ field }) => (
                           <FormItem>
