@@ -5,7 +5,13 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -14,7 +20,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, RefreshCcw, Save } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-
 
 type SoleModelConfig = {
   glbUrl?: string | null;
@@ -43,7 +48,11 @@ const FALLBACK_SOLE: SoleItem = {
   description: "Durable rubber sole",
   imageUrl: "/images/soles/sole-01.png",
   isActive: true,
-  modelConfig: { glbUrl: "/glb/soles/sole-01.glb", lighting: "directional", environment: "studio" },
+  modelConfig: {
+    glbUrl: "/glb/soles/sole-01.glb",
+    lighting: "directional",
+    environment: "studio",
+  },
 };
 
 export default function SoleEditPage() {
@@ -53,7 +62,7 @@ export default function SoleEditPage() {
   const [saving, setSaving] = React.useState(false);
   const [sole, setSole] = React.useState<SoleItem | null>(null);
 
-  const load = async () => {
+  const load = React.useCallback(async () => {
     setLoading(true);
     try {
       const r = await fetch(`/api/soles/${id}`, { cache: "no-store" });
@@ -65,11 +74,11 @@ export default function SoleEditPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]); // ✅ only depend on 'id'
 
   React.useEffect(() => {
     if (id) load();
-  }, [id,load]);
+  }, [id, load]);
 
   const saveOverview = async () => {
     if (!sole) return;
@@ -89,7 +98,11 @@ export default function SoleEditPage() {
       return res.json();
     };
     const p = run();
-    toast.promise(p, { loading: "Saving…", success: "Saved", error: "Failed to save" });
+    toast.promise(p, {
+      loading: "Saving…",
+      success: "Saved",
+      error: "Failed to save",
+    });
     await p;
     setSaving(false);
   };
@@ -105,13 +118,17 @@ export default function SoleEditPage() {
       return res.json();
     };
     const p = run();
-    toast.promise(p, { loading: "Saving…", success: "Saved", error: "Failed to save" });
+    toast.promise(p, {
+      loading: "Saving…",
+      success: "Saved",
+      error: "Failed to save",
+    });
     await p;
   };
 
   if (!sole) return null;
 
-   // Show skeleton while loading
+  // Show skeleton while loading
   if (loading) {
     return (
       <div className="space-y-6">
@@ -120,9 +137,11 @@ export default function SoleEditPage() {
         <div className="grid gap-6 md:grid-cols-2">
           <Skeleton className="h-10 w-full" /> {/* Name input */}
           <Skeleton className="h-10 w-full" /> {/* Category input */}
-          <Skeleton className="h-24 w-full md:col-span-2" /> {/* Description textarea */}
+          <Skeleton className="h-24 w-full md:col-span-2" />{" "}
+          {/* Description textarea */}
           <Skeleton className="h-10 w-full" /> {/* Image URL */}
-          <Skeleton className="h-12 w-full md:col-span-2" /> {/* Active switch */}
+          <Skeleton className="h-12 w-full md:col-span-2" />{" "}
+          {/* Active switch */}
         </div>
       </div>
     );
@@ -139,8 +158,12 @@ export default function SoleEditPage() {
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{sole.name}</h1>
-            <p className="text-sm text-muted-foreground">Category: {sole.category}</p>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {sole.name}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Category: {sole.category}
+            </p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -171,29 +194,49 @@ export default function SoleEditPage() {
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-2">
               <Field label="Name">
-                <Input value={sole.name} onChange={(e) => setSole({ ...sole, name: e.target.value })} />
+                <Input
+                  value={sole.name}
+                  onChange={(e) => setSole({ ...sole, name: e.target.value })}
+                />
               </Field>
               <Field label="Category (slug)">
-                <Input value={sole.category} onChange={(e) => setSole({ ...sole, category: e.target.value })} />
+                <Input
+                  value={sole.category}
+                  onChange={(e) =>
+                    setSole({ ...sole, category: e.target.value })
+                  }
+                />
               </Field>
               <div className="md:col-span-2">
                 <Field label="Description">
                   <Textarea
                     rows={6}
                     value={sole.description ?? ""}
-                    onChange={(e) => setSole({ ...sole, description: e.target.value })}
+                    onChange={(e) =>
+                      setSole({ ...sole, description: e.target.value })
+                    }
                   />
                 </Field>
               </div>
               <Field label="Preview Image URL">
-                <Input value={sole.imageUrl ?? ""} onChange={(e) => setSole({ ...sole, imageUrl: e.target.value })} />
+                <Input
+                  value={sole.imageUrl ?? ""}
+                  onChange={(e) =>
+                    setSole({ ...sole, imageUrl: e.target.value })
+                  }
+                />
               </Field>
               <div className="md:col-span-2 flex items-center justify-between rounded-lg border p-3">
                 <div>
                   <div className="text-sm font-medium">Active</div>
-                  <div className="text-xs text-muted-foreground">Visible & selectable for products</div>
+                  <div className="text-xs text-muted-foreground">
+                    Visible & selectable for products
+                  </div>
                 </div>
-                <Switch checked={sole.isActive} onCheckedChange={(v) => setSole({ ...sole, isActive: v })} />
+                <Switch
+                  checked={sole.isActive}
+                  onCheckedChange={(v) => setSole({ ...sole, isActive: v })}
+                />
               </div>
             </CardContent>
           </Card>
@@ -213,7 +256,10 @@ export default function SoleEditPage() {
                   onChange={(e) =>
                     setSole({
                       ...sole,
-                      modelConfig: { ...(sole.modelConfig ?? {}), glbUrl: e.target.value },
+                      modelConfig: {
+                        ...(sole.modelConfig ?? {}),
+                        glbUrl: e.target.value,
+                      },
                     })
                   }
                 />
@@ -224,7 +270,10 @@ export default function SoleEditPage() {
                   onChange={(e) =>
                     setSole({
                       ...sole,
-                      modelConfig: { ...(sole.modelConfig ?? {}), lighting: e.target.value },
+                      modelConfig: {
+                        ...(sole.modelConfig ?? {}),
+                        lighting: e.target.value,
+                      },
                     })
                   }
                 />
@@ -235,7 +284,10 @@ export default function SoleEditPage() {
                   onChange={(e) =>
                     setSole({
                       ...sole,
-                      modelConfig: { ...(sole.modelConfig ?? {}), environment: e.target.value },
+                      modelConfig: {
+                        ...(sole.modelConfig ?? {}),
+                        environment: e.target.value,
+                      },
                     })
                   }
                 />
@@ -256,7 +308,8 @@ export default function SoleEditPage() {
             <CardHeader className="pb-3">
               <CardTitle>Linked Products</CardTitle>
               <CardDescription>
-                Products using this sole (UI stub — wire to <code>/api/products?soleId=…</code> if needed).
+                Products using this sole (UI stub — wire to{" "}
+                <code>/api/products?soleId=…</code> if needed).
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -269,7 +322,13 @@ export default function SoleEditPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="grid gap-2">
       <Label className="text-sm">{label}</Label>

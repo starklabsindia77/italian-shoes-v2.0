@@ -8,7 +8,8 @@ export async function GET() {
   try {
     await prisma.$queryRaw`SELECT 1`;
     return NextResponse.json({ ok: true, db: "connected" });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || "DB error" }, { status: 500 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "DB error";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

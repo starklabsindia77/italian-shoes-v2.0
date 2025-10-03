@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -72,6 +73,22 @@ export default function StyleEditPage() {
       setLoading(false);
     }
   }, [id]);
+
+  if (loading) {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-6 w-32" />
+      <div className="grid gap-6 md:grid-cols-2">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-24 w-full md:col-span-2" />
+        <Skeleton className="h-12 w-full md:col-span-2" />
+      </div>
+    </div>
+  );
+}
+
 
   React.useEffect(() => {
     if (id) load();

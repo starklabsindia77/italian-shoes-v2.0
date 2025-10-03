@@ -6,12 +6,22 @@ import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, RefreshCcw, Save } from "lucide-react";
 
@@ -46,7 +56,7 @@ export default function SizeEditPage() {
   const [saving, setSaving] = React.useState(false);
   const [size, setSize] = React.useState<SizeItem | null>(null);
 
-  const load = async () => {
+  const load = React.useCallback(async () => {
     setLoading(true);
     try {
       const r = await fetch(`/api/sizes/${id}`, { cache: "no-store" });
@@ -58,9 +68,11 @@ export default function SizeEditPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]); // ✅ include only dependencies used inside
 
-  React.useEffect(() => { if (id) load(); }, [id,load]);
+  React.useEffect(() => {
+    if (id) load();
+  }, [id, load]);
 
   const save = async () => {
     if (!size) return;
@@ -82,14 +94,18 @@ export default function SizeEditPage() {
       return res.json();
     };
     const p = run();
-    toast.promise(p, { loading: "Saving…", success: "Saved", error: "Failed to save" });
+    toast.promise(p, {
+      loading: "Saving…",
+      success: "Saved",
+      error: "Failed to save",
+    });
     await p;
     setSaving(false);
   };
 
   if (!size) return null;
 
-    // Skeleton while loading
+  // Skeleton while loading
   if (loading) {
     return (
       <div className="space-y-6">
@@ -110,7 +126,8 @@ export default function SizeEditPage() {
             <Skeleton className="h-10 w-full" /> {/* EU Equivalent */}
             <Skeleton className="h-10 w-full" /> {/* UK Equivalent */}
             <Skeleton className="h-10 w-full" /> {/* Sort Order */}
-            <Skeleton className="h-12 w-full md:col-span-2" /> {/* Active Switch */}
+            <Skeleton className="h-12 w-full md:col-span-2" />{" "}
+            {/* Active Switch */}
           </CardContent>
         </Card>
       </div>
@@ -122,16 +139,27 @@ export default function SizeEditPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button asChild variant="ghost" size="sm">
-            <Link href="/sizes"><ArrowLeft className="mr-2 size-4" />Back</Link>
+            <Link href="/sizes">
+              <ArrowLeft className="mr-2 size-4" />
+              Back
+            </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{size.name}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {size.name}
+            </h1>
             {/* <p className="text-sm text-muted-foreground">Slug: {size.sizeId}</p> */}
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={load}><RefreshCcw className="mr-2 size-4" />Refresh</Button>
-          <Button onClick={save} disabled={saving}><Save className="mr-2 size-4" />Save</Button>
+          <Button variant="outline" onClick={load}>
+            <RefreshCcw className="mr-2 size-4" />
+            Refresh
+          </Button>
+          <Button onClick={save} disabled={saving}>
+            <Save className="mr-2 size-4" />
+            Save
+          </Button>
         </div>
       </div>
 
@@ -145,11 +173,19 @@ export default function SizeEditPage() {
             <Input value={size.sizeId} onChange={(e) => setSize({ ...size, sizeId: e.target.value })} />
           </Field> */}
           <Field label="Display Name">
-            <Input value={size.name} onChange={(e) => setSize({ ...size, name: e.target.value })} />
+            <Input
+              value={size.name}
+              onChange={(e) => setSize({ ...size, name: e.target.value })}
+            />
           </Field>
           <Field label="Region">
-            <Select value={size.region} onValueChange={(v: Region) => setSize({ ...size, region: v })}>
-              <SelectTrigger><SelectValue placeholder="Region" /></SelectTrigger>
+            <Select
+              value={size.region}
+              onValueChange={(v: Region) => setSize({ ...size, region: v })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Region" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="US">US</SelectItem>
                 <SelectItem value="EU">EU</SelectItem>
@@ -161,28 +197,47 @@ export default function SizeEditPage() {
             <Input
               type="number"
               value={String(size.value)}
-              onChange={(e) => setSize({ ...size, value: Number(e.target.value || 0) })}
+              onChange={(e) =>
+                setSize({ ...size, value: Number(e.target.value || 0) })
+              }
             />
           </Field>
           <Field label="EU Equivalent (optional)">
-            <Input value={size.euEquivalent ?? ""} onChange={(e) => setSize({ ...size, euEquivalent: e.target.value })} />
+            <Input
+              value={size.euEquivalent ?? ""}
+              onChange={(e) =>
+                setSize({ ...size, euEquivalent: e.target.value })
+              }
+            />
           </Field>
           <Field label="UK Equivalent (optional)">
-            <Input value={size.ukEquivalent ?? ""} onChange={(e) => setSize({ ...size, ukEquivalent: e.target.value })} />
+            <Input
+              value={size.ukEquivalent ?? ""}
+              onChange={(e) =>
+                setSize({ ...size, ukEquivalent: e.target.value })
+              }
+            />
           </Field>
           <Field label="Sort Order">
             <Input
               type="number"
               value={String(size.sortOrder)}
-              onChange={(e) => setSize({ ...size, sortOrder: Number(e.target.value || 0) })}
+              onChange={(e) =>
+                setSize({ ...size, sortOrder: Number(e.target.value || 0) })
+              }
             />
           </Field>
           <div className="md:col-span-2 flex items-center justify-between rounded-lg border p-3">
             <div>
               <div className="text-sm font-medium">Active</div>
-              <div className="text-xs text-muted-foreground">Visible & selectable</div>
+              <div className="text-xs text-muted-foreground">
+                Visible & selectable
+              </div>
             </div>
-            <Switch checked={size.isActive} onCheckedChange={(v) => setSize({ ...size, isActive: v })} />
+            <Switch
+              checked={size.isActive}
+              onCheckedChange={(v) => setSize({ ...size, isActive: v })}
+            />
           </div>
         </CardContent>
       </Card>
@@ -190,7 +245,13 @@ export default function SizeEditPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="grid gap-2">
       <Label className="text-sm">{label}</Label>
