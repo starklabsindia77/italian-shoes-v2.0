@@ -80,9 +80,6 @@ export default function PanelsListPage() {
     load();
   }, [load]); // ✅ no warning
 
-  React.useEffect(() => {
-    load();
-  }, []);
 
   const toggleActive = async (p: PanelItem) => {
     setItems((prev) =>

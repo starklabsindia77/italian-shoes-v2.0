@@ -46,6 +46,12 @@ import {
 } from "lucide-react";
 
 type Currency = "USD" | "EUR" | "GBP";
+type Address = {
+  city?: string | null;
+  country?: string | null;
+  [key: string]: string | null | undefined; // optional extra fields
+};
+
 type OrderStatus =
   | "design_received"
   | "in_production"
@@ -118,8 +124,8 @@ type OrderFull = {
     phone?: string | null;
     isGuest: boolean;
   };
-  shipping?: any;
-  billing?: any;
+  shipping?: Address | null;
+  billing?: Address | null;
   items: OrderItem[];
   pricing: {
     subtotal: number;
@@ -195,23 +201,23 @@ export default function OrderDetailPage() {
   const [saving] = React.useState(false);
   const [order, setOrder] = React.useState<OrderFull | null>(null);
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const r = await fetch(`/api/orders/${id}`, { cache: "no-store" });
-      if (!r.ok) throw new Error();
-      const data = (await r.json()) as OrderFull;
-      setOrder(data ?? FALLBACK_ORDER);
-    } catch {
-      setOrder(FALLBACK_ORDER);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const load = React.useCallback(async () => {
+  setLoading(true);
+  try {
+    const r = await fetch(`/api/orders/${id}`, { cache: "no-store" });
+    if (!r.ok) throw new Error();
+    const data = (await r.json()) as OrderFull;
+    setOrder(data ?? FALLBACK_ORDER);
+  } catch {
+    setOrder(FALLBACK_ORDER);
+  } finally {
+    setLoading(false);
+  }
+}, [id]);
 
-  React.useEffect(() => {
-    if (id) load();
-  }, [id]);
+React.useEffect(() => {
+  if (id) load();
+}, [id, load]); // ✅ no ESLint warning
 
   const patch = async (body: Partial<OrderFull>) => {
     if (!order) return;

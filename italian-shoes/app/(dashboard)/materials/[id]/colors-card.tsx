@@ -60,9 +60,9 @@ React.useEffect(() => {
 }, [load]);
  // only changes when materialId changes
 
-  React.useEffect(() => {
-    load();
-  }, [materialId]);
+  // React.useEffect(() => {
+  //   load();
+  // }, [materialId]);
 
   const add = async () => {
     if (!name.trim()) return toast.error("Color name is required");

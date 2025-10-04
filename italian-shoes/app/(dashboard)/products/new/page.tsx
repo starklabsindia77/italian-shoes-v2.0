@@ -8,25 +8,48 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { ProductCreateSchema as ServerProductCreateSchema } from "@/lib/validators";
 import { ArrowLeft, Save, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { MaterialSelection, Material, SelectedMaterial } from "@/components/material-selection";
-import { StyleSoleSelection, Style, Sole, SelectedItem } from "@/components/style-sole-selection";
+import {
+  MaterialSelection,
+  Material,
+  SelectedMaterial,
+} from "@/components/material-selection";
+import {
+  StyleSoleSelection,
+  Style,
+  Sole,
+  SelectedItem,
+} from "@/components/style-sole-selection";
 
 /** -------- Local UI schema (compatible with server) -------- */
 const ProductCreateSchema = ServerProductCreateSchema.extend({
@@ -34,6 +57,7 @@ const ProductCreateSchema = ServerProductCreateSchema.extend({
   glbUrl: z.string().optional(),
   glbLighting: z.string().optional(),
   glbEnvironment: z.string().optional(),
+  currency: z.enum(["USD", "EUR", "GBP", "INR"]), // ← explicitly match server
 });
 
 type FormValues = z.infer<typeof ProductCreateSchema>;
@@ -60,8 +84,8 @@ const DEFAULTS: Partial<FormValues> = {
 export default function ProductNewPage() {
   const router = useRouter();
   const form = useForm<FormValues>({
-    resolver: zodResolver(ProductCreateSchema) as any, // Type workaround for zodResolver typing issue
-    defaultValues: DEFAULTS as FormValues, // Ensure all required fields are present
+    resolver: zodResolver(ProductCreateSchema),
+    defaultValues: DEFAULTS,
     mode: "onChange",
   });
 
@@ -71,14 +95,26 @@ export default function ProductNewPage() {
   // Wizard state
   const steps = React.useMemo(
     () => [
-      { id: "basic", label: "Basic" as const, validate: ["title", "productId", "vendor", "description"] as const },
-      { id: "seo", label: "SEO" as const, validate: [
-        "metaTitle",
-        "metaDescription",
-        "metaKeywords",
-      ] as const },
-      { id: "pricing", label: "Pricing" as const, validate: ["price", "currency", "compareAtPrice", "isActive"] as const },
-      { id: "assets", label: "3D Assets" as const, validate: ["glbUrl", "glbLighting", "glbEnvironment"] as const },
+      {
+        id: "basic",
+        label: "Basic" as const,
+        validate: ["title", "productId", "vendor", "description"] as const,
+      },
+      {
+        id: "seo",
+        label: "SEO" as const,
+        validate: ["metaTitle", "metaDescription", "metaKeywords"] as const,
+      },
+      {
+        id: "pricing",
+        label: "Pricing" as const,
+        validate: ["price", "currency", "compareAtPrice", "isActive"] as const,
+      },
+      {
+        id: "assets",
+        label: "3D Assets" as const,
+        validate: ["glbUrl", "glbLighting", "glbEnvironment"] as const,
+      },
       { id: "materials", label: "Materials" as const, validate: [] as const },
       { id: "styles", label: "Styles" as const, validate: [] as const },
       { id: "soles", label: "Soles" as const, validate: [] as const },
@@ -89,11 +125,15 @@ export default function ProductNewPage() {
   const [activeStepIndex, setActiveStepIndex] = React.useState(0);
   const activeStep = steps[activeStepIndex];
 
-  const goToStep = React.useCallback((index: number) => {
-    setActiveStepIndex(Math.min(Math.max(index, 0), steps.length - 1));
-    // scroll to top for better UX
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [steps.length]);
+  const goToStep = React.useCallback(
+    (index: number) => {
+      setActiveStepIndex(Math.min(Math.max(index, 0), steps.length - 1));
+      // scroll to top for better UX
+      if (typeof window !== "undefined")
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [steps.length]
+  );
 
   const handleNext = React.useCallback(async () => {
     const fields = activeStep.validate as readonly (keyof FormValues)[];
@@ -111,12 +151,16 @@ export default function ProductNewPage() {
   // Material selection state
   const [materials, setMaterials] = React.useState<Material[]>([]);
   const [materialsLoading, setMaterialsLoading] = React.useState(true);
-  const [selectedMaterials, setSelectedMaterials] = React.useState<SelectedMaterial[]>([]);
+  const [selectedMaterials, setSelectedMaterials] = React.useState<
+    SelectedMaterial[]
+  >([]);
 
   // Style selection state
   const [styles, setStyles] = React.useState<Style[]>([]);
   const [stylesLoading, setStylesLoading] = React.useState(true);
-  const [selectedStyles, setSelectedStyles] = React.useState<SelectedItem[]>([]);
+  const [selectedStyles, setSelectedStyles] = React.useState<SelectedItem[]>(
+    []
+  );
 
   // Sole selection state
   const [soles, setSoles] = React.useState<Sole[]>([]);
@@ -209,7 +253,7 @@ export default function ProductNewPage() {
       metaKeywords: values.metaKeywords?.trim(),
       price: Number(values.price) || 0, // rupees
       currency: values.currency,
-      compareAtPrice: values.compareAtPrice ? Number(values.compareAtPrice) :  0,
+      compareAtPrice: values.compareAtPrice ? Number(values.compareAtPrice) : 0,
       isActive: values.isActive ?? true,
       assets: buildAssets(values),
       selectedMaterials: selectedMaterials,
@@ -235,15 +279,14 @@ export default function ProductNewPage() {
     };
 
     try {
-      const created = await toast.promise(run(), {
+      await toast.promise(run(), {
         loading: "Creating product…",
         success: "Product created",
-        error: (e) => (typeof e === "object" && e && "message" in e ? (e).message : String(e)) || "Failed to create",
+        error: (e) =>
+          (typeof e === "object" && e && "message" in e
+            ? e.message
+            : String(e)) || "Failed to create",
       });
-      // Support both { id } object and string/number id response
-      // const id = typeof created === "object" && created !== null && "id" in created
-      //   ? (created as any).id
-      //   : created;
       router.push(`/products`);
     } catch {
       // keep on page
@@ -262,8 +305,12 @@ export default function ProductNewPage() {
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">New Product</h1>
-            <p className="text-sm text-muted-foreground">Create a product and configure options later.</p>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              New Product
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Create a product and configure options later.
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -276,13 +323,20 @@ export default function ProductNewPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Tabs value={activeStep.id} onValueChange={(v) => {
-            const idx = steps.findIndex((s) => s.id === v);
-            if (idx !== -1) setActiveStepIndex(idx);
-          }}>
+          <Tabs
+            value={activeStep.id}
+            onValueChange={(v) => {
+              const idx = steps.findIndex((s) => s.id === v);
+              if (idx !== -1) setActiveStepIndex(idx);
+            }}
+          >
             <TabsList className="w-full flex flex-wrap justify-start">
               {steps.map((s, i) => (
-                <TabsTrigger key={s.id} value={s.id} className="data-[state=active]:font-semibold">
+                <TabsTrigger
+                  key={s.id}
+                  value={s.id}
+                  className="data-[state=active]:font-semibold"
+                >
                   {i + 1}. {s.label}
                 </TabsTrigger>
               ))}
@@ -294,7 +348,9 @@ export default function ProductNewPage() {
                   <Card className="rounded-2xl">
                     <CardHeader className="pb-3">
                       <CardTitle>Basic Info</CardTitle>
-                      <CardDescription>Title, vendor, and description.</CardDescription>
+                      <CardDescription>
+                        Title, vendor, and description.
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-4">
                       <FormField
@@ -303,7 +359,12 @@ export default function ProductNewPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Title</FormLabel>
-                            <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
+                            <FormControl>
+                              <Input
+                                placeholder="Premium Oxford Shoes"
+                                {...field}
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -315,8 +376,12 @@ export default function ProductNewPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Product ID (slug)</FormLabel>
-                              <FormControl><Input placeholder="oxford-001" {...field} /></FormControl>
-                              <FormDescription>URL/key (unique)</FormDescription>
+                              <FormControl>
+                                <Input placeholder="oxford-001" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                URL/key (unique)
+                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -327,7 +392,12 @@ export default function ProductNewPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Vendor</FormLabel>
-                              <FormControl><Input placeholder="Italian Shoes Company" {...field} /></FormControl>
+                              <FormControl>
+                                <Input
+                                  placeholder="Italian Shoes Company"
+                                  {...field}
+                                />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -339,7 +409,13 @@ export default function ProductNewPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Description (HTML allowed)</FormLabel>
-                            <FormControl><Textarea rows={6} placeholder="<p>Full-grain leather, Goodyear welt…</p>" {...field} /></FormControl>
+                            <FormControl>
+                              <Textarea
+                                rows={6}
+                                placeholder="<p>Full-grain leather, Goodyear welt…</p>"
+                                {...field}
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -349,7 +425,13 @@ export default function ProductNewPage() {
                 </div>
               </div>
               <div className="mt-6 flex justify-end gap-2">
-                <Button type="button" variant="default" onClick={() => handleNext()}>Next</Button>
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={() => handleNext()}
+                >
+                  Next
+                </Button>
               </div>
             </TabsContent>
 
@@ -359,7 +441,9 @@ export default function ProductNewPage() {
                   <Card className="rounded-2xl">
                     <CardHeader className="pb-3">
                       <CardTitle>SEO</CardTitle>
-                      <CardDescription>Meta tags for social & search.</CardDescription>
+                      <CardDescription>
+                        Meta tags for social & search.
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-4">
                       <div className="grid gap-4 md:grid-cols-2">
@@ -369,7 +453,12 @@ export default function ProductNewPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Meta Title</FormLabel>
-                              <FormControl><Input placeholder="Premium Oxford Shoes" {...field} /></FormControl>
+                              <FormControl>
+                                <Input
+                                  placeholder="Premium Oxford Shoes"
+                                  {...field}
+                                />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -380,7 +469,12 @@ export default function ProductNewPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Meta Keywords</FormLabel>
-                              <FormControl><Input placeholder="Oxford Shoes, Full-grain leather…" {...field} /></FormControl>
+                              <FormControl>
+                                <Input
+                                  placeholder="Oxford Shoes, Full-grain leather…"
+                                  {...field}
+                                />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -392,18 +486,32 @@ export default function ProductNewPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Meta Description</FormLabel>
-                            <FormControl><Textarea rows={3} placeholder="Premium Oxford Shoes, Full-grain leather…" {...field} /></FormControl>
+                            <FormControl>
+                              <Textarea
+                                rows={3}
+                                placeholder="Premium Oxford Shoes, Full-grain leather…"
+                                {...field}
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
-                        )}  
+                        )}
                       />
                     </CardContent>
                   </Card>
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
-                <Button type="button" onClick={() => handleNext()}>Next</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleBack()}
+                >
+                  Back
+                </Button>
+                <Button type="button" onClick={() => handleNext()}>
+                  Next
+                </Button>
               </div>
             </TabsContent>
 
@@ -413,7 +521,9 @@ export default function ProductNewPage() {
                   <Card className="rounded-2xl">
                     <CardHeader className="pb-3">
                       <CardTitle>Pricing</CardTitle>
-                      <CardDescription>Amounts are in <strong>Rupees</strong>.</CardDescription>
+                      <CardDescription>
+                        Amounts are in <strong>Rupees</strong>.
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-4">
                       <div className="grid gap-4 md:grid-cols-2">
@@ -451,7 +561,13 @@ export default function ProductNewPage() {
                                   min={0}
                                   step={1}
                                   value={field.value ?? ""}
-                                  onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                                  onChange={(e) =>
+                                    field.onChange(
+                                      e.target.value === ""
+                                        ? undefined
+                                        : Number(e.target.value)
+                                    )
+                                  }
                                 />
                               </FormControl>
                               <FormMessage />
@@ -466,13 +582,18 @@ export default function ProductNewPage() {
                           <FormItem>
                             <FormLabel>Currency</FormLabel>
                             <FormControl>
-                              <Select value={field.value} onValueChange={field.onChange}>
-                                <SelectTrigger><SelectValue placeholder="Select currency" /></SelectTrigger>
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select currency" />
+                                </SelectTrigger>
                                 <SelectContent>
-                          <SelectItem value="INR">INR</SelectItem>
-                          <SelectItem value="USD">USD</SelectItem>
-                          <SelectItem value="EUR">EUR</SelectItem>
-                          <SelectItem value="GBP">GBP</SelectItem>
+                                  <SelectItem value="INR">INR</SelectItem>
+                                  <SelectItem value="USD">USD</SelectItem>
+                                  <SelectItem value="EUR">EUR</SelectItem>
+                                  <SelectItem value="GBP">GBP</SelectItem>
                                 </SelectContent>
                               </Select>
                             </FormControl>
@@ -483,7 +604,9 @@ export default function ProductNewPage() {
                       <div className="flex items-center justify-between rounded-lg border p-3">
                         <div className="space-y-1">
                           <div className="text-sm font-medium">Active</div>
-                          <div className="text-xs text-muted-foreground">Visible on storefront</div>
+                          <div className="text-xs text-muted-foreground">
+                            Visible on storefront
+                          </div>
                         </div>
                         <FormField
                           control={form.control}
@@ -491,7 +614,10 @@ export default function ProductNewPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
-                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -503,8 +629,16 @@ export default function ProductNewPage() {
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
-                <Button type="button" onClick={() => handleNext()}>Next</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleBack()}
+                >
+                  Back
+                </Button>
+                <Button type="button" onClick={() => handleNext()}>
+                  Next
+                </Button>
               </div>
             </TabsContent>
 
@@ -523,7 +657,12 @@ export default function ProductNewPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>GLB URL</FormLabel>
-                            <FormControl><Input placeholder="/ShoeSoleFixed.glb" {...field} /></FormControl>
+                            <FormControl>
+                              <Input
+                                placeholder="/ShoeSoleFixed.glb"
+                                {...field}
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -535,7 +674,9 @@ export default function ProductNewPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Lighting</FormLabel>
-                              <FormControl><Input placeholder="directional" {...field} /></FormControl>
+                              <FormControl>
+                                <Input placeholder="directional" {...field} />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -546,7 +687,9 @@ export default function ProductNewPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Environment</FormLabel>
-                              <FormControl><Input placeholder="studio" {...field} /></FormControl>
+                              <FormControl>
+                                <Input placeholder="studio" {...field} />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -556,8 +699,13 @@ export default function ProductNewPage() {
                         type="button"
                         variant="secondary"
                         onClick={() => {
-                          const { glbUrl, glbLighting, glbEnvironment } = form.getValues();
-                          const assets = buildAssets({ glbUrl, glbLighting, glbEnvironment } as FormValues);
+                          const { glbUrl, glbLighting, glbEnvironment } =
+                            form.getValues();
+                          const assets = buildAssets({
+                            glbUrl,
+                            glbLighting,
+                            glbEnvironment,
+                          } as FormValues);
                           toast.info("Assets preview (console)");
                           console.log("assets", assets);
                         }}
@@ -570,8 +718,16 @@ export default function ProductNewPage() {
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
-                <Button type="button" onClick={() => handleNext()}>Next</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleBack()}
+                >
+                  Back
+                </Button>
+                <Button type="button" onClick={() => handleNext()}>
+                  Next
+                </Button>
               </div>
             </TabsContent>
 
@@ -585,8 +741,16 @@ export default function ProductNewPage() {
                 />
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
-                <Button type="button" onClick={handleNext}>Next</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleBack()}
+                >
+                  Back
+                </Button>
+                <Button type="button" onClick={handleNext}>
+                  Next
+                </Button>
               </div>
             </TabsContent>
 
@@ -603,8 +767,16 @@ export default function ProductNewPage() {
                 />
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
-                <Button type="button" onClick={() => handleNext()}>Next</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleBack()}
+                >
+                  Back
+                </Button>
+                <Button type="button" onClick={() => handleNext()}>
+                  Next
+                </Button>
               </div>
             </TabsContent>
 
@@ -621,8 +793,16 @@ export default function ProductNewPage() {
                 />
               </div>
               <div className="flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
-                <Button type="button" onClick={() => handleNext()}>Next</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleBack()}
+                >
+                  Back
+                </Button>
+                <Button type="button" onClick={() => handleNext()}>
+                  Next
+                </Button>
               </div>
             </TabsContent>
 
@@ -630,12 +810,23 @@ export default function ProductNewPage() {
               <Card className="rounded-2xl">
                 <CardHeader className="pb-3">
                   <CardTitle>Review & Submit</CardTitle>
-                  <CardDescription>Submit to create the product.</CardDescription>
+                  <CardDescription>
+                    Submit to create the product.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">You can go back to edit any section.</p>
+                  <p className="text-sm text-muted-foreground">
+                    You can go back to edit any section.
+                  </p>
                   <div className="flex gap-2">
-                    <Button type="button" variant="outline" onClick={() => handleBack()} className="flex-1">Back</Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleBack()}
+                      className="flex-1"
+                    >
+                      Back
+                    </Button>
                     <Button type="submit" className="flex-1">
                       <Save className="mr-2 size-4" />
                       Create Product
