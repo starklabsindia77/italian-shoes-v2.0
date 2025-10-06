@@ -127,29 +127,30 @@ export default function ProductEditPage() {
   const [product, setProduct] = React.useState<Product | null>(null);
 
   // Form setup
-  const form = useForm<FormValues>({
-    resolver: zodResolver(ProductEditSchema) as any,
-    defaultValues: {
-      productId: "",
-      title: "",
-      vendor: "",
-      description: "",
-      metaTitle: "",
-      metaDescription: "",
-      metaKeywords: "",
-      price: 0,
-      currency: "INR",
-      compareAtPrice: undefined,
-      isActive: true,
-      glbUrl: "/ShoeSoleFixed.glb",
-      glbLighting: "directional",
-      glbEnvironment: "studio",
-      selectedMaterials: [],
-      selectedStyles: [],
-      selectedSoles: [],
-    },
-    mode: "onChange",
-  });
+const form = useForm<FormValues>({
+  resolver: zodResolver<ProductEditSchema, any, FormValues>(ProductEditSchema),
+  defaultValues: {
+    productId: "",
+    title: "",
+    vendor: "",
+    description: "",
+    metaTitle: "",
+    metaDescription: "",
+    metaKeywords: "",
+    price: 0,
+    currency: "INR",
+    compareAtPrice: undefined,
+    isActive: true,
+    glbUrl: "/ShoeSoleFixed.glb",
+    glbLighting: "directional",
+    glbEnvironment: "studio",
+    selectedMaterials: [],
+    selectedStyles: [],
+    selectedSoles: [],
+  },
+  mode: "onChange",
+});
+
 
   if (loading) {
   return (
