@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, {
@@ -9,8 +10,10 @@ import React, {
   SetStateAction,
   useCallback,
   useMemo,
+  forwardRef,
+  useImperativeHandle,
 } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Environment, Bounds } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -19,6 +22,19 @@ interface TextureConfig {
   normalUrl?: string;
   roughnessUrl?: string;
 }
+
+export type ShoeAvatarHandle = {
+  /**
+   * Returns a data URL (e.g. "data:image/png;base64,...") of the current WebGL canvas.
+   */
+  captureImage: (opts?: {
+    mimeType?: "image/png" | "image/jpeg";
+    pixelRatio?: number; // e.g. 2 for retina-like screenshot
+    width?: number;
+    height?: number;
+    quality?: number; // only for jpeg
+  }) => string | null;
+};
 
 interface AvatarProps {
   avatarData: string;
@@ -43,7 +59,7 @@ class WebGLErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('WebGL Error:', error, errorInfo);
+    console.error("WebGL Error:", error, errorInfo);
   }
 
   render() {
@@ -69,6 +85,71 @@ class WebGLErrorBoundary extends React.Component<
 
 const textureLoader = new THREE.TextureLoader();
 
+/* ---------------------------
+   CanvasCaptureBridge
+   ---------------------------
+   Lives inside <Canvas/> and exposes a `capture()` method that:
+   - temporarily adjusts pixel ratio / size for a crisp render,
+   - renders one frame,
+   - returns gl.domElement.toDataURL().
+*/
+const CanvasCaptureBridge = forwardRef<
+  { capture: (o?: {
+      mimeType?: "image/png" | "image/jpeg";
+      pixelRatio?: number;
+      width?: number;
+      height?: number;
+      quality?: number;
+    }) => string | null;
+  },
+  {}
+>(function CanvasCaptureBridge(_props, ref) {
+  const { gl, scene, camera, size } = useThree();
+
+  useImperativeHandle(ref, () => ({
+    capture: (o) => {
+      const mimeType = o?.mimeType ?? "image/png";
+      const quality = o?.quality ?? 0.92; // jpeg only
+
+      const prevPR = gl.getPixelRatio();
+      const prevSize = gl.getSize(new THREE.Vector2());
+      const prevXREnabled = gl.xr.enabled;
+
+      const targetW = o?.width ?? size.width;
+      const targetH = o?.height ?? size.height;
+      const pr = o?.pixelRatio ?? prevPR;
+
+      try {
+        gl.xr.enabled = false; // ensure a standard render
+        gl.setPixelRatio(pr);
+        gl.setSize(targetW, targetH);
+        gl.render(scene, camera);
+
+        // IMPORTANT: preserveDrawingBuffer must be true on <Canvas gl={{...}}>
+        const dataURL =
+          mimeType === "image/jpeg"
+            ? gl.domElement.toDataURL(mimeType, quality)
+            : gl.domElement.toDataURL(mimeType);
+
+        return dataURL;
+      } catch (e) {
+        console.error("Screenshot capture failed:", e);
+        return null;
+      } finally {
+        // restore previous settings
+        gl.setPixelRatio(prevPR);
+        gl.setSize(prevSize.x, prevSize.y);
+        gl.xr.enabled = prevXREnabled;
+      }
+    },
+  }));
+
+  return null;
+});
+
+/* ---------------------------
+   Inner 3D content
+   --------------------------- */
 const Avatar: React.FC<AvatarProps> = ({
   avatarData,
   objectList,
@@ -87,11 +168,14 @@ const Avatar: React.FC<AvatarProps> = ({
   );
   const pendingLoadsRef = useRef(0);
 
-  const setLoading = useCallback((isLoading: boolean) => {
-    if (isMountedRef.current) {
-      setIsTextureLoading?.(isLoading);
-    }
-  }, [setIsTextureLoading]);
+  const setLoading = useCallback(
+    (isLoading: boolean) => {
+      if (isMountedRef.current) {
+        setIsTextureLoading?.(isLoading);
+      }
+    },
+    [setIsTextureLoading]
+  );
 
   // Cleanup on unmount
   useEffect(() => {
@@ -108,7 +192,7 @@ const Avatar: React.FC<AvatarProps> = ({
   // --- Center + scale ---
   useLayoutEffect(() => {
     if (!scene || !meshRef.current || !isMountedRef.current) return;
-    
+
     try {
       meshRef.current.scale.set(27, 28, 31);
 
@@ -116,20 +200,20 @@ const Avatar: React.FC<AvatarProps> = ({
       const center = box.getCenter(new THREE.Vector3());
       meshRef.current.position.set(-center.x, -center.y, -center.z);
     } catch (error) {
-      console.error('Error setting up scene positioning:', error);
+      console.error("Error setting up scene positioning:", error);
     }
   }, [scene]);
 
   // --- Ground on Y=0 ---
   useLayoutEffect(() => {
     if (!meshRef.current || !isMountedRef.current) return;
-    
+
     try {
       const scaledBox = new THREE.Box3().setFromObject(meshRef.current);
       const minY = scaledBox.min.y;
       meshRef.current.position.y -= minY;
     } catch (error) {
-      console.error('Error setting ground position:', error);
+      console.error("Error setting ground position:", error);
     }
   }, []);
 
@@ -170,14 +254,14 @@ const Avatar: React.FC<AvatarProps> = ({
         }
       });
     } catch (error) {
-      console.error('Error enhancing materials:', error);
+      console.error("Error enhancing materials:", error);
     }
   }, [scene, selectedTextureMap]);
 
   // --- Collect meshes for UI ---
   useEffect(() => {
     if (!scene || !isMountedRef.current) return;
-    
+
     try {
       const children: THREE.Mesh[] = [];
       scene.traverse((child: THREE.Object3D) => {
@@ -192,11 +276,11 @@ const Avatar: React.FC<AvatarProps> = ({
         return prevNames === newNames ? prev : children;
       });
     } catch (error) {
-      console.error('Error collecting meshes:', error);
+      console.error("Error collecting meshes:", error);
     }
   }, [scene, setObjectList]);
 
-  // Texture loading functions
+  // Texture loading helpers
   const beginLoad = useCallback(() => {
     if (isMountedRef.current) {
       pendingLoadsRef.current += 1;
@@ -211,34 +295,37 @@ const Avatar: React.FC<AvatarProps> = ({
     }
   }, [setLoading]);
 
-  const getTexture = useCallback((url: string) => {
-    const cache = textureCacheRef.current;
-    const cached = cache.get(url);
-    if (cached) return cached;
+  const getTexture = useCallback(
+    (url: string) => {
+      const cache = textureCacheRef.current;
+      const cached = cache.get(url);
+      if (cached) return cached;
 
-    beginLoad();
-    try {
-      const tex = textureLoader.load(
-        url,
-        () => endLoad(),
-        undefined,
-        (error) => {
-          console.error(`Error loading texture ${url}:`, error);
-          endLoad();
-        }
-      );
-      tex.flipY = false;
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      cache.set(url, tex);
-      return tex;
-    } catch (error) {
-      console.error(`Error creating texture for ${url}:`, error);
-      endLoad();
-      return null;
-    }
-  }, [beginLoad, endLoad]);
+      beginLoad();
+      try {
+        const tex = textureLoader.load(
+          url,
+          () => endLoad(),
+          undefined,
+          (error) => {
+            console.error(`Error loading texture ${url}:`, error);
+            endLoad();
+          }
+        );
+        tex.flipY = false;
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        cache.set(url, tex);
+        return tex;
+      } catch (error) {
+        console.error(`Error creating texture for ${url}:`, error);
+        endLoad();
+        return null;
+      }
+    },
+    [beginLoad, endLoad]
+  );
 
   // --- Texture swapping ---
   useEffect(() => {
@@ -294,7 +381,7 @@ const Avatar: React.FC<AvatarProps> = ({
 
       prevTextureMapRef.current = currentMapStr;
     } catch (error) {
-      console.error('Error swapping textures:', error);
+      console.error("Error swapping textures:", error);
     }
   }, [selectedTextureMap, scene, getTexture]);
 
@@ -311,12 +398,13 @@ const Avatar: React.FC<AvatarProps> = ({
   );
 };
 
-const ShoeAvatar: React.FC<AvatarProps> = ({
-  avatarData,
-  objectList,
-  setObjectList,
-  selectedTextureMap,
-}) => {
+/* ---------------------------
+   Main component (with capture handle)
+   --------------------------- */
+const ShoeAvatar = forwardRef<ShoeAvatarHandle, AvatarProps>(function ShoeAvatar(
+  { avatarData, objectList, setObjectList, selectedTextureMap },
+  ref
+) {
   const [canvasSize, setCanvasSize] = useState({
     width: typeof window !== "undefined" ? window.innerWidth : 800,
     height: typeof window !== "undefined" ? window.innerHeight : 600,
@@ -326,17 +414,20 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
   const [hasError, setHasError] = useState(false);
 
   // Memoize canvas size calculation
-  const memoizedCanvasSize = useMemo(() => ({
-    width: Math.min(canvasSize.width, 800),
-    height: Math.min(canvasSize.height * 0.8, 600),
-  }), [canvasSize.width, canvasSize.height]);
+  const memoizedCanvasSize = useMemo(
+    () => ({
+      width: Math.min(canvasSize.width, 800),
+      height: Math.min(canvasSize.height * 0.8, 600),
+    }),
+    [canvasSize.width, canvasSize.height]
+  );
 
   // Preload the model with error handling
   useEffect(() => {
     try {
       useGLTF.preload(avatarData);
     } catch (error) {
-      console.error('Error preloading model:', error);
+      console.error("Error preloading model:", error);
       setHasError(true);
     }
   }, [avatarData]);
@@ -353,6 +444,16 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
     window.addEventListener("resize", resize);
     return () => window.removeEventListener("resize", resize);
   }, []);
+
+  // Capture bridge ref (internal)
+  const bridgeRef = useRef<{
+    capture: ShoeAvatarHandle["captureImage"];
+  } | null>(null);
+
+  // Expose capture handle to parent
+  useImperativeHandle(ref, () => ({
+    captureImage: (opts) => bridgeRef.current?.capture(opts) ?? null,
+  }));
 
   if (!hasMounted) return null;
 
@@ -383,17 +484,19 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
 
         <Canvas
           shadows
-          gl={{ 
-            antialias: true, 
-            outputColorSpace: THREE.SRGBColorSpace, 
+          gl={{
+            antialias: true,
             powerPreference: "high-performance",
-            preserveDrawingBuffer: false,
-            failIfMajorPerformanceCaveat: false
+            failIfMajorPerformanceCaveat: false,
+            // IMPORTANT: enable screenshots
+            preserveDrawingBuffer: true,
+            alpha: false, // solid background for clean PNG/JPEG
           }}
           style={{
             width: `${memoizedCanvasSize.width}px`,
             height: `${memoizedCanvasSize.height}px`,
             maxWidth: "100%",
+            background: "#ffffff",
           }}
           camera={{ position: [2.2, 0.25, 0], fov: 50 }}
           onCreated={({ gl }: { gl: THREE.WebGLRenderer }) => {
@@ -405,42 +508,42 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
               const renderer = gl as THREE.WebGLRenderer;
               renderer.shadowMap.enabled = true;
               renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-              
+
               const canvas = renderer.getContext().canvas;
               canvas.addEventListener("webglcontextlost", (e) => {
                 e.preventDefault();
                 console.warn("WebGL context lost.");
                 setHasError(true);
               });
-              
+
               canvas.addEventListener("webglcontextrestored", () => {
                 console.log("WebGL context restored.");
                 setHasError(false);
               });
             } catch (error) {
-              console.error('Error setting up WebGL renderer:', error);
+              console.error("Error setting up WebGL renderer:", error);
               setHasError(true);
             }
           }}
         >
-        {/* Lighting setup */}
-        <ambientLight intensity={0.2} />
+          {/* The capture bridge sits inside the Canvas */}
+          <CanvasCaptureBridge ref={bridgeRef} />
 
-        <directionalLight
-          position={[5, 8, 5]}
-          intensity={1.6}
-          castShadow
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
-        />
-        <directionalLight position={[-5, 3, 5]} intensity={0.6} />
-        <directionalLight position={[0, 5, -6]} intensity={0.8} color={"#fff"} />
+          {/* Lighting setup */}
+          <ambientLight intensity={0.2} />
 
-        {/* Studio HDRI */}
-        <Environment
-          files="/hdri/studio_small_08_4k.hdr"
-          background={false}
-        />
+          <directionalLight
+            position={[5, 8, 5]}
+            intensity={1.6}
+            castShadow
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+          />
+          <directionalLight position={[-5, 3, 5]} intensity={0.6} />
+          <directionalLight position={[0, 5, -6]} intensity={0.8} color={"#fff"} />
+
+          {/* Studio HDRI */}
+          <Environment files="/hdri/studio_small_08_4k.hdr" background={false} />
 
           <Suspense fallback={<DomSpinner />}>
             <Bounds margin={1.1}>
@@ -466,7 +569,7 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
       </div>
     </WebGLErrorBoundary>
   );
-};
+});
 
 // Loading spinner
 const DomSpinner: React.FC = () => {
