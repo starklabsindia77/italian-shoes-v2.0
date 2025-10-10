@@ -1,4 +1,7 @@
+"use client";
+
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, X, Heart } from "lucide-react";
 import { useCartStore, useWishlistStore } from "@/lib/stores";
@@ -6,7 +9,8 @@ import { useToast } from "@/components/hooks/use-toast";
 
 interface CartItemProps {
   id: string;
-  image?: string;
+  image?: string;         // may be a data URL from the 3D screenshot
+  thumbnail?: string;     // optional, also may be a data URL
   title: string;
   variant: string;
   price: number;
@@ -36,6 +40,7 @@ interface CartItemProps {
 export const CartItem = ({
   id,
   image,
+  thumbnail,
   title,
   variant,
   price,
@@ -49,9 +54,8 @@ export const CartItem = ({
 }: CartItemProps) => {
   const [isRemoving, setIsRemoving] = useState(false);
   const { updateQuantity, removeItem } = useCartStore();
-  const { addItem: addToWishlist, isItemInWishlist } = useWishlistStore();
+  const { addItem: addToWishlist } = useWishlistStore();
   const { toast } = useToast();
-  console.log(size);
 
   const handleRemove = () => {
     setIsRemoving(true);
@@ -74,7 +78,7 @@ export const CartItem = ({
       title,
       price,
       originalPrice,
-      image,
+      image: thumbnail || image, // keep the screenshot in wishlist too
       variant,
       size,
       material,
@@ -88,22 +92,29 @@ export const CartItem = ({
     });
   };
 
+  // Prefer screenshot (thumbnail) then image, else placeholder
+  const displaySrc = thumbnail || image || "/placeholder.png";
+  const isDataUrl =
+    typeof displaySrc === "string" && displaySrc.startsWith("data:image/");
+
   return (
-    <div 
+    <div
       className={`flex gap-4 p-4 bg-cart-item border border-cart-border rounded-lg transition-all duration-150 ${
-        isRemoving ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+        isRemoving ? "opacity-0 scale-95" : "opacity-100 scale-100"
       }`}
     >
-      {/* Product Image */}
-      {image && (
-        <div className="flex-shrink-0">
-          <img
-            src={image}
-            alt={title}
-            className="w-20 h-20 object-cover rounded-md"
-          />
-        </div>
-      )}
+      {/* Product Image (supports data URLs) */}
+      <div className="flex-shrink-0 relative w-20 h-20 rounded-md overflow-hidden bg-muted">
+        <Image
+          src={displaySrc}
+          alt={title}
+          fill
+          className="object-contain"
+          sizes="80px"
+          // IMPORTANT for data URLs: don't run through Next optimizer
+          unoptimized={isDataUrl}
+        />
+      </div>
 
       {/* Product Details */}
       <div className="flex-1 min-w-0">
@@ -112,10 +123,15 @@ export const CartItem = ({
             <h3 className="font-medium text-foreground text-sm leading-tight">
               {title}
             </h3>
-            {/* <p className="text-muted-foreground text-sm mt-1">{variant}</p> */}
-            {/* Display customization options */}
+
+            {/* Customization summary */}
             <div className="text-xs text-muted-foreground mt-1 space-y-1">
-              {size && <p>Size: {size.value} ({size.region})</p>}
+              {size && (
+                <p>
+                  Size: {size.value ?? size.name ?? ""}{" "}
+                  {size.region ? `(${size.region})` : ""}
+                </p>
+              )}
               {material && (
                 <p>
                   Material: {material.name}
@@ -126,6 +142,7 @@ export const CartItem = ({
               {sole && <p>Sole: {sole.name}</p>}
             </div>
           </div>
+
           <div className="flex gap-1">
             <Button
               variant="ghost"
