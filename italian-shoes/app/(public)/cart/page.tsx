@@ -6,7 +6,6 @@ import { ArrowLeft, ShoppingBag } from "lucide-react";
 import { useToast } from "@/components/hooks/use-toast";
 import { useCartStore } from "@/lib/stores";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 const Cart = () => {
   const { toast } = useToast();

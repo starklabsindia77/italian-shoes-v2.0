@@ -28,8 +28,6 @@ const ShoeAvatar = dynamic(
     ),
   }
 );
-// type-only import so TS knows about the ref handle
-import type { ShoeAvatarHandle } from "@/components/shoe-avatar/ShoeAvatar";
 
 /* ----------------------
    Types & Product Config
@@ -240,8 +238,6 @@ const ViewerPlaceholder: React.FC<{
    ---------------------- */
 
 export default function DerbyBuilderClean() {
-  const avatarRef = useRef<ShoeAvatarHandle>(null);
-
   // State for API data
   const { id } = useParams<{ id: string }>();
   const [productData, setProductData] = useState<any>(null);
@@ -250,6 +246,26 @@ export default function DerbyBuilderClean() {
   const [materialsData, setMaterialsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Ref for the ShoeAvatar component
+  const shoeRef = useRef<any>(null);
+
+  const captureScreenshot = async () => {
+    if (!shoeRef.current) return;
+    try {
+      const dataUrl = await shoeRef.current?.captureImage({
+        mimeType: "image/png",
+        pixelRatio: 2,
+      }); // Function exposed via forwardRef in ShoeAvatar
+      // Trigger download
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `shoe-${Date.now()}.png`;
+      link.click();
+    } catch (err) {
+      console.error("Failed to capture screenshot:", err);
+    }
+  };
 
   // UI-only state
   const [imageIndex, setImageIndex] = useState(0);
@@ -631,12 +647,19 @@ export default function DerbyBuilderClean() {
             {/* Main Product Image with Controls */}
             <div className="relative bg-gray-50 rounded-lg overflow-hidden">
               <ShoeAvatar
-                ref={avatarRef as any} // (TS: dynamic() components don't type refs nicely; `as any` is fine)
+                ref={shoeRef}
                 avatarData="/ShoeSoleFixed.glb"
                 objectList={objectList}
                 setObjectList={setObjectList}
                 selectedTextureMap={selectedTextureMap}
               />
+              {/* Screenshot Button */}
+              <button
+                onClick={captureScreenshot}
+                className="absolute bottom-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-red-700 transition"
+              >
+                Capture Screenshot
+              </button>
             </div>
 
             {/* Thumbnail Gallery */}
@@ -704,17 +727,7 @@ export default function DerbyBuilderClean() {
                   buttonVariant="default"
                   buttonSize="sm"
                   config={selectedTextureMap}
-                  onBeforeAdd={async () => {
-                    // Capture a crisp PNG of just the 3D canvas
-                    return (
-                      avatarRef.current?.captureImage({
-                        mimeType: "image/png",
-                        pixelRatio: 2,
-                      }) ?? null
-                    );
-                  }}
                 />
-
                 {/* <button className="bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors">
                   ADD TO CART
                 </button> */}
