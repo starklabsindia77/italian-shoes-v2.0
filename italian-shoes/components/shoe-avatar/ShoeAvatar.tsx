@@ -395,7 +395,7 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
             height: `${memoizedCanvasSize.height}px`,
             maxWidth: "100%",
           }}
-          camera={{ position: [2.2, 0.25, 0], fov: 50 }}
+          camera={{ position: [2.2, 0.25, 3], fov: 100 }}
           onCreated={({ gl }: { gl: THREE.WebGLRenderer }) => {
             try {
               gl.outputColorSpace = THREE.SRGBColorSpace;

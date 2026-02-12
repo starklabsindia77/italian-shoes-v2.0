@@ -21,7 +21,7 @@ const DEFAULTS = {
     storefrontUrl: "https://example.com",
     notes: "",
   },
-  currency: { defaultCurrency: "USD" as "USD" | "EUR" | "GBP", multiCurrency: true },
+  currency: { defaultCurrency: "INR" as "USD" | "EUR" | "GBP" | "INR", multiCurrency: true },
   taxes: { enabled: true, taxInclusive: false, defaultRate: 18 },
   integrations: { shiprocketEmail: "", shiprocketStatus: "disconnected" as "connected" | "disconnected" },
 };

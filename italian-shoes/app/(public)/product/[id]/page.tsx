@@ -481,7 +481,7 @@ export default function DerbyBuilderClean() {
             {/* Main Product Image with Controls */}
             <div className="relative bg-gray-50 rounded-lg overflow-hidden">
               <ShoeAvatar
-                avatarData="/ShoeSoleFixed.glb"
+                avatarData="/ShoeNew.glb"
                 objectList={objectList}
                 setObjectList={setObjectList}
                 // selectedPanelName={selectedPanelName}
@@ -537,7 +537,7 @@ export default function DerbyBuilderClean() {
                   title={cfg.title}
                   price={cfg.price}
                   originalPrice={cfg.compareAtPrice}
-                  image={'/ShoeSoleFixed.glb'}
+                  image={'/ShoeNew.glb'}
                   size={selectedSizeInfo}
                   variant="Default"
                   buttonVariant="default"

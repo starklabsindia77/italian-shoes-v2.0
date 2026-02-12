@@ -53,7 +53,7 @@ const DEFAULTS: Partial<FormValues> = {
   compareAtPrice: undefined,
   isActive: true,
   // UI helpers
-  glbUrl: "/ShoeSoleFixed.glb",
+  glbUrl: "/ShoeNew.glb",
   glbLighting: "directional",
   glbEnvironment: "studio",
   selectedMaterials: [],
