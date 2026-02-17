@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Heart } from "lucide-react";
 import { useCartStore, useWishlistStore } from "@/lib/stores";
@@ -11,17 +12,22 @@ interface CartIconProps {
   showWishlist?: boolean;
 }
 
-export const CartIcon = ({ 
-  variant = "ghost", 
+export const CartIcon = ({
+  variant = "ghost",
   size = "default",
-  showWishlist = false 
+  showWishlist = false
 }: CartIconProps) => {
   const router = useRouter();
   const { getTotalItems, openCart } = useCartStore();
   const { getTotalItems: getWishlistTotal } = useWishlistStore();
+  const [mounted, setMounted] = React.useState(false);
 
-  const cartItemCount = getTotalItems();
-  const wishlistItemCount = getWishlistTotal();
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const cartItemCount = mounted ? getTotalItems() : 0;
+  const wishlistItemCount = mounted ? getWishlistTotal() : 0;
 
   const handleCartClick = () => {
     openCart();
@@ -43,8 +49,8 @@ export const CartIcon = ({
         >
           <Heart className="h-4 w-4" />
           {wishlistItemCount > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
             >
               {wishlistItemCount}
@@ -52,7 +58,7 @@ export const CartIcon = ({
           )}
         </Button>
       )}
-      
+
       <Button
         variant={variant}
         size={size}
@@ -61,8 +67,8 @@ export const CartIcon = ({
       >
         <ShoppingCart className="h-4 w-4" />
         {cartItemCount > 0 && (
-          <Badge 
-            variant="destructive" 
+          <Badge
+            variant="destructive"
             className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
           >
             {cartItemCount}

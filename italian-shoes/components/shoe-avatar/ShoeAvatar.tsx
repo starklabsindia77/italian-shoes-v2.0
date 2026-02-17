@@ -9,9 +9,11 @@ import React, {
   SetStateAction,
   useCallback,
   useMemo,
+  forwardRef,
+  useImperativeHandle,
 } from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, useGLTF, Environment, Bounds } from "@react-three/drei";
+import { Canvas, useThree } from "@react-three/fiber";
+import { OrbitControls, useGLTF, Environment, Bounds, Html } from "@react-three/drei";
 import * as THREE from "three";
 
 interface TextureConfig {
@@ -334,12 +336,12 @@ const Avatar: React.FC<AvatarProps> = ({
   );
 };
 
-const ShoeAvatar: React.FC<AvatarProps> = ({
+const ShoeAvatar = forwardRef(({
   avatarData,
   objectList,
   setObjectList,
   selectedTextureMap,
-}) => {
+}: AvatarProps, ref) => {
   const [canvasSize, setCanvasSize] = useState({
     width: typeof window !== "undefined" ? window.innerWidth : 800,
     height: typeof window !== "undefined" ? window.innerHeight : 600,
@@ -347,6 +349,16 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
   const [hasMounted, setHasMounted] = useState(false);
   const [isTextureLoading, setIsTextureLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    capture: () => {
+      if (canvasRef.current) {
+        return canvasRef.current.toDataURL("image/webp", 0.8);
+      }
+      return null;
+    },
+  }));
 
   // Memoize canvas size calculation
   const memoizedCanvasSize = useMemo(
@@ -420,7 +432,7 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
             antialias: true,
             outputColorSpace: THREE.SRGBColorSpace,
             powerPreference: "high-performance",
-            preserveDrawingBuffer: false,
+            preserveDrawingBuffer: true,
             failIfMajorPerformanceCaveat: false,
           }}
           style={{
@@ -430,6 +442,10 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
           }}
           camera={{ position: [2.2, 0.25, 0], fov: 50 }}
           onCreated={({ gl }: { gl: THREE.WebGLRenderer }) => {
+            // Correctly store the canvas element for capturing screenshots
+            if (gl.domElement) {
+              (canvasRef as any).current = gl.domElement;
+            }
             try {
               gl.outputColorSpace = THREE.SRGBColorSpace;
               gl.toneMapping = THREE.ACESFilmicToneMapping;
@@ -479,7 +495,7 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
             background={false}
           />
 
-          <Suspense fallback={<DomSpinner />}>
+          <Suspense fallback={<Html center><DomSpinner /></Html>}>
             <Bounds margin={1.1}>
               <Avatar
                 avatarData={avatarData}
@@ -503,7 +519,7 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
       </div>
     </WebGLErrorBoundary>
   );
-};
+});
 
 // Loading spinner
 const DomSpinner: React.FC = () => {

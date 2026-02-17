@@ -72,7 +72,16 @@ export const useCartStore = create<CartState>()(
           set((state) => ({
             items: state.items.map(item =>
               item.id === existingItem.id
-                ? { ...item, quantity: item.quantity + newItem.quantity }
+                ? { 
+                    ...item, 
+                    quantity: item.quantity + newItem.quantity,
+                    image: newItem.image || item.image,
+                    size: newItem.size || item.size,
+                    material: newItem.material || item.material,
+                    style: newItem.style || item.style,
+                    sole: newItem.sole || item.sole,
+                    config: newItem.config || item.config,
+                  }
                 : item
             ),
           }));

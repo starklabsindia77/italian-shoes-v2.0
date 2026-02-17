@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { useWishlistStore } from "@/lib/stores";
 import { useToast } from "@/components/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface WishlistButtonProps {
   productId: string;
@@ -34,8 +34,8 @@ interface WishlistButtonProps {
     id: string;
     name: string;
   };
-  variant?: "default" | "ghost" | "outline";
-  size?: "default" | "sm" | "lg";
+  buttonVariant?: "default" | "ghost" | "outline";
+  buttonSize?: "default" | "sm" | "lg";
   className?: string;
 }
 
@@ -50,19 +50,24 @@ export const WishlistButton = ({
   material,
   style,
   sole,
-  variant: buttonVariant = "outline",
-  size: buttonSize = "default",
+  buttonVariant = "outline",
+  buttonSize = "default",
   className,
 }: WishlistButtonProps) => {
   const { addItem, removeItem, isItemInWishlist } = useWishlistStore();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const isInWishlist = isItemInWishlist(productId);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isInWishlist = mounted ? isItemInWishlist(productId) : false;
 
   const handleToggleWishlist = async () => {
     setIsLoading(true);
-    
+
     try {
       if (isInWishlist) {
         const wishlistItem = useWishlistStore.getState().getItemByProductId(productId);
@@ -110,8 +115,8 @@ export const WishlistButton = ({
       disabled={isLoading}
       className={`${className} ${isInWishlist ? 'text-red-500 hover:text-red-600' : ''}`}
     >
-      <Heart 
-        className={`h-4 w-4 ${isInWishlist ? 'fill-current' : ''}`} 
+      <Heart
+        className={`h-4 w-4 ${isInWishlist ? 'fill-current' : ''}`}
       />
       <span className="ml-2">
         {isInWishlist ? 'In Wishlist' : 'Add to Wishlist'}

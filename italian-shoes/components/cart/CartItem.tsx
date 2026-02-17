@@ -89,18 +89,21 @@ export const CartItem = ({
   };
 
   return (
-    <div 
-      className={`flex gap-4 p-4 bg-cart-item border border-cart-border rounded-lg transition-all duration-150 ${
-        isRemoving ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-      }`}
+    <div
+      className={`flex gap-4 p-4 bg-cart-item border border-cart-border rounded-lg transition-all duration-150 ${isRemoving ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+        }`}
     >
       {/* Product Image */}
       {image && (
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 w-24 h-24 bg-gray-50 rounded-md overflow-hidden border border-cart-border flex items-center justify-center">
           <img
             src={image}
             alt={title}
-            className="w-20 h-20 object-cover rounded-md"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=200";
+            }}
           />
         </div>
       )}

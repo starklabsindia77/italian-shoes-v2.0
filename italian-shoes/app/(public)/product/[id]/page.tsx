@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -12,8 +12,10 @@ import {
   MessageCircle,
   ChevronLeft,
   ChevronRight,
+  Camera,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useToast } from "@/components/hooks/use-toast";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 
@@ -238,6 +240,7 @@ const ViewerPlaceholder: React.FC<{
    ---------------------- */
 
 export default function DerbyBuilderClean() {
+  const { toast } = useToast();
   // State for API data
   const { id } = useParams<{ id: string }>();
   const [productData, setProductData] = useState<any>(null);
@@ -265,6 +268,28 @@ export default function DerbyBuilderClean() {
   const [inscription, setInscription] = useState({ toe: "", tongue: "" });
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedSizeInfo, setSelectedSizeInfo] = useState<any>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const avatarRef = useRef<any>(null);
+
+  const handleCapture = async () => {
+    if (avatarRef.current) {
+      try {
+        const screenshot = avatarRef.current.capture();
+        if (screenshot) {
+          setCapturedImage(screenshot);
+          return screenshot;
+        }
+      } catch (err) {
+        console.error("Failed to capture screenshot:", err);
+      }
+    }
+    return null;
+  };
+
+  const handleBeforeAdd = async () => {
+    // If user hasn't manually captured, or we want a fresh one
+    return await handleCapture();
+  };
 
   // Filter state for materials and colors
   const [selectedMaterialFilter, setSelectedMaterialFilter] =
@@ -353,16 +378,21 @@ export default function DerbyBuilderClean() {
     sizesApiData: any,
     panelsApiData: any
   ) => {
-    // if (!productApiData) return product;
+    // Sanitize images - remove broken local placeholders
+    const apiImages = productApiData?.images || [];
+    const validImages = apiImages.filter((img: string) =>
+      img && !img.startsWith('/placeholder/') && !img.includes('shoe-')
+    );
+
+    const fallbackImages = [
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=600",
+      "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=600",
+      "https://images.unsplash.com/photo-1560769629-975ec94e6a86?auto=format&fit=crop&q=80&w=600",
+    ];
 
     return {
       ...productApiData,
-      // Add default images if not present
-      images: productApiData?.images || [
-        "/placeholder/shoe-1.jpg",
-        "/placeholder/shoe-2.jpg",
-        "/placeholder/shoe-3.jpg",
-      ],
+      images: validImages.length > 0 ? validImages : fallbackImages,
 
       // Transform panels from panels API data or use defaults
       panels: panelsApiData?.items
@@ -659,16 +689,35 @@ export default function DerbyBuilderClean() {
                 />
               </div> */}
 
-              <ShoeAvatar
-                avatarData="/ShoeSoleFixed.glb"
-                objectList={objectList}
-                setObjectList={setObjectList}
-                // selectedPanelName={selectedPanelName}
-                selectedTextureMap={selectedTextureMap}
-              />
+              <div className="relative group">
+                <ShoeAvatar
+                  ref={avatarRef}
+                  avatarData="/ShoeSoleFixed.glb"
+                  objectList={objectList}
+                  setObjectList={setObjectList}
+                  selectedTextureMap={selectedTextureMap}
+                />
+
+                {/* Capture Button */}
+                <button
+                  onClick={handleCapture}
+                  className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg hover:bg-white transition-all transform hover:scale-110 z-20 group-hover:opacity-100 opacity-0 md:opacity-100"
+                  title="Capture current view"
+                >
+                  <Camera className="w-5 h-5 text-gray-700" />
+                </button>
+              </div>
             </div>
 
             {/* Thumbnail Gallery */}
+            {capturedImage && (
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Custom View Captured</span>
+                <div className="w-24 h-24 rounded-lg border-2 border-red-500 overflow-hidden shadow-md">
+                  <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
+                </div>
+              </div>
+            )}
 
             {/* Order Status */}
             <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -719,12 +768,13 @@ export default function DerbyBuilderClean() {
                     title={cfg.title}
                     price={cfg.price}
                     originalPrice={cfg.compareAtPrice}
-                    image={'/ShoeSoleFixed.glb'}
+                    image={capturedImage || cfg.images?.[0]}
                     size={selectedSizeInfo}
                     variant="Default"
                     buttonVariant="default"
                     buttonSize="sm"
                     config={selectedTextureMap}
+                    onBeforeAdd={handleBeforeAdd}
                   />
                   {/* <button className="bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors">
                   ADD TO CART

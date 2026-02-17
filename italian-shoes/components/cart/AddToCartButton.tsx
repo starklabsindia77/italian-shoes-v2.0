@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Plus } from "lucide-react";
 import { useCartStore } from "@/lib/stores";
 import { useToast } from "@/components/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface AddToCartButtonProps {
   productId: string;
@@ -13,7 +13,7 @@ interface AddToCartButtonProps {
   image?: string;
   variant?: string;
   quantity?: number;
-  size?:any;
+  size?: any;
   material?: {
     id: string;
     name: string;
@@ -37,6 +37,7 @@ interface AddToCartButtonProps {
   showIcon?: boolean;
   notes?: string;
   config?: any;
+  onBeforeAdd?: () => Promise<string | null | void>;
 }
 
 export const AddToCartButton = ({
@@ -57,17 +58,31 @@ export const AddToCartButton = ({
   showIcon = false,
   notes,
   config,
+  onBeforeAdd,
 }: AddToCartButtonProps) => {
   const { addItem, isItemInCart } = useCartStore();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const isInCart = isItemInCart(productId, variant);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isInCart = mounted ? isItemInCart(productId, variant) : false;
 
   const handleAddToCart = async () => {
     setIsLoading(true);
-    
+
     try {
+      let finalImage = image;
+      if (onBeforeAdd) {
+        const result = await onBeforeAdd();
+        if (typeof result === 'string') {
+          finalImage = result;
+        }
+      }
+
       addItem({
         productId,
         title,
@@ -75,7 +90,7 @@ export const AddToCartButton = ({
         price,
         originalPrice,
         quantity,
-        image,
+        image: finalImage,
         size,
         material,
         style,
@@ -83,7 +98,7 @@ export const AddToCartButton = ({
         notes,
         config,
       });
-      
+
       toast({
         title: "Added to cart",
         description: `${title} has been added to your cart.`,
