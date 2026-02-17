@@ -49,148 +49,148 @@ type Style = { id: string; name: string; thumbnail?: string; glb?: string };
 type Sole = { id: string; name: string; thumbnail?: string; height?: string };
 type Color = { id: string; name: string; textureUrl: string };
 
-const product = {
-  id: "mens-luxury-dress-shoes",
-  title: "Men's Luxury Dress Shoes",
-  vendor: "GIROTTI",
-  price: 329,
-  compareAtPrice: 519,
-  currency: "USD",
-  images: [
-    "/placeholder/shoe-main.jpg",
-    "/placeholder/shoe-side.jpg",
-    "/placeholder/shoe-top.jpg",
-    "/placeholder/shoe-heel.jpg",
-  ],
-  colorVariants: [
-    { id: "brown", name: "Brown", image: "/placeholder/shoe-brown.jpg" },
-    { id: "black", name: "Black", image: "/placeholder/shoe-black.jpg" },
-    { id: "red", name: "Red", image: "/placeholder/shoe-red.jpg" },
-    { id: "blue", name: "Blue", image: "/placeholder/shoe-blue.jpg" },
-  ],
-  panels: [
-    {
-      id: "upper",
-      name: "Upper",
-      meshName: "Upper_Mesh",
-      thumbnail: "/placeholder/panel-upper.jpg",
-    },
-    {
-      id: "toe",
-      name: "Toe",
-      meshName: "Toe_Mesh",
-      thumbnail: "/placeholder/panel-toe.jpg",
-    },
-    {
-      id: "quarter",
-      name: "Quarter",
-      meshName: "Quarter_Mesh",
-      thumbnail: "/placeholder/panel-quarter.jpg",
-    },
-    {
-      id: "heel",
-      name: "Heel",
-      meshName: "Heel_Mesh",
-      thumbnail: "/placeholder/panel-heel.jpg",
-    },
-  ] as Panel[],
-  materialCategories: [
-    {
-      id: "metallic",
-      name: "Metallic finish premium leather",
-      colors: [
-        { id: "metallic-brown-1", name: "Metallic Brown 1", hex: "#8B4513" },
-        { id: "metallic-brown-2", name: "Metallic Brown 2", hex: "#A0522D" },
-        { id: "metallic-orange", name: "Metallic Orange", hex: "#FF8C00" },
-        { id: "metallic-red-1", name: "Metallic Red 1", hex: "#DC143C" },
-        { id: "metallic-red-2", name: "Metallic Red 2", hex: "#B22222" },
-        { id: "metallic-blue-1", name: "Metallic Blue 1", hex: "#4169E1" },
-        { id: "metallic-blue-2", name: "Metallic Blue 2", hex: "#0000CD" },
-        { id: "metallic-green-1", name: "Metallic Green 1", hex: "#228B22" },
-        { id: "metallic-green-2", name: "Metallic Green 2", hex: "#006400" },
-        { id: "metallic-purple", name: "Metallic Purple", hex: "#8A2BE2" },
-        { id: "metallic-gold", name: "Metallic Gold", hex: "#FFD700" },
-        { id: "metallic-silver", name: "Metallic Silver", hex: "#C0C0C0" },
-        { id: "metallic-copper", name: "Metallic Copper", hex: "#B87333" },
-        { id: "metallic-bronze", name: "Metallic Bronze", hex: "#CD7F32" },
-        { id: "metallic-rose", name: "Metallic Rose", hex: "#E91E63" },
-      ],
-    },
-    {
-      id: "premium",
-      name: "Premium leather",
-      colors: [
-        { id: "premium-brown-1", name: "Premium Brown 1", hex: "#8B4513" },
-        { id: "premium-brown-2", name: "Premium Brown 2", hex: "#A0522D" },
-        { id: "premium-brown-3", name: "Premium Brown 3", hex: "#D2691E" },
-        { id: "premium-red-1", name: "Premium Red 1", hex: "#DC143C" },
-        { id: "premium-red-2", name: "Premium Red 2", hex: "#B22222" },
-        { id: "premium-blue-1", name: "Premium Blue 1", hex: "#4169E1" },
-        { id: "premium-blue-2", name: "Premium Blue 2", hex: "#0000CD" },
-        { id: "premium-green-1", name: "Premium Green 1", hex: "#228B22" },
-        { id: "premium-green-2", name: "Premium Green 2", hex: "#006400" },
-        { id: "premium-black", name: "Premium Black", hex: "#000000" },
-        { id: "premium-tan", name: "Premium Tan", hex: "#D2B48C" },
-        { id: "premium-burgundy", name: "Premium Burgundy", hex: "#800020" },
-        { id: "premium-navy", name: "Premium Navy", hex: "#000080" },
-        { id: "premium-forest", name: "Premium Forest", hex: "#228B22" },
-        { id: "premium-cognac", name: "Premium Cognac", hex: "#9F4E3B" },
-      ],
-    },
-    {
-      id: "high-shine",
-      name: "High shine premium leather",
-      colors: [
-        { id: "shine-black", name: "High Shine Black", hex: "#000000" },
-        { id: "shine-navy", name: "High Shine Navy", hex: "#000080" },
-        { id: "shine-forest", name: "High Shine Forest", hex: "#228B22" },
-        { id: "shine-burgundy", name: "High Shine Burgundy", hex: "#800020" },
-        { id: "shine-brown", name: "High Shine Brown", hex: "#8B4513" },
-      ],
-    },
-  ],
-  styles: [
-    {
-      id: "derby",
-      name: "Derby",
-      thumbnail: "/placeholder/style-derby.jpg",
-      glb: "/glb/derby.glb",
-    },
-    {
-      id: "oxford",
-      name: "Oxford",
-      thumbnail: "/placeholder/style-oxford.jpg",
-      glb: "/glb/oxford.glb",
-    },
-  ] as Style[],
-  soles: [
-    {
-      id: "leather",
-      name: "Leather Sole",
-      thumbnail: "/placeholder/sole-leather.jpg",
-      height: "2.0 cm",
-    },
-    {
-      id: "rubber",
-      name: "Rubber Sole",
-      thumbnail: "/placeholder/sole-rubber.jpg",
-      height: "2.5 cm",
-    },
-  ] as Sole[],
-  sizes: [
-    { id: "40", label: "EU 40 / UK 6 / US 7" },
-    { id: "41", label: "EU 41 / UK 7 / US 8" },
-    { id: "42", label: "EU 42 / UK 8 / US 9" },
-    { id: "43", label: "EU 43 / UK 9 / US 10" },
-    { id: "44", label: "EU 44 / UK 9.5 / US 10.5" },
-    { id: "45", label: "EU 45 / UK 10 / US 11" },
-  ],
-  description:
-    "Luxury Edition of hand-dyed dress shoes. These shoes embody authority, elegance, and comfort, blending classic and modern looks. Start designing your handcrafted shoes now.",
-  shippingInfo:
-    "Manufacturing and delivery to India in 5-10 days only: $ 48.10",
-  orderStatus: "4 customers are processing an order",
-};
+// const product = {
+//   id: "mens-luxury-dress-shoes",
+//   title: "Men's Luxury Dress Shoes",
+//   vendor: "GIROTTI",
+//   price: 329,
+//   compareAtPrice: 519,
+//   currency: "USD",
+//   images: [
+//     "/placeholder/shoe-main.jpg",
+//     "/placeholder/shoe-side.jpg",
+//     "/placeholder/shoe-top.jpg",
+//     "/placeholder/shoe-heel.jpg",
+//   ],
+//   colorVariants: [
+//     { id: "brown", name: "Brown", image: "/placeholder/shoe-brown.jpg" },
+//     { id: "black", name: "Black", image: "/placeholder/shoe-black.jpg" },
+//     { id: "red", name: "Red", image: "/placeholder/shoe-red.jpg" },
+//     { id: "blue", name: "Blue", image: "/placeholder/shoe-blue.jpg" },
+//   ],
+//   panels: [
+//     {
+//       id: "upper",
+//       name: "Upper",
+//       meshName: "Upper_Mesh",
+//       thumbnail: "/placeholder/panel-upper.jpg",
+//     },
+//     {
+//       id: "toe",
+//       name: "Toe",
+//       meshName: "Toe_Mesh",
+//       thumbnail: "/placeholder/panel-toe.jpg",
+//     },
+//     {
+//       id: "quarter",
+//       name: "Quarter",
+//       meshName: "Quarter_Mesh",
+//       thumbnail: "/placeholder/panel-quarter.jpg",
+//     },
+//     {
+//       id: "heel",
+//       name: "Heel",
+//       meshName: "Heel_Mesh",
+//       thumbnail: "/placeholder/panel-heel.jpg",
+//     },
+//   ] as Panel[],
+//   materialCategories: [
+//     {
+//       id: "metallic",
+//       name: "Metallic finish premium leather",
+//       colors: [
+//         { id: "metallic-brown-1", name: "Metallic Brown 1", hex: "#8B4513" },
+//         { id: "metallic-brown-2", name: "Metallic Brown 2", hex: "#A0522D" },
+//         { id: "metallic-orange", name: "Metallic Orange", hex: "#FF8C00" },
+//         { id: "metallic-red-1", name: "Metallic Red 1", hex: "#DC143C" },
+//         { id: "metallic-red-2", name: "Metallic Red 2", hex: "#B22222" },
+//         { id: "metallic-blue-1", name: "Metallic Blue 1", hex: "#4169E1" },
+//         { id: "metallic-blue-2", name: "Metallic Blue 2", hex: "#0000CD" },
+//         { id: "metallic-green-1", name: "Metallic Green 1", hex: "#228B22" },
+//         { id: "metallic-green-2", name: "Metallic Green 2", hex: "#006400" },
+//         { id: "metallic-purple", name: "Metallic Purple", hex: "#8A2BE2" },
+//         { id: "metallic-gold", name: "Metallic Gold", hex: "#FFD700" },
+//         { id: "metallic-silver", name: "Metallic Silver", hex: "#C0C0C0" },
+//         { id: "metallic-copper", name: "Metallic Copper", hex: "#B87333" },
+//         { id: "metallic-bronze", name: "Metallic Bronze", hex: "#CD7F32" },
+//         { id: "metallic-rose", name: "Metallic Rose", hex: "#E91E63" },
+//       ],
+//     },
+//     {
+//       id: "premium",
+//       name: "Premium leather",
+//       colors: [
+//         { id: "premium-brown-1", name: "Premium Brown 1", hex: "#8B4513" },
+//         { id: "premium-brown-2", name: "Premium Brown 2", hex: "#A0522D" },
+//         { id: "premium-brown-3", name: "Premium Brown 3", hex: "#D2691E" },
+//         { id: "premium-red-1", name: "Premium Red 1", hex: "#DC143C" },
+//         { id: "premium-red-2", name: "Premium Red 2", hex: "#B22222" },
+//         { id: "premium-blue-1", name: "Premium Blue 1", hex: "#4169E1" },
+//         { id: "premium-blue-2", name: "Premium Blue 2", hex: "#0000CD" },
+//         { id: "premium-green-1", name: "Premium Green 1", hex: "#228B22" },
+//         { id: "premium-green-2", name: "Premium Green 2", hex: "#006400" },
+//         { id: "premium-black", name: "Premium Black", hex: "#000000" },
+//         { id: "premium-tan", name: "Premium Tan", hex: "#D2B48C" },
+//         { id: "premium-burgundy", name: "Premium Burgundy", hex: "#800020" },
+//         { id: "premium-navy", name: "Premium Navy", hex: "#000080" },
+//         { id: "premium-forest", name: "Premium Forest", hex: "#228B22" },
+//         { id: "premium-cognac", name: "Premium Cognac", hex: "#9F4E3B" },
+//       ],
+//     },
+//     {
+//       id: "high-shine",
+//       name: "High shine premium leather",
+//       colors: [
+//         { id: "shine-black", name: "High Shine Black", hex: "#000000" },
+//         { id: "shine-navy", name: "High Shine Navy", hex: "#000080" },
+//         { id: "shine-forest", name: "High Shine Forest", hex: "#228B22" },
+//         { id: "shine-burgundy", name: "High Shine Burgundy", hex: "#800020" },
+//         { id: "shine-brown", name: "High Shine Brown", hex: "#8B4513" },
+//       ],
+//     },
+//   ],
+//   styles: [
+//     {
+//       id: "derby",
+//       name: "Derby",
+//       thumbnail: "/placeholder/style-derby.jpg",
+//       glb: "/glb/derby.glb",
+//     },
+//     {
+//       id: "oxford",
+//       name: "Oxford",
+//       thumbnail: "/placeholder/style-oxford.jpg",
+//       glb: "/glb/oxford.glb",
+//     },
+//   ] as Style[],
+//   soles: [
+//     {
+//       id: "leather",
+//       name: "Leather Sole",
+//       thumbnail: "/placeholder/sole-leather.jpg",
+//       height: "2.0 cm",
+//     },
+//     {
+//       id: "rubber",
+//       name: "Rubber Sole",
+//       thumbnail: "/placeholder/sole-rubber.jpg",
+//       height: "2.5 cm",
+//     },
+//   ] as Sole[],
+//   sizes: [
+//     { id: "40", label: "EU 40 / UK 6 / US 7" },
+//     { id: "41", label: "EU 41 / UK 7 / US 8" },
+//     { id: "42", label: "EU 42 / UK 8 / US 9" },
+//     { id: "43", label: "EU 43 / UK 9 / US 10" },
+//     { id: "44", label: "EU 44 / UK 9.5 / US 10.5" },
+//     { id: "45", label: "EU 45 / UK 10 / US 11" },
+//   ],
+//   description:
+//     "Luxury Edition of hand-dyed dress shoes. These shoes embody authority, elegance, and comfort, blending classic and modern looks. Start designing your handcrafted shoes now.",
+//   shippingInfo:
+//     "Manufacturing and delivery to India in 5-10 days only: $ 48.10",
+//   orderStatus: "4 customers are processing an order",
+// };
 
 /* ----------------------
    Small Presentational Components
@@ -353,12 +353,12 @@ export default function DerbyBuilderClean() {
     sizesApiData: any,
     panelsApiData: any
   ) => {
-    if (!productApiData) return product;
+    // if (!productApiData) return product;
 
     return {
       ...productApiData,
       // Add default images if not present
-      images: productApiData.images || [
+      images: productApiData?.images || [
         "/placeholder/shoe-1.jpg",
         "/placeholder/shoe-2.jpg",
         "/placeholder/shoe-3.jpg",
@@ -367,54 +367,53 @@ export default function DerbyBuilderClean() {
       // Transform panels from panels API data or use defaults
       panels: panelsApiData?.items
         ? panelsApiData.items.map((panel: any) => ({
-            id: panel.panelId,
-            name: panel.name,
-            meshName: `${panel.name.replace(/\s+/g, "_")}_Mesh`,
-            thumbnail: `/placeholder/panel-${panel.panelId}.jpg`,
-            group: panel.group,
-          }))
+          id: panel.panelId,
+          name: panel.name,
+          meshName: `${panel.name.replace(/\s+/g, "_")}_Mesh`,
+          thumbnail: `/placeholder/panel-${panel.panelId}.jpg`,
+          group: panel.group,
+        }))
         : [
-            {
-              id: "upper",
-              name: "Upper",
-              meshName: "Upper_Mesh",
-              thumbnail: "/placeholder/panel-upper.jpg",
-            },
-            {
-              id: "toe",
-              name: "Toe",
-              meshName: "Toe_Mesh",
-              thumbnail: "/placeholder/panel-toe.jpg",
-            },
-            {
-              id: "quarter",
-              name: "Quarter",
-              meshName: "Quarter_Mesh",
-              thumbnail: "/placeholder/panel-quarter.jpg",
-            },
-            {
-              id: "heel",
-              name: "Heel",
-              meshName: "Heel_Mesh",
-              thumbnail: "/placeholder/panel-heel.jpg",
-            },
-          ],
+          {
+            id: "upper",
+            name: "Upper",
+            meshName: "Upper_Mesh",
+            thumbnail: "/placeholder/panel-upper.jpg",
+          },
+          {
+            id: "toe",
+            name: "Toe",
+            meshName: "Toe_Mesh",
+            thumbnail: "/placeholder/panel-toe.jpg",
+          },
+          {
+            id: "quarter",
+            name: "Quarter",
+            meshName: "Quarter_Mesh",
+            thumbnail: "/placeholder/panel-quarter.jpg",
+          },
+          {
+            id: "heel",
+            name: "Heel",
+            meshName: "Heel_Mesh",
+            thumbnail: "/placeholder/panel-heel.jpg",
+          },
+        ],
 
       // Transform sizes from sizes API data or use defaults
       sizes: sizesApiData?.items
         ? sizesApiData.items.map((size: any) => ({
-            id: size.id,
-            label: `${size.name}${
-              size.euEquivalent ? ` / ${size.euEquivalent}` : ""
+          id: size.id,
+          label: `${size.name}${size.euEquivalent ? ` / ${size.euEquivalent}` : ""
             }${size.ukEquivalent ? ` / ${size.ukEquivalent}` : ""}`,
-            value: size.value,
-            region: size.region,
-          }))
+          value: size.value,
+          region: size.region,
+        }))
         : [
-            { id: "42", label: "EU 42 / UK 8 / US 9" },
-            { id: "43", label: "EU 43 / UK 9 / US 10" },
-            { id: "44", label: "EU 44 / UK 9.5 / US 10.5" },
-          ],
+          { id: "42", label: "EU 42 / UK 8 / US 9" },
+          { id: "43", label: "EU 43 / UK 9 / US 10" },
+          { id: "44", label: "EU 44 / UK 9.5 / US 10.5" },
+        ],
     };
   };
 
@@ -714,93 +713,177 @@ export default function DerbyBuilderClean() {
                     ))}
                   </select>
 
-                {/* Add to Cart Button */}
-                <AddToCartButton
-                  productId={cfg.productId}
-                  title={cfg.title}
-                  price={cfg.price}
-                  originalPrice={cfg.compareAtPrice}
-                  image={'/ShoeSoleFixed.glb'}
-                  size={selectedSizeInfo}
-                  variant="Default"
-                  buttonVariant="default"
-                  buttonSize="sm"
-                  config={selectedTextureMap}
-                />
-                {/* <button className="bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                  {/* Add to Cart Button */}
+                  <AddToCartButton
+                    productId={cfg.productId}
+                    title={cfg.title}
+                    price={cfg.price}
+                    originalPrice={cfg.compareAtPrice}
+                    image={'/ShoeSoleFixed.glb'}
+                    size={selectedSizeInfo}
+                    variant="Default"
+                    buttonVariant="default"
+                    buttonSize="sm"
+                    config={selectedTextureMap}
+                  />
+                  {/* <button className="bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors">
                   ADD TO CART
                 </button> */}
-              </div>
+                </div>
 
-              {/* Shipping Info */}
-              
-            </div>
-            {/* <div className="text-xs text-gray-600 mt-2 text-right">
+                {/* Shipping Info */}
+
+              </div>
+              {/* <div className="text-xs text-gray-600 mt-2 text-right">
                 {cfg.shippingInfo ||
                   "Manufacturing and delivery to India in 5-10 days only"}
               </div> */}
 
-            {/* Customization Tabs */}
-            <div>
-              <div className="mb-3">
-                <div className="relative inline-flex bg-gray-200 rounded-full h-8 shadow-sm w-full justify-center items-center">
-                  {(["Materials", "Style", "Soles"] as const).map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setActiveTab(t)}
-                      className={`relative px-6 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center ${
-                        activeTab === t
+              {/* Customization Tabs */}
+              <div>
+                <div className="mb-3">
+                  <div className="relative inline-flex bg-gray-200 rounded-full h-8 shadow-sm w-full justify-center items-center">
+                    {(["Materials", "Style", "Soles"] as const).map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setActiveTab(t)}
+                        className={`relative px-6 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center ${activeTab === t
                           ? "bg-red-500 text-white shadow-sm h-10 -my-1"
                           : "text-gray-700 hover:text-gray-900 h-8"
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
+                          }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Materials */}
-              {activeTab === "Materials" && (
-                <>
-                  {/* Customization Instruction */}
-                  <p className="text-sm text-gray-600 mb-4 text-center">
-                    Choose a material and color for every part of your shoes
-                  </p>
+                {/* Materials */}
+                {activeTab === "Materials" && (
+                  <>
+                    {/* Customization Instruction */}
+                    <p className="text-sm text-gray-600 mb-4 text-center">
+                      Choose a material and color for every part of your shoes
+                    </p>
 
-                  {/* Panel Selection */}
-                  <div className="mb-3">
-                    <div className="flex items-center gap-4">
-                      {/* Label */}
-                      <label className="text-sm font-light text-gray-400 whitespace-nowrap">
-                        Select a panel:
-                      </label>
+                    {/* Panel Selection */}
+                    <div className="mb-3">
+                      <div className="flex items-center gap-4">
+                        {/* Label */}
+                        <label className="text-sm font-light text-gray-400 whitespace-nowrap">
+                          Select a panel:
+                        </label>
 
-                      {/* Dropdown */}
-                      <div className="relative flex-1">
+                        {/* Dropdown */}
+                        <div className="relative flex-1">
+                          <select
+                            value={selectedPanelName || ""}
+                            onChange={handlePanelChange}
+                            className="w-full h-8 border border-gray-500 rounded-full px-3 pr-10 focus:ring-red-600 focus:border-red-500 appearance-none bg-white py-1 text-sm"
+                          >
+                            {/* Placeholder */}
+                            <option value="" disabled hidden>
+                              -- Choose Panel --
+                            </option>
+
+                            {/* Items */}
+                            {objectList?.map((obj: any) => (
+                              <option key={obj.name} value={obj.name}>
+                                {obj.name.replace("_", " ")}
+                              </option>
+                            ))}
+                          </select>
+
+                          {/* Custom Dropdown Icon */}
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-0.5 pt-0.5 pb-0.5 pointer-events-none">
+                            <div className="bg-red-500 h-full w-8 flex items-center justify-center rounded-r-full">
+                              <svg
+                                className="w-4 h-4 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Material and Color Filters */}
+                    <div className="flex justify-end gap-4 mb-3">
+                      {/* All Materials */}
+                      <div className="w-40 relative">
                         <select
-                          value={selectedPanelName || ""}
-                          onChange={handlePanelChange}
-                          className="w-full h-8 border border-gray-500 rounded-full px-3 pr-10 focus:ring-red-600 focus:border-red-500 appearance-none bg-white py-1 text-sm"
+                          value={selectedMaterialFilter}
+                          onChange={(e) => {
+                            setSelectedMaterialFilter(e.target.value);
+                            setSelectedColorFilter("all");
+                            setSelectedColor(null);
+                          }}
+                          className="w-full h-8 border border-gray-300 rounded-full px-3 pr-10 focus:ring-red-500 focus:border-red-500 appearance-none bg-white text-sm py-1"
                         >
-                          {/* Placeholder */}
-                          <option value="" disabled hidden>
-                            -- Choose Panel --
-                          </option>
-
-                          {/* Items */}
-                          {objectList?.map((obj: any) => (
-                            <option key={obj.name} value={obj.name}>
-                              {obj.name.replace("_", " ")}
+                          <option value="all">All Materials</option>
+                          {getAvailableMaterials().map((material: any) => (
+                            <option
+                              key={material.materialId}
+                              value={material.materialId}
+                            >
+                              {material.materialName}
                             </option>
                           ))}
                         </select>
 
-                        {/* Custom Dropdown Icon */}
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-0.5 pt-0.5 pb-0.5 pointer-events-none">
-                          <div className="bg-red-500 h-full w-8 flex items-center justify-center rounded-r-full">
+                        {/* Icon with gray background */}
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-0.5 pt-0.2 pb-0.2 pointer-events-none">
+                          <div className="bg-gray-200 h-6 w-8 flex items-center justify-center rounded-r-full">
                             <svg
-                              className="w-4 h-4 text-white"
+                              className="w-4 h-4 text-gray-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* All Colors */}
+                      <div className="w-40 relative">
+                        <select
+                          value={selectedColorFilter}
+                          onChange={(e) => {
+                            setSelectedColorFilter(e.target.value);
+                            setSelectedMaterialFilter("all");
+                            setSelectedColor(null);
+                          }}
+                          className="w-full h-8 border border-gray-300 rounded-full px-3 pr-10 focus:ring-red-500 focus:border-red-500 appearance-none bg-white text-sm py-1"
+                        >
+                          <option value="all">All Colors</option>
+                          {getAvailableColors().map((color: any) => (
+                            <option key={color.id} value={color.id}>
+                              {color.family}
+                            </option>
+                          ))}
+                        </select>
+
+                        {/* Icon with gray background */}
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-0.5 pt-0.2 pb-0.2 pointer-events-none">
+                          <div className="bg-gray-200 h-6 w-8 flex items-center justify-center rounded-r-full">
+                            <svg
+                              className="w-4 h-4 text-gray-600"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -816,317 +899,228 @@ export default function DerbyBuilderClean() {
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Material and Color Filters */}
-                  <div className="flex justify-end gap-4 mb-3">
-                    {/* All Materials */}
-                    <div className="w-40 relative">
-                      <select
-                        value={selectedMaterialFilter}
-                        onChange={(e) => {
-                          setSelectedMaterialFilter(e.target.value);
-                          setSelectedColorFilter("all");
-                          setSelectedColor(null);
-                        }}
-                        className="w-full h-8 border border-gray-300 rounded-full px-3 pr-10 focus:ring-red-500 focus:border-red-500 appearance-none bg-white text-sm py-1"
-                      >
-                        <option value="all">All Materials</option>
-                        {getAvailableMaterials().map((material: any) => (
-                          <option
-                            key={material.materialId}
-                            value={material.materialId}
-                          >
-                            {material.materialName}
-                          </option>
-                        ))}
-                      </select>
-
-                      {/* Icon with gray background */}
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-0.5 pt-0.2 pb-0.2 pointer-events-none">
-                        <div className="bg-gray-200 h-6 w-8 flex items-center justify-center rounded-r-full">
-                          <svg
-                            className="w-4 h-4 text-gray-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* All Colors */}
-                    <div className="w-40 relative">
-                      <select
-                        value={selectedColorFilter}
-                        onChange={(e) => {
-                          setSelectedColorFilter(e.target.value);
-                          setSelectedMaterialFilter("all");
-                          setSelectedColor(null);
-                        }}
-                        className="w-full h-8 border border-gray-300 rounded-full px-3 pr-10 focus:ring-red-500 focus:border-red-500 appearance-none bg-white text-sm py-1"
-                      >
-                        <option value="all">All Colors</option>
-                        {getAvailableColors().map((color: any) => (
-                          <option key={color.id} value={color.id}>
-                            {color.family}
-                          </option>
-                        ))}
-                      </select>
-
-                      {/* Icon with gray background */}
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-0.5 pt-0.2 pb-0.2 pointer-events-none">
-                        <div className="bg-gray-200 h-6 w-8 flex items-center justify-center rounded-r-full">
-                          <svg
-                            className="w-4 h-4 text-gray-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Material Categories with Color Swatches */}
-                  <div className="space-y-6 mt-4 h-80 overflow-y-auto">
-                    {getAvailableMaterials().map((material: any) => (
-                      <div key={material.materialId}>
-                        {/* Material Name and Info */}
-                        <div className="flex items-center gap-2 mb-3 justify-end">
-                          <h4 className="text-sm font-normal text-gray-500 italic">
-                            {material.materialName}
-                          </h4>
-                          <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">
-                              ?
-                            </span>
+                    {/* Material Categories with Color Swatches */}
+                    <div className="space-y-6 mt-4 h-80 overflow-y-auto">
+                      {getAvailableMaterials().map((material: any) => (
+                        <div key={material.materialId}>
+                          {/* Material Name and Info */}
+                          <div className="flex items-center gap-2 mb-3 justify-end">
+                            <h4 className="text-sm font-normal text-gray-500 italic">
+                              {material.materialName}
+                            </h4>
+                            <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">
+                                ?
+                              </span>
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Color Swatches */}
-                        <div className="flex flex-wrap gap-2 w-full justify-end">
-                          {material.selectedColor?.map((color: any) => {
-                            // If a color filter is selected, only show colors from that family
-                            if (selectedColorFilter !== "all") {
-                              const selectedColorData =
-                                getAvailableColors().find(
-                                  (c: any) => c.id === selectedColorFilter
-                                );
-                              if (
-                                selectedColorData &&
-                                color.family !== selectedColorData.family
-                              ) {
-                                return null;
-                              }
-                            }
-
-                            return (
-                              <div
-                                key={color.id}
-                                onClick={() => {
-                                  setSelectedColor(color.id);
-                                  handleTextureChange(
-                                    selectedPanelName,
-                                    color.imageUrl
+                          {/* Color Swatches */}
+                          <div className="flex flex-wrap gap-2 w-full justify-end">
+                            {material.selectedColor?.map((color: any) => {
+                              // If a color filter is selected, only show colors from that family
+                              if (selectedColorFilter !== "all") {
+                                const selectedColorData =
+                                  getAvailableColors().find(
+                                    (c: any) => c.id === selectedColorFilter
                                   );
-                                }}
-                                className={`rounded-md transition flex-shrink-0 ${
-                                  selectedColor === color.id
+                                if (
+                                  selectedColorData &&
+                                  color.family !== selectedColorData.family
+                                ) {
+                                  return null;
+                                }
+                              }
+
+                              return (
+                                <div
+                                  key={color.id}
+                                  onClick={() => {
+                                    setSelectedColor(color.id);
+                                    handleTextureChange(
+                                      selectedPanelName,
+                                      color.imageUrl
+                                    );
+                                  }}
+                                  className={`rounded-md transition flex-shrink-0 ${selectedColor === color.id
                                     ? "border-red-500 ring-1 ring-red-100"
                                     : "border-gray-200"
-                                }`}
-                              >
-                                <img
-                                  src={color.imageUrl}
-                                  alt={color.name}
-                                  className="object-contain w-12 h-12"
-                                />
-                              </div>
-                            );
-                          })}
+                                    }`}
+                                >
+                                  <img
+                                    src={color.imageUrl}
+                                    alt={color.name}
+                                    className="object-contain w-12 h-12"
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
+                      ))}
+                    </div>
+                  </>
+                )}
 
-              {/* Style */}
-              {activeTab === "Style" && (
-                <div>
-                  <h3 className="font-medium mb-2">Style</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {(cfg.selectedStyles || []).map((s: any) => (
-                      <button
-                        key={s.id}
-                        onClick={() => setSelectedStyle(s.id)}
-                        className={`p-2 rounded-md border transition ${
-                          selectedStyle === s.id
+                {/* Style */}
+                {activeTab === "Style" && (
+                  <div>
+                    <h3 className="font-medium mb-2">Style</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {(cfg.selectedStyles || []).map((s: any) => (
+                        <button
+                          key={s.id}
+                          onClick={() => setSelectedStyle(s.id)}
+                          className={`p-2 rounded-md border transition ${selectedStyle === s.id
                             ? "border-red-500 ring-1 ring-red-100"
                             : "border-gray-200"
-                        }`}
-                      >
-                        <div className="w-full h-20 rounded-md overflow-hidden bg-gray-50 mb-1 flex items-center justify-center">
-                          <img
-                            src={s.imageUrl}
-                            alt={s.name}
-                            className="object-contain w-full h-full"
-                          />
-                        </div>
-                        <div className="text-sm text-center">{s.name}</div>
-                      </button>
-                    ))}
+                            }`}
+                        >
+                          <div className="w-full h-20 rounded-md overflow-hidden bg-gray-50 mb-1 flex items-center justify-center">
+                            <img
+                              src={s.imageUrl}
+                              alt={s.name}
+                              className="object-contain w-full h-full"
+                            />
+                          </div>
+                          <div className="text-sm text-center">{s.name}</div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Soles */}
-              {activeTab === "Soles" && (
-                <div>
-                  <h3 className="font-medium mb-2">Soles</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {(cfg.selectedSoles || []).map((so: any) => (
-                      <button
-                        key={so.id || so.name}
-                        onClick={() => setSelectedSole(so.id || so.name)}
-                        className={`p-2 rounded-md border transition ${
-                          selectedSole === (so.id || so.name)
+                {/* Soles */}
+                {activeTab === "Soles" && (
+                  <div>
+                    <h3 className="font-medium mb-2">Soles</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {(cfg.selectedSoles || []).map((so: any) => (
+                        <button
+                          key={so.id || so.name}
+                          onClick={() => setSelectedSole(so.id || so.name)}
+                          className={`p-2 rounded-md border transition ${selectedSole === (so.id || so.name)
                             ? "border-red-500 ring-1 ring-red-100"
                             : "border-gray-200"
-                        }`}
-                      >
-                        <div className="w-full h-20 rounded-md overflow-hidden bg-gray-50 mb-2 flex items-center justify-center">
-                          <img
-                            src={so.imageUrl}
-                            alt={so.name}
-                            className="object-contain w-full h-full"
-                          />
-                        </div>
-                        <div className="text-sm font-medium">{so.name}</div>
-                      </button>
-                    ))}
+                            }`}
+                        >
+                          <div className="w-full h-20 rounded-md overflow-hidden bg-gray-50 mb-2 flex items-center justify-center">
+                            <img
+                              src={so.imageUrl}
+                              alt={so.name}
+                              className="object-contain w-full h-full"
+                            />
+                          </div>
+                          <div className="text-sm font-medium">{so.name}</div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Colors */}
-              {activeTab === "Colors" && (
-                <div>
-                  <h3 className="font-medium mb-2">Colors & Textures</h3>
-                  <div className="grid grid-cols-4 gap-2">
-                    {(cfg.colors || []).map((c: any) => (
-                      <button
-                        key={c.id}
-                        onClick={() => applyTexture(c.textureUrl)}
-                        title={c.name}
-                        className={`rounded-md overflow-hidden w-full h-20 border transition ${
-                          selectedColor === c.textureUrl
+                {/* Colors */}
+                {activeTab === "Colors" && (
+                  <div>
+                    <h3 className="font-medium mb-2">Colors & Textures</h3>
+                    <div className="grid grid-cols-4 gap-2">
+                      {(cfg.colors || []).map((c: any) => (
+                        <button
+                          key={c.id}
+                          onClick={() => applyTexture(c.textureUrl)}
+                          title={c.name}
+                          className={`rounded-md overflow-hidden w-full h-20 border transition ${selectedColor === c.textureUrl
                             ? "ring-2 ring-red-400 border-transparent"
                             : "border-gray-200"
-                        }`}
-                      >
-                        <img
-                          src={c.textureUrl}
-                          alt={c.name}
-                          className="w-full h-full object-cover"
+                            }`}
+                        >
+                          <img
+                            src={c.textureUrl}
+                            alt={c.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Inscription */}
+                {activeTab === "Inscription" && (
+                  <div>
+                    <h3 className="font-medium mb-2">Inscription / Monogram</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-600">
+                          Toe (2 chars)
+                        </label>
+                        <input
+                          maxLength={2}
+                          value={inscription.toe}
+                          onChange={(e) =>
+                            setInscription((p) => ({
+                              ...p,
+                              toe: e.target.value.toUpperCase(),
+                            }))
+                          }
+                          className="w-full border rounded-md px-2 py-2 mt-1"
+                          placeholder="AB"
                         />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Inscription */}
-              {activeTab === "Inscription" && (
-                <div>
-                  <h3 className="font-medium mb-2">Inscription / Monogram</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs text-gray-600">
-                        Toe (2 chars)
-                      </label>
-                      <input
-                        maxLength={2}
-                        value={inscription.toe}
-                        onChange={(e) =>
-                          setInscription((p) => ({
-                            ...p,
-                            toe: e.target.value.toUpperCase(),
-                          }))
-                        }
-                        className="w-full border rounded-md px-2 py-2 mt-1"
-                        placeholder="AB"
-                      />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-600">
+                          Tongue (optional)
+                        </label>
+                        <input
+                          maxLength={12}
+                          value={inscription.tongue}
+                          onChange={(e) =>
+                            setInscription((p) => ({
+                              ...p,
+                              tongue: e.target.value,
+                            }))
+                          }
+                          className="w-full border rounded-md px-2 py-2 mt-1"
+                          placeholder="Name"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-xs text-gray-600">
-                        Tongue (optional)
-                      </label>
-                      <input
-                        maxLength={12}
-                        value={inscription.tongue}
-                        onChange={(e) =>
-                          setInscription((p) => ({
-                            ...p,
-                            tongue: e.target.value,
-                          }))
-                        }
-                        className="w-full border rounded-md px-2 py-2 mt-1"
-                        placeholder="Name"
-                      />
-                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Preview will render on the 3D model (in the real viewer).
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Preview will render on the 3D model (in the real viewer).
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div>
-              {/* Top Divider */}
-              <div className="border-t border-gray-300"></div>
-
-              {/* Buttons */}
-              <div className="flex gap-4 justify-center py-1">
-                {/* Save to wishlist */}
-                <button className="flex-1 flex items-center justify-center gap-2 bg-white py-1 px-4 font-medium hover:bg-gray-50 transition-colors">
-                  <Heart className="w-5 h-5 text-red-600 fill-red-600" />
-                  <span className="underline decoration-gray-300">
-                    Save to wishlist
-                  </span>
-                </button>
-
-                {/* Send inquiry */}
-                <button className="flex-1 flex items-center justify-center gap-2 bg-white py-1 px-4 font-medium hover:bg-gray-50 transition-colors">
-                  <MessageCircle className="w-5 h-5 text-red-600 fill-red-600" />
-                  <span className="underline decoration-gray-300">
-                    Send inquiry
-                  </span>
-                </button>
+                )}
               </div>
 
-              {/* Bottom Divider */}
-              <div className="border-t border-gray-300"></div>
+              {/* Action Buttons */}
+              <div>
+                {/* Top Divider */}
+                <div className="border-t border-gray-300"></div>
+
+                {/* Buttons */}
+                <div className="flex gap-4 justify-center py-1">
+                  {/* Save to wishlist */}
+                  <button className="flex-1 flex items-center justify-center gap-2 bg-white py-1 px-4 font-medium hover:bg-gray-50 transition-colors">
+                    <Heart className="w-5 h-5 text-red-600 fill-red-600" />
+                    <span className="underline decoration-gray-300">
+                      Save to wishlist
+                    </span>
+                  </button>
+
+                  {/* Send inquiry */}
+                  <button className="flex-1 flex items-center justify-center gap-2 bg-white py-1 px-4 font-medium hover:bg-gray-50 transition-colors">
+                    <MessageCircle className="w-5 h-5 text-red-600 fill-red-600" />
+                    <span className="underline decoration-gray-300">
+                      Send inquiry
+                    </span>
+                  </button>
+                </div>
+
+                {/* Bottom Divider */}
+                <div className="border-t border-gray-300"></div>
+              </div>
             </div>
           </div>
-        </div>
         </div>
 
         {/* Product Information Tabs */}
@@ -1177,7 +1171,7 @@ export default function DerbyBuilderClean() {
             </div>
           </div>
         </div>
-          
+
       </main>
     </div>
   );
