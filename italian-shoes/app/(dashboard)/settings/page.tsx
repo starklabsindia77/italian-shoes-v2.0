@@ -40,6 +40,10 @@ type Settings = {
   integrations: {
     shiprocketEmail?: string | null;
     shiprocketStatus?: "connected" | "disconnected";
+    shiprocketStoreId?: string | null;
+    shiprocketFasterCheckoutEnabled: boolean;
+    razorpayKeyId?: string | null;
+    razorpayMagicCheckoutEnabled: boolean;
   };
   // (optional) roles/permissions would usually be separate; stubbed in UI
 };
@@ -55,7 +59,14 @@ const FALLBACK: Settings = {
   },
   currency: { defaultCurrency: "USD", multiCurrency: true },
   taxes: { enabled: true, taxInclusive: false, defaultRate: 18 },
-  integrations: { shiprocketEmail: "", shiprocketStatus: "disconnected" },
+  integrations: {
+    shiprocketEmail: "",
+    shiprocketStatus: "disconnected",
+    shiprocketStoreId: "",
+    shiprocketFasterCheckoutEnabled: false,
+    razorpayKeyId: "",
+    razorpayMagicCheckoutEnabled: false,
+  },
 };
 
 export default function SettingsPage() {
@@ -258,6 +269,31 @@ export default function SettingsPage() {
                   onChange={(e) => setData((d) => ({ ...d, integrations: { ...d.integrations, shiprocketEmail: e.target.value } }))}
                 />
               </Field>
+              <Field label="Shiprocket Store ID">
+                <Input
+                  placeholder="e.g. 123456"
+                  value={data.integrations.shiprocketStoreId ?? ""}
+                  onChange={(e) => setData((d) => ({ ...d, integrations: { ...d.integrations, shiprocketStoreId: e.target.value } }))}
+                />
+              </Field>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <div className="text-sm font-medium">Enable Faster Checkout</div>
+                  <div className="text-xs text-muted-foreground">Enable FastRR one-click checkout.</div>
+                </div>
+                <Switch
+                  checked={data.integrations.shiprocketFasterCheckoutEnabled}
+                  onCheckedChange={(v) => setData((d) => ({
+                    ...d,
+                    integrations: {
+                      ...d.integrations,
+                      shiprocketFasterCheckoutEnabled: v,
+                      // Turn off Razorpay if Shiprocket is turned on
+                      razorpayMagicCheckoutEnabled: v ? false : d.integrations.razorpayMagicCheckoutEnabled
+                    }
+                  }))}
+                />
+              </div>
               <div className="rounded-lg border p-3">
                 <div className="text-xs text-muted-foreground">Connection</div>
                 <div className="text-sm font-medium">
@@ -270,6 +306,43 @@ export default function SettingsPage() {
                   {/* optional action endpoints you might add */}
                   {/* <Button variant="outline" onClick={() => fetch("/api/integrations/shiprocket/connect", { method: "POST" })}>Connect</Button> */}
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl mt-6">
+            <CardHeader className="pb-3">
+              <CardTitle>Razorpay Magic Checkout</CardTitle>
+              <CardDescription>Enable one-click checkout with Razorpay Magic.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6 md:grid-cols-2">
+              <Field label="Razorpay Key ID">
+                <Input
+                  placeholder="rzp_test_..."
+                  value={data.integrations.razorpayKeyId ?? ""}
+                  onChange={(e) => setData((d) => ({ ...d, integrations: { ...d.integrations, razorpayKeyId: e.target.value } }))}
+                />
+              </Field>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <div className="text-sm font-medium">Enable Magic Checkout</div>
+                  <div className="text-xs text-muted-foreground">Pre-fill addresses and checkout faster.</div>
+                </div>
+                <Switch
+                  checked={data.integrations.razorpayMagicCheckoutEnabled}
+                  onCheckedChange={(v) => setData((d) => ({
+                    ...d,
+                    integrations: {
+                      ...d.integrations,
+                      razorpayMagicCheckoutEnabled: v,
+                      // Turn off Shiprocket if Razorpay is turned on
+                      shiprocketFasterCheckoutEnabled: v ? false : d.integrations.shiprocketFasterCheckoutEnabled
+                    }
+                  }))}
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Button onClick={() => save({ integrations: { ...data.integrations } })}><Save className="mr-2 size-4" />Save Razorpay Settings</Button>
               </div>
             </CardContent>
           </Card>

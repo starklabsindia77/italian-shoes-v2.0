@@ -23,7 +23,14 @@ const DEFAULTS = {
   },
   currency: { defaultCurrency: "USD" as "USD" | "EUR" | "GBP", multiCurrency: true },
   taxes: { enabled: true, taxInclusive: false, defaultRate: 18 },
-  integrations: { shiprocketEmail: "", shiprocketStatus: "disconnected" as "connected" | "disconnected" },
+  integrations: {
+    shiprocketEmail: "",
+    shiprocketStatus: "disconnected" as "connected" | "disconnected",
+    shiprocketStoreId: "",
+    shiprocketFasterCheckoutEnabled: false,
+    razorpayKeyId: "",
+    razorpayMagicCheckoutEnabled: false,
+  },
 };
 
 let MEMORY_CACHE: any | null = null;
@@ -62,21 +69,28 @@ async function writeToDb(value: any) {
   }
 }
 
-export async function GET() {
+export async function getSettings() {
   const db = await readFromDb();
-  if (db) return NextResponse.json({ ...DEFAULTS, ...db });
-  if (MEMORY_CACHE) return NextResponse.json({ ...DEFAULTS, ...MEMORY_CACHE });
-  return NextResponse.json(DEFAULTS);
+  const merged = {
+    ...DEFAULTS,
+    ...(MEMORY_CACHE ?? {}),
+    ...(db ?? {}),
+  };
+  return merged;
+}
+
+export async function GET() {
+  const settings = await getSettings();
+  return NextResponse.json(settings);
 }
 
 export async function PUT(req: Request) {
   const patch = await req.json().catch(() => ({}));
 
   // merge precedence: defaults <- memory <- db <- patch
+  const current = await getSettings();
   const merged = {
-    ...DEFAULTS,
-    ...(MEMORY_CACHE ?? {}),
-    ...((await readFromDb()) ?? {}),
+    ...current,
     ...(patch ?? {}),
   };
 

@@ -248,8 +248,16 @@ export default function DerbyBuilderClean() {
   const [error, setError] = useState<string | null>(null);
 
   // UI-only state
+  const [settings, setSettings] = useState<any>(null);
   const [imageIndex, setImageIndex] = useState(0);
   const [activePanel, setActivePanel] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => setSettings(data))
+      .catch((err) => console.error("Failed to load settings", err));
+  }, []);
   const [activeTab, setActiveTab] = useState<
     "Materials" | "Style" | "Soles" | "Colors" | "Inscription"
   >("Materials");
@@ -726,6 +734,31 @@ export default function DerbyBuilderClean() {
                     buttonSize="sm"
                     config={selectedTextureMap}
                   />
+
+                  {/* Buy Now / Faster Checkout Button */}
+                  {settings?.integrations?.shiprocketFasterCheckoutEnabled && (
+                    <button
+                      id="fastrr-buy-now-button"
+                      className="h-10 px-6 bg-[#6328ff] text-white rounded-full font-bold uppercase text-xs tracking-wider shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                      onClick={async () => {
+                        // Logic to add to cart and then trigger FastRR if needed
+                      }}
+                    >
+                      <span>🚀</span> Buy Now
+                    </button>
+                  )}
+
+                  {settings?.integrations?.razorpayMagicCheckoutEnabled && (
+                    <button
+                      id="razorpay-magic-buy-now"
+                      className="h-10 px-6 bg-[#2463eb] text-white rounded-full font-bold uppercase text-xs tracking-wider shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                      onClick={async () => {
+                        // Razorpay Magic logic
+                      }}
+                    >
+                      <span>✨</span> Buy with Magic
+                    </button>
+                  )}
                   {/* <button className="bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors">
                   ADD TO CART
                 </button> */}
