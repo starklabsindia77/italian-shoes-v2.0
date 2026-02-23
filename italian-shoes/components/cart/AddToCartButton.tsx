@@ -13,7 +13,7 @@ interface AddToCartButtonProps {
   image?: string;
   variant?: string;
   quantity?: number;
-  size?:any;
+  size?: any;
   material?: {
     id: string;
     name: string;
@@ -37,6 +37,7 @@ interface AddToCartButtonProps {
   showIcon?: boolean;
   notes?: string;
   config?: any;
+  onBeforeAdd?: () => Promise<{ image?: string } | void>;
 }
 
 export const AddToCartButton = ({
@@ -57,6 +58,7 @@ export const AddToCartButton = ({
   showIcon = false,
   notes,
   config,
+  onBeforeAdd,
 }: AddToCartButtonProps) => {
   const { addItem, isItemInCart } = useCartStore();
   const { toast } = useToast();
@@ -66,8 +68,17 @@ export const AddToCartButton = ({
 
   const handleAddToCart = async () => {
     setIsLoading(true);
-    
+
     try {
+      let finalImage = image;
+
+      if (onBeforeAdd) {
+        const result = await onBeforeAdd();
+        if (result?.image) {
+          finalImage = result.image;
+        }
+      }
+
       addItem({
         productId,
         title,
@@ -75,7 +86,7 @@ export const AddToCartButton = ({
         price,
         originalPrice,
         quantity,
-        image,
+        image: finalImage,
         size,
         material,
         style,
@@ -83,12 +94,13 @@ export const AddToCartButton = ({
         notes,
         config,
       });
-      
+
       toast({
         title: "Added to cart",
         description: `${title} has been added to your cart.`,
       });
     } catch (error) {
+      console.error("Error adding to cart:", error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",

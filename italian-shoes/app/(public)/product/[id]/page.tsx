@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -13,6 +13,7 @@ import dynamic from "next/dynamic";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { getAssetUrl } from "@/lib/utils";
+import { ShoeAvatarRef } from "@/components/shoe-avatar/ShoeAvatar";
 
 const ShoeAvatar = dynamic(
   () => import("@/components/shoe-avatar/ShoeAvatar"),
@@ -131,6 +132,7 @@ export default function DerbyBuilderClean() {
     useState<string>("all");
   const [selectedColorFilter, setSelectedColorFilter] = useState<string>("all");
   const [selectedPanelName, setSelectedPanelName] = useState<string>("");
+  const shoeAvatarRef = useRef<ShoeAvatarRef>(null);
 
   const handlePanelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedPanelName(e.target.value);
@@ -207,6 +209,10 @@ export default function DerbyBuilderClean() {
     () => transformApiData(productData, sizesData, panelsData),
     [productData, sizesData, panelsData]
   );
+
+  const selectedSizeObject = useMemo(() => {
+    return cfg.sizes?.find((s: any) => s.id === selectedSize);
+  }, [cfg.sizes, selectedSize]);
 
   const avatarData = useMemo(
     () => getAssetUrl(cfg.assets?.glb?.url),
@@ -338,6 +344,15 @@ export default function DerbyBuilderClean() {
     Record<string, any>
   >({});
 
+  const handleBeforeAdd = async () => {
+    if (shoeAvatarRef.current) {
+      const screenshot = shoeAvatarRef.current.captureScreenshot();
+      if (screenshot) {
+        return { image: screenshot };
+      }
+    }
+  };
+
   // Show loading state
   if (loading) {
     return (
@@ -376,7 +391,7 @@ export default function DerbyBuilderClean() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col justify-center items-center text-sm text-gray-500 w-full">
             <h1 className="text-xl font-semibold text-gray-900">
-              {cfg.title || "Men's Luxury Dress Shoes"}
+              {cfg.title?.replace("`", "'") || "Men's Luxury Dress Shoes"}
             </h1>
             Home {" > "} Create Design {" > "} Create Men's Shoes {" > "} Men's Derby Shoes
           </div>
@@ -392,6 +407,7 @@ export default function DerbyBuilderClean() {
             {/* Main Product Image with Controls */}
             <div className="relative bg-gray-50 rounded-lg overflow-hidden">
               <ShoeAvatar
+                ref={shoeAvatarRef}
                 avatarData={avatarData}
                 objectList={objectList}
                 setObjectList={setObjectList}
@@ -451,11 +467,12 @@ export default function DerbyBuilderClean() {
                     price={cfg.price}
                     originalPrice={cfg.compareAtPrice}
                     image={getAssetUrl(cfg.assets?.thumbnail || "/ShoeSoleFixed.glb")}
-                    size={selectedSize}
+                    size={selectedSizeObject || selectedSize}
                     variant="Default"
                     buttonVariant="default"
                     buttonSize="sm"
                     config={selectedTextureMap}
+                    onBeforeAdd={handleBeforeAdd}
                   />
                 </div>
               </div>

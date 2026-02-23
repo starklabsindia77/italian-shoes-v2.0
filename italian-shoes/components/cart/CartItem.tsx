@@ -89,10 +89,9 @@ export const CartItem = ({
   };
 
   return (
-    <div 
-      className={`flex gap-4 p-4 bg-cart-item border border-cart-border rounded-lg transition-all duration-150 ${
-        isRemoving ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-      }`}
+    <div
+      className={`flex gap-4 p-4 bg-cart-item border border-cart-border rounded-lg transition-all duration-150 ${isRemoving ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+        }`}
     >
       {/* Product Image */}
       {image && (
@@ -110,12 +109,16 @@ export const CartItem = ({
         <div className="flex justify-between items-start">
           <div>
             <h3 className="font-medium text-foreground text-sm leading-tight">
-              {title}
+              {title?.replace("`", "'")}
             </h3>
             {/* <p className="text-muted-foreground text-sm mt-1">{variant}</p> */}
             {/* Display customization options */}
             <div className="text-xs text-muted-foreground mt-1 space-y-1">
-              {size && <p>Size: {size.value} ({size.region})</p>}
+              {size && (
+                <p>
+                  Size: {typeof size === 'string' ? size : (size.label || `${size.value || ''} ${size.region ? `(${size.region})` : ''}`)}
+                </p>
+              )}
               {material && (
                 <p>
                   Material: {material.name}
