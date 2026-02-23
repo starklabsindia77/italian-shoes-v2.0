@@ -130,7 +130,7 @@ export const CartItem = ({
             </div>
           </div>
           <div className="flex gap-1">
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               onClick={handleMoveToWishlist}
@@ -138,7 +138,7 @@ export const CartItem = ({
               title="Move to wishlist"
             >
               <Heart className="h-4 w-4" />
-            </Button>
+            </Button> */}
             <Button
               variant="ghost"
               size="sm"

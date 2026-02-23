@@ -92,6 +92,12 @@ export interface Product {
   status: string;
   tags: string[];
   imageUrl: string;
+  assets: {
+    thumbnail?: string;
+    glb?: {
+      url: string;
+    };
+  };
   glbUrl?: string;
   thumbnailUrl?: string;
   shopifyVariants: ShopifyVariant[];

@@ -1,10 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { ShoppingBag, Heart, Eye, ArrowUpDown } from "lucide-react";
-import Link from "next/link";
+import { ArrowUpDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Product } from "@/types/product_type";
+import { getAssetUrl } from "@/lib/utils";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -201,7 +201,7 @@ const ProductsPage = () => {
         <div className="relative aspect-square overflow-hidden bg-gray-100">
           <img
             onClick={handleNavigate}
-            src={product.imageUrl || "/api/placeholder/400/400"}
+            src={getAssetUrl(product.assets?.thumbnail) || "/api/placeholder/400/400"}
             alt={product.title}
             className="object-cover w-full h-full transition-transform duration-500 ease-in-out"
             style={{
@@ -210,22 +210,7 @@ const ProductsPage = () => {
           />
 
           {/* Quick action buttons (show on hover) */}
-          <div
-            className={`absolute bottom-0 left-0 right-0 flex justify-center space-x-2 py-3 bg-white bg-opacity-90 transition-all duration-300 ${hovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full'
-              }`}
-          >
-            <button className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
-              <ShoppingBag size={18} />
-            </button>
-            <button className="p-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors">
-              <Heart size={18} />
-            </button>
-            <Link href={`/product/${product.id}`}>
-              <button className="p-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors">
-                <Eye size={18} />
-              </button>
-            </Link>
-          </div>
+
         </div>
 
         {/* Product Details */}

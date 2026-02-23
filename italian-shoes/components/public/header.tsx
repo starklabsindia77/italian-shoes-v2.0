@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, User, Menu, X } from 'lucide-react';
+import { User, Menu, X } from 'lucide-react';
 import AnnouncementBar from './announcementBar';
 import { CartIcon } from '@/components/cart/CartIcon';
 
@@ -36,21 +36,15 @@ const Header: React.FC = () => {
               <button className="text-gray-700 hover:text-gray-900">
                 <User className="w-5 h-5" />
               </button>
-              {/* <button className="text-gray-700 hover:text-gray-900">
-                <Search className="w-5 h-5" />
-              </button> */}
-              <CartIcon showWishlist={true} />
+              <CartIcon showWishlist={false} />
             </div>
 
             {/* Mobile menu button */}
             <div className="lg:hidden flex items-center space-x-4">
-              {/* <button className="text-gray-700 hover:text-gray-900">
-                <Search className="w-5 h-5" />
-              </button> */}
               <button className="text-gray-700 hover:text-gray-900">
                 <User className="w-5 h-5" />
               </button>
-              <CartIcon showWishlist={true} />
+              <CartIcon showWishlist={false} />
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="text-gray-700 hover:text-gray-900"
