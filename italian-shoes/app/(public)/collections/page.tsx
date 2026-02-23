@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ShoppingBag, Heart, Eye, ArrowUpDown } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Product } from "@/types/product_type";
 
 const ProductsPage = () => {
@@ -54,7 +55,9 @@ const ProductsPage = () => {
           ...p,
           price: p.price ? [p.price] : [], // Wrap single price in array to match expectations
           // Try to find a usable image from assets or selected variants/styles/soles
-          imageUrl: p.assets?.glb?.thumbnail ||
+          imageUrl: p.thumbnailUrl ||
+            p.assets?.thumbnail ||
+            p.assets?.glb?.thumbnail ||
             p.selectedStyles?.[0]?.imageUrl ||
             p.selectedSoles?.[0]?.imageUrl ||
             p.imageUrl ||
@@ -181,17 +184,23 @@ const ProductsPage = () => {
   // Product Card Component
   const ProductCard = ({ product, isLast }: { product: Product, isLast: boolean }) => {
     const [hovered, setHovered] = useState(false);
+    const router = useRouter();
+
+    const handleNavigate = () => {
+      router.push(`/product/${product.id}`);
+    };
 
     return (
       <div
         ref={isLast ? lastProductRef : null}
-        className="relative bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md"
+        className="relative bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md cursor-pointer"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
         {/* Product Image */}
         <div className="relative aspect-square overflow-hidden bg-gray-100">
           <img
+            onClick={handleNavigate}
             src={product.imageUrl || "/api/placeholder/400/400"}
             alt={product.title}
             className="object-cover w-full h-full transition-transform duration-500 ease-in-out"
@@ -211,7 +220,7 @@ const ProductsPage = () => {
             <button className="p-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors">
               <Heart size={18} />
             </button>
-            <Link href={`/product-details/${product.productId}`}>
+            <Link href={`/product/${product.id}`}>
               <button className="p-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors">
                 <Eye size={18} />
               </button>
@@ -220,7 +229,7 @@ const ProductsPage = () => {
         </div>
 
         {/* Product Details */}
-        <div className="p-4">
+        <div className="p-4" onClick={handleNavigate}>
           <p className="text-xs text-gray-500 mb-1">{product.vendor}</p>
           <h3 className="font-medium text-gray-900 mb-1 line-clamp-2">{product.title}</h3>
 

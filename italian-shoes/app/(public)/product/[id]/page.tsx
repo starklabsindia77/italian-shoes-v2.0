@@ -16,6 +16,7 @@ import {
 import dynamic from "next/dynamic";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
+import { getAssetUrl } from "@/lib/utils";
 
 const ShoeAvatar = dynamic(
   () => import("@/components/shoe-avatar/ShoeAvatar"),
@@ -358,11 +359,15 @@ export default function DerbyBuilderClean() {
     return {
       ...productApiData,
       // Add default images if not present
-      images: productApiData?.images || [
-        "/placeholder/shoe-1.jpg",
-        "/placeholder/shoe-2.jpg",
-        "/placeholder/shoe-3.jpg",
-      ],
+      images: productApiData?.images || (
+        productApiData?.assets?.thumbnail
+          ? [productApiData.assets.thumbnail]
+          : [
+            "/placeholder/shoe-1.jpg",
+            "/placeholder/shoe-2.jpg",
+            "/placeholder/shoe-3.jpg",
+          ]
+      ),
 
       // Transform panels from panels API data or use defaults
       panels: panelsApiData?.items
@@ -660,7 +665,7 @@ export default function DerbyBuilderClean() {
               </div> */}
 
               <ShoeAvatar
-                avatarData="/ShoeSoleFixed.glb"
+                avatarData={getAssetUrl("/ShoeSoleFixed.glb")}
                 objectList={objectList}
                 setObjectList={setObjectList}
                 // selectedPanelName={selectedPanelName}
@@ -719,7 +724,7 @@ export default function DerbyBuilderClean() {
                     title={cfg.title}
                     price={cfg.price}
                     originalPrice={cfg.compareAtPrice}
-                    image={'/ShoeSoleFixed.glb'}
+                    image={getAssetUrl(cfg.assets?.thumbnail || "/ShoeSoleFixed.glb")}
                     size={selectedSizeInfo}
                     variant="Default"
                     buttonVariant="default"

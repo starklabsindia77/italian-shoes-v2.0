@@ -70,7 +70,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
           price: d.price,
           currency: d.currency,
           compareAtPrice: d.compareAtPrice ?? null,
-          assets: d.assets ?? {},
+          assets: d.assets ?? {
+            glb: { url: d.glbUrl, lighting: body.glbLighting, environment: body.glbEnvironment },
+            thumbnail: d.thumbnailUrl
+          },
+          glbUrl: d.glbUrl ?? null,
+          thumbnailUrl: d.thumbnailUrl ?? null,
           selectedMaterials: d.selectedMaterials ?? undefined,
           selectedStyles: d.selectedStyles ?? undefined,
           selectedSoles: d.selectedSoles ?? undefined,

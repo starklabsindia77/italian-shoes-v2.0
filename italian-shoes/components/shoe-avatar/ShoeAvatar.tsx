@@ -13,6 +13,7 @@ import React, {
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Environment, Bounds } from "@react-three/drei";
 import * as THREE from "three";
+import { getAssetUrl } from "@/lib/utils";
 
 interface TextureConfig {
   colorUrl?: string;
@@ -156,7 +157,7 @@ const Avatar: React.FC<AvatarProps> = ({
           const texConfig = selectedTextureMap?.[o.name];
           if (texConfig?.normalUrl) {
             try {
-              const normalMap = textureLoader.load(texConfig.normalUrl);
+              const normalMap = textureLoader.load(getAssetUrl(texConfig.normalUrl));
               normalMap.flipY = false;
               mat.normalMap = normalMap;
             } catch (error) {
@@ -165,7 +166,7 @@ const Avatar: React.FC<AvatarProps> = ({
           }
           if (texConfig?.roughnessUrl) {
             try {
-              const roughnessMap = textureLoader.load(texConfig.roughnessUrl);
+              const roughnessMap = textureLoader.load(getAssetUrl(texConfig.roughnessUrl));
               roughnessMap.flipY = false;
               mat.roughnessMap = roughnessMap;
             } catch (error) {
@@ -296,7 +297,7 @@ const Avatar: React.FC<AvatarProps> = ({
 
         if ((mat.map as any)?.userData?._appliedUrl === textureUrl) return;
 
-        const tex = getTexture(textureUrl);
+        const tex = getTexture(getAssetUrl(textureUrl));
         if (!tex) return;
 
         if (prevMap) {
