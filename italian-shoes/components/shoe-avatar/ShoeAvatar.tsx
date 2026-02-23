@@ -9,9 +9,10 @@ import React, {
   SetStateAction,
   useCallback,
   useMemo,
+  memo,
 } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, useGLTF, Environment, Bounds } from "@react-three/drei";
+import { OrbitControls, useGLTF, Environment, Bounds, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { getAssetUrl } from "@/lib/utils";
 
@@ -360,11 +361,19 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
 
   // Preload the model with error handling
   useEffect(() => {
+    if (!avatarData || avatarData === "") {
+      setHasError(false); // Reset error if URL is empty (waiting for data)
+      return;
+    }
+
     try {
+      // Clear previous error when starting a new load
+      setHasError(false);
       useGLTF.preload(avatarData);
     } catch (error) {
       console.error("Error preloading model:", error);
-      setHasError(true);
+      // Only set error if it's a real synchronous failure
+      // Most network errors will be handled by Suspense/WebGLErrorBoundary
     }
   }, [avatarData]);
 
@@ -480,7 +489,7 @@ const ShoeAvatar: React.FC<AvatarProps> = ({
             background={false}
           />
 
-          <Suspense fallback={<DomSpinner />}>
+          <Suspense fallback={<Html center><DomSpinner /></Html>}>
             <Bounds margin={1.1}>
               <Avatar
                 avatarData={avatarData}
@@ -516,4 +525,4 @@ const DomSpinner: React.FC = () => {
   );
 };
 
-export default ShoeAvatar;
+export default memo(ShoeAvatar);
