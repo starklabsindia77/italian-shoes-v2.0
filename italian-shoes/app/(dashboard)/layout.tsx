@@ -83,7 +83,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Sizes", href: "/sizes", icon: Ruler },
   { label: "Panels", href: "/panels", icon: PanelsTopLeft },
   { label: "Customers", href: "/customers", icon: Users },
-  { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  // { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -177,33 +177,7 @@ function ClientShell({ children }: { children: React.ReactNode }) {
               </nav>
             </ScrollArea>
             <Separator />
-            <div className="p-3">
-              <div className={cn("rounded-xl border p-3", collapsed && "text-center")}>
-                {!collapsed ? (
-                  <div className="flex items-center gap-3">
-                    <Avatar className="size-8 border bg-muted">
-                      <AvatarFallback className="text-[10px] font-bold">N</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 overflow-hidden">
-                      <div className="text-sm font-medium">Storage</div>
-                      <div className="mt-0.5 text-[10px] text-muted-foreground truncate">
-                        12.8 GB of 50 GB used
-                      </div>
-                      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                        <div className="h-full w-[26%] bg-primary" />
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid place-items-center gap-2">
-                    <Avatar className="size-8 border bg-muted">
-                      <AvatarFallback className="text-[10px] font-bold">N</AvatarFallback>
-                    </Avatar>
-                    <div className="text-[10px] font-medium text-muted-foreground">26%</div>
-                  </div>
-                )}
-              </div>
-            </div>
+
           </aside>
 
           {/* Mobile Sidebar (Sheet) */}
