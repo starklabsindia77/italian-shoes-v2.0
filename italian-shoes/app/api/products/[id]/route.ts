@@ -74,8 +74,6 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             glb: { url: d.glbUrl, lighting: body.glbLighting, environment: body.glbEnvironment },
             thumbnail: d.thumbnailUrl
           },
-          glbUrl: d.glbUrl ?? null,
-          thumbnailUrl: d.thumbnailUrl ?? null,
           selectedMaterials: d.selectedMaterials ?? undefined,
           selectedStyles: d.selectedStyles ?? undefined,
           selectedSoles: d.selectedSoles ?? undefined,

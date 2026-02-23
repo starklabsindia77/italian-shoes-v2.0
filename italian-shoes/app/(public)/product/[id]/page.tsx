@@ -635,37 +635,8 @@ export default function DerbyBuilderClean() {
           <div className="space-y-6">
             {/* Main Product Image with Controls */}
             <div className="relative bg-gray-50 rounded-lg overflow-hidden">
-              {/* <div className="absolute top-4 left-4 z-10 flex gap-2">
-                <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors">
-                  <ZoomIn className="w-4 h-4" />
-                </button>
-                <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors">
-                  <Save className="w-4 h-4" />
-                </button>
-                <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors">
-                  <Share2 className="w-4 h-4" />
-                </button>
-              </div>
-
-              
-              <button className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors z-10">
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors z-10">
-                <ChevronRight className="w-5 h-5" />
-              </button>
-
-              
-              <div className="aspect-square flex items-center justify-center p-8">
-                <img
-                  src={cfg.images?.[imageIndex] || '/placeholder/shoe-main.jpg'}
-                  alt="Product"
-                  className="max-w-full max-h-full object-contain"
-                />
-              </div> */}
-
               <ShoeAvatar
-                avatarData={getAssetUrl("/ShoeSoleFixed.glb")}
+                avatarData={getAssetUrl(cfg.assets.glb.url)}
                 objectList={objectList}
                 setObjectList={setObjectList}
                 // selectedPanelName={selectedPanelName}
