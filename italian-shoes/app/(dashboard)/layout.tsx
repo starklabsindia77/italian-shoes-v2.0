@@ -34,6 +34,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
+  Layers,
+  Sparkles,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils"; // if you don’t have this helper, see inline fallback below
@@ -76,8 +78,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Products", href: "/products", icon: Package },
   { label: "Orders", href: "/orders", icon: ShoppingCart },
   { label: "Materials", href: "/materials", icon: Palette },
-  { label: "Styles", href: "/styles", icon: Boxes },
-  { label: "Soles", href: "/soles", icon: Truck },
+  { label: "Styles", href: "/styles", icon: Sparkles },
+  { label: "Soles", href: "/soles", icon: Layers },
   { label: "Sizes", href: "/sizes", icon: Ruler },
   { label: "Panels", href: "/panels", icon: PanelsTopLeft },
   { label: "Customers", href: "/customers", icon: Users },
@@ -178,17 +180,27 @@ function ClientShell({ children }: { children: React.ReactNode }) {
             <div className="p-3">
               <div className={cn("rounded-xl border p-3", collapsed && "text-center")}>
                 {!collapsed ? (
-                  <>
-                    <div className="text-sm font-medium">Storage</div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      12.8 GB of 50 GB used
+                  <div className="flex items-center gap-3">
+                    <Avatar className="size-8 border bg-muted">
+                      <AvatarFallback className="text-[10px] font-bold">N</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 overflow-hidden">
+                      <div className="text-sm font-medium">Storage</div>
+                      <div className="mt-0.5 text-[10px] text-muted-foreground truncate">
+                        12.8 GB of 50 GB used
+                      </div>
+                      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                        <div className="h-full w-[26%] bg-primary" />
+                      </div>
                     </div>
-                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div className="h-full w-[26%] bg-primary" />
-                    </div>
-                  </>
+                  </div>
                 ) : (
-                  <div className="text-xs text-muted-foreground">26%</div>
+                  <div className="grid place-items-center gap-2">
+                    <Avatar className="size-8 border bg-muted">
+                      <AvatarFallback className="text-[10px] font-bold">N</AvatarFallback>
+                    </Avatar>
+                    <div className="text-[10px] font-medium text-muted-foreground">26%</div>
+                  </div>
                 )}
               </div>
             </div>
@@ -298,7 +310,7 @@ function ClientShell({ children }: { children: React.ReactNode }) {
                         <Link href="/profile">Profile</Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => signOut({ callbackUrl: "/login" })}
                         className="cursor-pointer"
                       >
@@ -359,7 +371,7 @@ function ThemeToggle() {
     // optional: persist to localStorage
     try {
       localStorage.setItem("theme", next ? "dark" : "light");
-    } catch {}
+    } catch { }
   };
 
   return (

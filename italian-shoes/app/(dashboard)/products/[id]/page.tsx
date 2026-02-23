@@ -555,19 +555,43 @@ export default function ProductEditPage() {
 
   return (
     <div className="space-y-6">
-      {/* header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button asChild variant="ghost" size="sm">
             <Link href="/products"><ArrowLeft className="mr-2 size-4" />Back</Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{product?.title || "Edit Product"}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {product?.title?.replace("`", "'") || "Edit Product"}
+            </h1>
             <p className="text-sm text-muted-foreground">ID: {product?.productId || id}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={refreshAll}><RefreshCw className="mr-2 size-4" />Refresh</Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              console.log("🧪 Test button clicked - form values:", form.getValues());
+              console.log("🧪 Form errors:", form.formState.errors);
+              console.log("🧪 Form is valid:", form.formState.isValid);
+            }}
+          >
+            Test State
+          </Button>
+          <Button variant="outline" size="sm" onClick={refreshAll}>
+            <RefreshCw className="mr-2 size-4" />Refresh
+          </Button>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={saving}
+            onClick={form.handleSubmit(onSubmit)}
+          >
+            <Save className="mr-2 size-4" />
+            {saving ? "Updating..." : "Update Product"}
+          </Button>
         </div>
       </div>
 
@@ -586,7 +610,7 @@ export default function ProductEditPage() {
             </TabsList>
 
             <TabsContent value="basic">
-              <div className="grid gap-6 lg:grid-cols-3">
+              <div className="grid gap-6 lg:grid-cols-1">
                 <div className="lg:col-span-2 space-y-6">
                   <Card className="rounded-2xl">
                     <CardHeader className="pb-3">
@@ -688,7 +712,7 @@ export default function ProductEditPage() {
             </TabsContent>
 
             <TabsContent value="seo">
-              <div className="grid gap-6 lg:grid-cols-3">
+              <div className="grid gap-6 lg:grid-cols-1">
                 <div className="lg:col-span-2 space-y-6">
                   <Card className="rounded-2xl">
                     <CardHeader className="pb-3">
@@ -736,13 +760,13 @@ export default function ProductEditPage() {
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Previous</Button>
                 <Button type="button" onClick={() => handleNext()}>Next</Button>
               </div>
             </TabsContent>
 
             <TabsContent value="pricing">
-              <div className="grid gap-6 lg:grid-cols-3">
+              <div className="grid gap-6 lg:grid-cols-1">
                 <div className="space-y-6">
                   <Card className="rounded-2xl">
                     <CardHeader className="pb-3">
@@ -837,13 +861,13 @@ export default function ProductEditPage() {
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Previous</Button>
                 <Button type="button" onClick={() => handleNext()}>Next</Button>
               </div>
             </TabsContent>
 
             <TabsContent value="assets">
-              <div className="grid gap-6 lg:grid-cols-3">
+              <div className="grid gap-6 lg:grid-cols-1">
                 <div className="space-y-6">
                   <Card className="rounded-2xl">
                     <CardHeader className="pb-3">
@@ -923,14 +947,14 @@ export default function ProductEditPage() {
                         }}
                       >
                         <Sparkles className="mr-2 size-4" />
-                        Preview assets JSON (console)
+                        Validate Asset Data
                       </Button>
                     </CardContent>
                   </Card>
                 </div>
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Previous</Button>
                 <Button type="button" onClick={() => handleNext()}>Next</Button>
               </div>
             </TabsContent>
@@ -945,7 +969,7 @@ export default function ProductEditPage() {
                 />
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Previous</Button>
                 <Button type="button" onClick={handleNext}>Next</Button>
               </div>
             </TabsContent>
@@ -963,7 +987,7 @@ export default function ProductEditPage() {
                 />
               </div>
               <div className="mt-6 flex justify-between gap-2">
-                <Button type="button" variant="outline" onClick={() => handleBack()}>Back</Button>
+                <Button type="button" variant="outline" onClick={() => handleBack()}>Previous</Button>
                 <Button type="button" onClick={() => handleNext()}>Next</Button>
               </div>
             </TabsContent>
@@ -989,31 +1013,6 @@ export default function ProductEditPage() {
 
           </Tabs>
 
-          {/* Update Button - Now inside the form */}
-          <div className="flex justify-end gap-2 pt-6 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                console.log("🧪 Test button clicked - form values:", form.getValues());
-                console.log("🧪 Form errors:", form.formState.errors);
-                console.log("🧪 Form is valid:", form.formState.isValid);
-              }}
-            >
-              Test Form State
-            </Button>
-            <Button
-              type="submit"
-              disabled={saving}
-              onClick={() => {
-                console.log("🔘 Update button clicked");
-                console.log("Form errors:", form.formState.errors);
-                console.log("Form is valid:", form.formState.isValid);
-              }}
-            >
-              <Save className="mr-2 size-4" />{saving ? "Updating..." : "Update Product"}
-            </Button>
-          </div>
         </form>
       </Form>
     </div>
