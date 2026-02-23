@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CartItem } from "@/components/cart/CartItem";
 import { OrderSummary } from "@/components/cart/OrderSummary";
@@ -11,6 +12,23 @@ const Cart = () => {
   const { toast } = useToast();
   const router = useRouter();
   const { items: cartItems, getTotalPrice, clearCart } = useCartStore();
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => setSettings(data))
+      .catch((err) => console.error("Failed to load settings", err));
+  }, []);
+
+  // Re-initialize Razorpay Magic Checkout when settings are loaded
+  useEffect(() => {
+    if (settings?.integrations?.razorpayMagicCheckoutEnabled && (window as any).RazorpayMagicCheckout) {
+      (window as any).RazorpayMagicCheckout.init({
+        key_id: settings.integrations.razorpayKeyId,
+      });
+    }
+  }, [settings]);
 
   const subtotal = getTotalPrice();
   const shipping = subtotal > 100 ? 0 : 9.99;
@@ -25,7 +43,7 @@ const Cart = () => {
       });
       return;
     }
-    
+
     toast({
       title: "Proceeding to checkout",
       description: "Redirecting to secure checkout...",
@@ -101,6 +119,20 @@ const Cart = () => {
             <div className="bg-warning/10 border border-warning/20 rounded-lg p-4 mt-3">
               <p className="text-sm text-warning-foreground">
                 <strong>Free shipping</strong> on orders over ₹10000. Add ₹{(100 - subtotal).toFixed(2)} more to qualify!
+              </p>
+            </div>
+          )}
+
+          {settings?.integrations?.razorpayMagicCheckoutEnabled && (
+            <div className="mt-4">
+              <button
+                id="razorpay-magic-checkout-button"
+                className="w-full flex justify-center items-center px-4 py-3 bg-[#2463eb] text-white rounded-lg font-bold uppercase tracking-wider shadow-md hover:bg-[#1d4ed8] hover:shadow-lg transition-all"
+              >
+                ✨ Magic Checkout
+              </button>
+              <p className="text-center text-[10px] text-muted-foreground mt-2">
+                Fast & Secure 1-click checkout by Razorpay
               </p>
             </div>
           )}

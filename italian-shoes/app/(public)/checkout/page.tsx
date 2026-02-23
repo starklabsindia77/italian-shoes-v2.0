@@ -72,17 +72,6 @@ const Checkout = () => {
               </div>
             )}
 
-            {settings?.integrations?.razorpayMagicCheckoutEnabled && (
-              <div className="bg-[#eff6ff] border border-[#bfdbfe] p-4 rounded-xl max-w-md w-full shadow-sm">
-                <p className="text-[#1e40af] text-sm font-medium mb-3">Pay way faster with Razorpay Magic!</p>
-                <button
-                  id="razorpay-magic-checkout-button"
-                  className="w-full bg-[#2463eb] text-white py-2.5 rounded-lg font-bold shadow-md hover:bg-[#1d4ed8] transition-colors flex items-center justify-center gap-2"
-                >
-                  ✨ Magic Checkout
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
