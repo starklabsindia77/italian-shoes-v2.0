@@ -214,10 +214,15 @@ export default function DerbyBuilderClean() {
     return cfg.sizes?.find((s: any) => s.id === selectedSize);
   }, [cfg.sizes, selectedSize]);
 
-  const avatarData = useMemo(
-    () => getAssetUrl(cfg.assets?.glb?.url),
-    [cfg.assets?.glb?.url]
-  );
+  const avatarData = useMemo(() => {
+    // If a sole is selected, check if it has a glbUrl
+    const selectedSoleObj = (productData?.selectedSoles || []).find(
+      (so: any) => (so.id || so.name) === selectedSole
+    );
+
+    const glbUrl = selectedSoleObj?.glbUrl || cfg.assets?.glb?.url;
+    return getAssetUrl(glbUrl);
+  }, [productData?.selectedSoles, selectedSole, cfg.assets?.glb?.url]);
 
   // Helper functions to get filtered materials and colors
   const getAvailableMaterials = () => {
@@ -738,7 +743,7 @@ export default function DerbyBuilderClean() {
                     {(cfg.selectedSoles || []).map((so: any) => (
                       <button
                         key={so.id || so.name}
-                        onClick={() => setSelectedSole(so.id || so.name)}
+                        onClick={() => setSelectedSole(prev => prev === (so.id || so.name) ? null : (so.id || so.name))}
                         className={`p-2 rounded-md border transition ${selectedSole === (so.id || so.name)
                           ? "border-red-500 ring-1 ring-red-100"
                           : "border-gray-200"
