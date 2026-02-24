@@ -435,10 +435,10 @@ export default function DerbyBuilderClean() {
                 {/* Price Section */}
                 <div className="flex flex-col gap-0.5">
                   <div className="text-lg font-normal text-red-600 leading-none">
-                    ${cfg.price || 329}
+                    ₹{cfg.price || 329}
                   </div>
                   <div className="text-sm font-bold text-gray-700 line-through leading-none">
-                    ${cfg.compareAtPrice || 519}
+                    ₹{cfg.compareAtPrice || 519}
                   </div>
                 </div>
 
