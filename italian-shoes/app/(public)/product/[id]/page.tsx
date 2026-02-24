@@ -214,10 +214,22 @@ export default function DerbyBuilderClean() {
     return cfg.sizes?.find((s: any) => s.id === selectedSize);
   }, [cfg.sizes, selectedSize]);
 
-  const avatarData = useMemo(
-    () => getAssetUrl(cfg.assets?.glb?.url),
-    [cfg.assets?.glb?.url]
-  );
+  const avatarData = useMemo(() => {
+    // If a sole is selected, check if it has a glbUrl
+    const selectedSoleObj = (productData?.selectedSoles || []).find(
+      (so: any) => (so.id || so.name) === selectedSole
+    );
+
+    const selectedStyleObj = (productData?.selectedStyles || []).find(
+      (so: any) => (so.id || so.name) === selectedStyle
+    );
+
+    console.log("selectedSoleObj", selectedSoleObj);
+    console.log("selectedStyleObj", selectedStyleObj);
+
+    const glbUrl = selectedSoleObj?.glbUrl || selectedStyleObj?.glbUrl || cfg.assets?.glb?.url;
+    return getAssetUrl(glbUrl);
+  }, [productData?.selectedSoles, selectedSole, productData?.selectedStyles, selectedStyle, cfg.assets?.glb?.url]);
 
   // Helper functions to get filtered materials and colors
   const getAvailableMaterials = () => {
@@ -709,16 +721,22 @@ export default function DerbyBuilderClean() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {(cfg.selectedStyles || []).map((s: any) => (
                       <button
-                        key={s.id}
-                        onClick={() => setSelectedStyle(s.id)}
-                        className={`p-2 rounded-md border transition ${selectedStyle === s.id
+                        key={s.id || s.name}
+                        onClick={() => {
+                          const newStyle = (s.id || s.name);
+                          setSelectedStyle(prev => prev === newStyle ? null : newStyle);
+                          if (selectedStyle !== newStyle) {
+                            setSelectedSole(null);
+                          }
+                        }}
+                        className={`p-2 rounded-md border transition ${selectedStyle === (s.id || s.name)
                           ? "border-red-500 ring-1 ring-red-100"
                           : "border-gray-200"
                           }`}
                       >
                         <div className="w-full h-20 rounded-md overflow-hidden bg-gray-50 mb-1 flex items-center justify-center">
                           <img
-                            src={s.imageUrl}
+                            src={getAssetUrl(s.imageUrl)}
                             alt={s.name}
                             className="object-contain w-full h-full"
                           />
@@ -738,7 +756,13 @@ export default function DerbyBuilderClean() {
                     {(cfg.selectedSoles || []).map((so: any) => (
                       <button
                         key={so.id || so.name}
-                        onClick={() => setSelectedSole(so.id || so.name)}
+                        onClick={() => {
+                          const newSole = (so.id || so.name);
+                          setSelectedSole(prev => prev === newSole ? null : newSole);
+                          if (selectedSole !== newSole) {
+                            setSelectedStyle(null);
+                          }
+                        }}
                         className={`p-2 rounded-md border transition ${selectedSole === (so.id || so.name)
                           ? "border-red-500 ring-1 ring-red-100"
                           : "border-gray-200"
@@ -746,7 +770,7 @@ export default function DerbyBuilderClean() {
                       >
                         <div className="w-full h-20 rounded-md overflow-hidden bg-gray-50 mb-2 flex items-center justify-center">
                           <img
-                            src={so.imageUrl}
+                            src={getAssetUrl(so.imageUrl)}
                             alt={so.name}
                             className="object-contain w-full h-full"
                           />
