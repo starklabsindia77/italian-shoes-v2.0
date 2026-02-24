@@ -311,7 +311,10 @@ export default function ProductEditPage() {
             name: sole.name || '',
             description: sole.description || null,
             category: sole.category || null,
-            imageUrl: sole.imageUrl || null
+            imageUrl: sole.imageUrl || null,
+            glbUrl: sole.glbUrl || null,
+            lighting: sole.lighting || null,
+            environment: sole.environment || null
           });
         }
       });

@@ -28,14 +28,20 @@ export const ProductCreateSchema = z.object({
     name: z.string(),
     description: z.string().nullable().optional(),
     category: z.string().nullable().optional(),
-    imageUrl: z.string().nullable().optional()
+    imageUrl: z.string().nullable().optional(),
+    glbUrl: z.string().nullable().optional(),
+    lighting: z.any().nullable().optional(),
+    environment: z.any().nullable().optional()
   })).optional(),
   selectedSoles: z.array(z.object({
     id: z.string(),
     name: z.string(),
     description: z.string().nullable().optional(),
     category: z.string().nullable().optional(),
-    imageUrl: z.string().nullable().optional()
+    imageUrl: z.string().nullable().optional(),
+    glbUrl: z.string().nullable().optional(),
+    lighting: z.any().nullable().optional(),
+    environment: z.any().nullable().optional()
   })).optional()
 });
 export const ProductUpdateSchema = ProductCreateSchema.partial();
