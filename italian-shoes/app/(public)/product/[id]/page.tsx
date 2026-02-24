@@ -723,7 +723,7 @@ export default function DerbyBuilderClean() {
                       >
                         <div className="w-full h-20 rounded-md overflow-hidden bg-gray-50 mb-1 flex items-center justify-center">
                           <img
-                            src={s.imageUrl}
+                            src={getAssetUrl(s.imageUrl)}
                             alt={s.name}
                             className="object-contain w-full h-full"
                           />
@@ -751,7 +751,7 @@ export default function DerbyBuilderClean() {
                       >
                         <div className="w-full h-20 rounded-md overflow-hidden bg-gray-50 mb-2 flex items-center justify-center">
                           <img
-                            src={so.imageUrl}
+                            src={getAssetUrl(so.imageUrl)}
                             alt={so.name}
                             className="object-contain w-full h-full"
                           />

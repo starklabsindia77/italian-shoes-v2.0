@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Plus, X, Image as ImageIcon } from "lucide-react";
+import { getAssetUrl } from "@/lib/utils";
 
 export interface Style {
   id: string;
@@ -156,7 +157,7 @@ export function StyleSoleSelection({
                         {item.imageUrl && (
                           <div className="w-8 h-8 rounded border overflow-hidden flex-shrink-0">
                             <img
-                              src={item.imageUrl}
+                              src={getAssetUrl(item.imageUrl)}
                               alt={item.name}
                               className="w-full h-full object-cover"
                               onError={(e) => {
