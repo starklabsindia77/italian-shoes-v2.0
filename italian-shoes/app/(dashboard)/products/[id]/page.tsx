@@ -295,7 +295,10 @@ export default function ProductEditPage() {
             name: style.name || '',
             description: style.description || null,
             category: style.category || null,
-            imageUrl: style.imageUrl || null
+            imageUrl: style.imageUrl || null,
+            glbUrl: style.glbUrl || null,
+            lighting: style.lighting || null,
+            environment: style.environment || null
           });
         }
       });

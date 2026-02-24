@@ -63,6 +63,11 @@ export default function StyleEditPage() {
       const r = await fetch(`/api/styles/${id}`, { cache: "no-store" });
       if (!r.ok) throw new Error();
       const data = await r.json();
+      data.modelConfig = {
+        glbUrl: data.glbUrl,
+        lighting: data.lighting,
+        environment: data.environment,
+      }
       setStyle(data ?? FALLBACK_STYLE);
     } catch {
       setStyle(FALLBACK_STYLE);

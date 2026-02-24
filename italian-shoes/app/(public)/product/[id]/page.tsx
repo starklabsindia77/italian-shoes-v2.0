@@ -220,9 +220,16 @@ export default function DerbyBuilderClean() {
       (so: any) => (so.id || so.name) === selectedSole
     );
 
-    const glbUrl = selectedSoleObj?.glbUrl || cfg.assets?.glb?.url;
+    const selectedStyleObj = (productData?.selectedStyles || []).find(
+      (so: any) => (so.id || so.name) === selectedStyle
+    );
+
+    console.log("selectedSoleObj", selectedSoleObj);
+    console.log("selectedStyleObj", selectedStyleObj);
+
+    const glbUrl = selectedSoleObj?.glbUrl || selectedStyleObj?.glbUrl || cfg.assets?.glb?.url;
     return getAssetUrl(glbUrl);
-  }, [productData?.selectedSoles, selectedSole, cfg.assets?.glb?.url]);
+  }, [productData?.selectedSoles, selectedSole, productData?.selectedStyles, selectedStyle, cfg.assets?.glb?.url]);
 
   // Helper functions to get filtered materials and colors
   const getAvailableMaterials = () => {
@@ -714,9 +721,15 @@ export default function DerbyBuilderClean() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {(cfg.selectedStyles || []).map((s: any) => (
                       <button
-                        key={s.id}
-                        onClick={() => setSelectedStyle(s.id)}
-                        className={`p-2 rounded-md border transition ${selectedStyle === s.id
+                        key={s.id || s.name}
+                        onClick={() => {
+                          const newStyle = (s.id || s.name);
+                          setSelectedStyle(prev => prev === newStyle ? null : newStyle);
+                          if (selectedStyle !== newStyle) {
+                            setSelectedSole(null);
+                          }
+                        }}
+                        className={`p-2 rounded-md border transition ${selectedStyle === (s.id || s.name)
                           ? "border-red-500 ring-1 ring-red-100"
                           : "border-gray-200"
                           }`}
@@ -743,7 +756,13 @@ export default function DerbyBuilderClean() {
                     {(cfg.selectedSoles || []).map((so: any) => (
                       <button
                         key={so.id || so.name}
-                        onClick={() => setSelectedSole(prev => prev === (so.id || so.name) ? null : (so.id || so.name))}
+                        onClick={() => {
+                          const newSole = (so.id || so.name);
+                          setSelectedSole(prev => prev === newSole ? null : newSole);
+                          if (selectedSole !== newSole) {
+                            setSelectedStyle(null);
+                          }
+                        }}
                         className={`p-2 rounded-md border transition ${selectedSole === (so.id || so.name)
                           ? "border-red-500 ring-1 ring-red-100"
                           : "border-gray-200"
