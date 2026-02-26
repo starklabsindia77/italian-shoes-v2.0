@@ -42,6 +42,7 @@ export const metadata: Metadata = {
 };
 
 import { getSettings } from "@/app/api/settings/route";
+import { RazorpayMagicCheckout } from "@/components/integrations/RazorpayMagicCheckout";
 
 export default async function RootLayout({
   children,
@@ -94,16 +95,7 @@ export default async function RootLayout({
 
           {/* Razorpay Magic Checkout */}
           {razorpayMagicCheckoutEnabled && (
-            <Script
-              src="https://checkout.razorpay.com/v1/magic-checkout.js"
-              strategy="afterInteractive"
-              onLoad={() => {
-                // Initial configuration if needed
-                (window as any).RazorpayMagicCheckout?.init({
-                  key_id: razorpayKeyId,
-                });
-              }}
-            />
+            <RazorpayMagicCheckout razorpayKeyId={razorpayKeyId} />
           )}
         </SessionProvider>
       </body>

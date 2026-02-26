@@ -12,9 +12,12 @@ import { Shield, Lock, ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/lib/stores/cart-store";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
+import Script from "next/script";
+import { toast } from "sonner";
 
 const Checkout = () => {
   const [settings, setSettings] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [selectedShipping, setSelectedShipping] = useState<{ name: string; price: number }>({ name: "Standard", price: 15 });
 
@@ -52,10 +55,79 @@ const Checkout = () => {
 
   const handleShippingSelect = (method: { name: string; price: number }) => setSelectedShipping(method);
 
+  const handleCompleteOrder = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
+    try {
+      // 1. Create order on server
+      const response = await fetch("/api/razorpay/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: total,
+          currency: "INR",
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Failed to create payment order";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // Fallback if response is not JSON
+        }
+        throw new Error(errorMessage);
+      }
+
+      const orderData = await response.json();
+
+      // 2. Open Razorpay Modal
+      const options = {
+        key: settings?.integrations?.razorpayKeyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: settings?.general?.storeName || "Italian Shoes",
+        description: "Order Payment",
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          toast.success("Payment Successful! Order ID: " + response.razorpay_order_id);
+          // Here you would typically save the order to your DB and redirect
+          window.location.href = "/orders/success";
+        },
+        prefill: {
+          name: "", // You could get this from your shipping form state
+          email: "", // You could get this from your contact form state
+          contact: "",
+        },
+        theme: {
+          color: "#000000",
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on("payment.failed", function (response: any) {
+        toast.error("Payment Failed: " + response.error.description);
+      });
+      rzp.open();
+    } catch (error: any) {
+      console.error("Order completion error:", error);
+      toast.error(error.message || "Something went wrong. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <Script
+        id="razorpay-checkout"
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
+      />
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
+        {/* ... existing code ... */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Checkout</h1>
           <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
@@ -75,17 +147,13 @@ const Checkout = () => {
                 </button>
               </div>
             )}
-
           </div>
         </div>
 
-        {/* Progress */}
         <CheckoutProgress currentStep={currentStep} />
 
         <div className="grid lg:grid-cols-2 gap-8 mt-8">
-          {/* Left Column */}
           <div className="space-y-6">
-            {/* Contact Info */}
             <Card className="bg-white border shadow-sm">
               <CardHeader className="pb-4 flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold">Contact Information</CardTitle>
@@ -96,7 +164,6 @@ const Checkout = () => {
               </CardContent>
             </Card>
 
-            {/* Shipping Form */}
             <Card className="bg-white border shadow-sm">
               <CardHeader className="pb-4 flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold">Shipping Address</CardTitle>
@@ -107,7 +174,6 @@ const Checkout = () => {
               </CardContent>
             </Card>
 
-            {/* Shipping Method */}
             <Card className="bg-white border shadow-sm">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg font-semibold">Shipping Method</CardTitle>
@@ -139,23 +205,21 @@ const Checkout = () => {
               </CardContent>
             </Card>
 
-            {/* Complete Order Button */}
             <div className="pt-4">
               <Button
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-4 lg:py-6 text-base lg:text-lg"
                 size="lg"
+                onClick={handleCompleteOrder}
+                disabled={isProcessing}
               >
                 <Shield className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
-                Complete Order
+                {isProcessing ? "Processing..." : "Complete Order"}
               </Button>
             </div>
           </div>
 
-          {/* Right Column */}
           <div className="lg:sticky lg:top-8 lg:self-start space-y-4">
             <OrderSummary items={items} subtotal={subtotal} shipping={selectedShipping.price} tax={tax} total={total} />
-
-            {/* Trust Signals */}
             <div className="p-4 bg-white border rounded-lg flex items-center gap-2 text-sm text-gray-600">
               <Lock className="w-4 h-4" />
               <span>Your information is secure and encrypted</span>
