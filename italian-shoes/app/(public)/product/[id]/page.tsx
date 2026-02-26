@@ -418,13 +418,19 @@ export default function DerbyBuilderClean() {
           <div className="space-y-6">
             {/* Main Product Image with Controls */}
             <div className="relative bg-gray-50 rounded-lg overflow-hidden">
-              <ShoeAvatar
-                ref={shoeAvatarRef}
-                avatarData={avatarData}
-                objectList={objectList}
-                setObjectList={setObjectList}
-                selectedTextureMap={selectedTextureMap}
-              />
+              {avatarData ? (
+                <ShoeAvatar
+                  ref={shoeAvatarRef}
+                  avatarData={avatarData}
+                  objectList={objectList}
+                  setObjectList={setObjectList}
+                  selectedTextureMap={selectedTextureMap}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
+                </div>
+              )}
             </div>
 
             {/* Thumbnail Gallery */}

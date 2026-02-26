@@ -442,3 +442,9 @@ model OrderShipment {
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
