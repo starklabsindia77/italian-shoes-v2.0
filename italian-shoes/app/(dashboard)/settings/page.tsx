@@ -16,7 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Save } from "lucide-react";
+import { Save, Plus, Trash2, Truck, RefreshCcw } from "lucide-react";
 
 type Currency = "USD" | "EUR" | "GBP";
 
@@ -47,7 +47,25 @@ type Settings = {
     razorpayKeySecret?: string | null;
     razorpayMagicCheckoutEnabled: boolean;
   };
-  // (optional) roles/permissions would usually be separate; stubbed in UI
+  shipping: {
+    methods: {
+      id: string;
+      name: string;
+      description: string;
+      price: number;
+      active: boolean;
+    }[];
+  };
+  localization: {
+    supportedCountries: {
+      code: string;
+      name: string;
+      currency: string;
+      active: boolean;
+    }[];
+    rates: Record<string, number>;
+    lastUpdated?: string | null;
+  };
 };
 
 const FALLBACK: Settings = {
@@ -67,8 +85,23 @@ const FALLBACK: Settings = {
     shiprocketStoreId: "",
     shiprocketFasterCheckoutEnabled: false,
     razorpayKeyId: "",
-    razorpayKeySecret: "",
     razorpayMagicCheckoutEnabled: false,
+  },
+  shipping: {
+    methods: [
+      { id: "std", name: "Standard Shipping", description: "5-7 business days", price: 15, active: true },
+      { id: "exp", name: "Express Shipping", description: "2-3 business days", price: 25, active: true },
+    ],
+  },
+  localization: {
+    supportedCountries: [
+      { code: "in", name: "India", currency: "INR", active: true },
+      { code: "us", name: "United States", currency: "USD", active: false },
+      { code: "uk", name: "United Kingdom", currency: "GBP", active: false },
+      { code: "eu", name: "European Union", currency: "EUR", active: false },
+    ],
+    rates: { "USD": 0.012, "EUR": 0.011, "GBP": 0.0094, "INR": 1 },
+    lastUpdated: new Date().toISOString(),
   },
 };
 
@@ -113,6 +146,8 @@ export default function SettingsPage() {
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="currency">Currency</TabsTrigger>
           <TabsTrigger value="taxes">Taxes</TabsTrigger>
+          <TabsTrigger value="shipping">Shipping</TabsTrigger>
+          <TabsTrigger value="regional">Regional & Currencies</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
           <TabsTrigger value="roles">Roles</TabsTrigger>
         </TabsList>
@@ -256,6 +291,119 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+        {/* SHIPPING */}
+        <TabsContent value="shipping" className="mt-4">
+          <Card className="rounded-2xl">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Shipping Methods</CardTitle>
+                  <CardDescription>Configure your store&apos;s shipping options.</CardDescription>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const newId = Math.random().toString(36).substring(2, 9);
+                    setData((d) => ({
+                      ...d,
+                      shipping: {
+                        ...d.shipping,
+                        methods: [
+                          ...d.shipping.methods,
+                          { id: newId, name: "New Method", description: "Details...", price: 0, active: true },
+                        ],
+                      },
+                    }));
+                  }}
+                >
+                  <Plus className="mr-2 size-4" />Add Method
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {data.shipping.methods.map((method, idx) => (
+                <div key={method.id} className="relative rounded-xl border p-4 space-y-4">
+                  <div className="absolute right-4 top-4">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => {
+                        setData((d) => ({
+                          ...d,
+                          shipping: {
+                            ...d.shipping,
+                            methods: d.shipping.methods.filter((_, i) => i !== idx),
+                          },
+                        }));
+                      }}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-3 pr-10">
+                    <Field label="Name">
+                      <Input
+                        value={method.name}
+                        onChange={(e) => {
+                          const next = [...data.shipping.methods];
+                          next[idx] = { ...next[idx], name: e.target.value };
+                          setData((d) => ({ ...d, shipping: { ...d.shipping, methods: next } }));
+                        }}
+                      />
+                    </Field>
+                    <Field label="Price (fixed)">
+                      <Input
+                        type="number"
+                        value={String(method.price)}
+                        onChange={(e) => {
+                          const next = [...data.shipping.methods];
+                          next[idx] = { ...next[idx], price: Number(e.target.value || 0) };
+                          setData((d) => ({ ...d, shipping: { ...d.shipping, methods: next } }));
+                        }}
+                      />
+                    </Field>
+                    <div className="flex flex-col justify-end pb-1">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm">Active</Label>
+                        <Switch
+                          checked={method.active}
+                          onCheckedChange={(v) => {
+                            const next = [...data.shipping.methods];
+                            next[idx] = { ...next[idx], active: v };
+                            setData((d) => ({ ...d, shipping: { ...d.shipping, methods: next } }));
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <Field label="Description / Timeframe">
+                    <Input
+                      value={method.description}
+                      onChange={(e) => {
+                        const next = [...data.shipping.methods];
+                        next[idx] = { ...next[idx], description: e.target.value };
+                        setData((d) => ({ ...d, shipping: { ...d.shipping, methods: next } }));
+                      }}
+                    />
+                  </Field>
+                </div>
+              ))}
+
+              {data.shipping.methods.length === 0 && (
+                <div className="text-center py-10 border rounded-xl border-dashed">
+                  <Truck className="mx-auto size-10 text-muted-foreground mb-3" />
+                  <p className="text-sm text-muted-foreground">No shipping methods configured.</p>
+                </div>
+              )}
+
+              <div className="pt-2">
+                <Button onClick={() => save({ shipping: data.shipping })}><Save className="mr-2 size-4" />Save Shipping Settings</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* INTEGRATIONS */}
         <TabsContent value="integrations" className="mt-4 space-y-6">
@@ -386,6 +534,90 @@ export default function SettingsPage() {
                   <div className="text-sm font-medium">Staff</div>
                   <div className="text-xs text-muted-foreground">Products, Orders</div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        {/* REGIONAL & CURRENCIES */}
+        <TabsContent value="regional" className="mt-4">
+          <Card className="rounded-2xl">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Regional Settings</CardTitle>
+                  <CardDescription>Manage supported countries and exchange rates.</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={async () => {
+                  const run = async () => {
+                    const res = await fetch("/api/settings", { method: "PUT", body: JSON.stringify({ syncRates: true }) });
+                    if (!res.ok) throw new Error(await res.text());
+                    return res.json();
+                  };
+                  toast.promise(run(), {
+                    loading: "Syncing rates...",
+                    success: () => {
+                      load();
+                      return "Exchange rates updated";
+                    },
+                    error: "Failed to sync rates"
+                  });
+                }}>
+                  <RefreshCcw className="mr-2 size-4" />Sync Rates
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="rounded-lg border">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50 border-b">
+                    <tr>
+                      <th className="px-4 py-2 text-left font-medium">Country</th>
+                      <th className="px-4 py-2 text-left font-medium">Currency</th>
+                      <th className="px-4 py-2 text-center font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {data.localization.supportedCountries.map((c, idx) => (
+                      <tr key={c.code}>
+                        <td className="px-4 py-3">{c.name}</td>
+                        <td className="px-4 py-3 font-mono">{c.currency}</td>
+                        <td className="px-4 py-3 text-center">
+                          <Switch
+                            checked={c.active}
+                            onCheckedChange={(v) => {
+                              const newList = [...data.localization.supportedCountries];
+                              newList[idx] = { ...c, active: v };
+                              setData(d => ({ ...d, localization: { ...d.localization, supportedCountries: newList } }));
+                            }}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card className="bg-muted/30 border-none shadow-none">
+                  <CardContent className="p-4 space-y-2">
+                    <div className="text-xs uppercase font-bold text-muted-foreground">Exchange Rates (Relative to INR)</div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {Object.entries(data.localization.rates).map(([curr, rate]) => (
+                        <div key={curr} className="flex justify-between border-b border-muted py-1">
+                          <span className="font-medium">{curr}</span>
+                          <span className="font-mono text-muted-foreground">{rate}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground pt-2 italic">
+                      Last updated: {data.localization.lastUpdated ? new Date(data.localization.lastUpdated).toLocaleString() : "Never"}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="md:col-span-2">
+                <Button onClick={() => save({ localization: data.localization })}><Save className="mr-2 size-4" />Save Regional Settings</Button>
               </div>
             </CardContent>
           </Card>

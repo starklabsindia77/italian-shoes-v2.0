@@ -28,9 +28,25 @@ const DEFAULTS = {
     shiprocketStatus: "disconnected" as "connected" | "disconnected",
     shiprocketStoreId: "",
     shiprocketFasterCheckoutEnabled: false,
-    razorpayKeyId: "",
+    razorpayKeyId: process.env.RAZORPAY_KEY_ID || "",
     razorpayKeySecret: "",
     razorpayMagicCheckoutEnabled: false,
+  },
+  shipping: {
+    methods: [
+      { id: "std", name: "Standard Shipping", description: "5-7 business days", price: 15, active: true },
+      { id: "exp", name: "Express Shipping", description: "2-3 business days", price: 25, active: true },
+    ],
+  },
+  localization: {
+    supportedCountries: [
+      { code: "in", name: "India", currency: "INR", active: true },
+      { code: "us", name: "United States", currency: "USD", active: false },
+      { code: "uk", name: "United Kingdom", currency: "GBP", active: false },
+      { code: "eu", name: "European Union", currency: "EUR", active: false },
+    ],
+    rates: { "USD": 0.012, "EUR": 0.011, "GBP": 0.0094, "INR": 1 }, // Fallback rates
+    lastUpdated: new Date().toISOString(),
   },
 };
 
@@ -89,6 +105,27 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   const patch = await req.json().catch(() => ({}));
+
+  if (patch.syncRates) {
+    const current = {
+      ...DEFAULTS,
+      ...(MEMORY_CACHE ?? {}),
+      ...((await readFromDb()) ?? {}),
+    };
+    const { fetchExchangeRates } = await import("@/lib/currency");
+    const newRates = await fetchExchangeRates("INR");
+    const updated = {
+      ...current,
+      localization: {
+        ...current.localization,
+        rates: newRates,
+        lastUpdated: new Date().toISOString(),
+      },
+    };
+    await writeToDb(updated);
+    MEMORY_CACHE = updated;
+    return NextResponse.json(updated);
+  }
 
   // merge precedence: defaults <- memory <- db <- patch
   const merged = {

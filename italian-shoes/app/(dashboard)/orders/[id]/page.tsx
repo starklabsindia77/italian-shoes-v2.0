@@ -22,7 +22,15 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, RefreshCcw, Save, Play, CheckCheck, PackageOpen, Truck, CheckCircle2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { getAssetUrl } from "@/lib/utils";
+import { ArrowLeft, RefreshCcw, Save, Play, CheckCheck, PackageOpen, Truck, CheckCircle2, ShoppingCart } from "lucide-react";
 
 type Currency = "USD" | "EUR" | "GBP";
 type OrderStatus =
@@ -43,15 +51,17 @@ type FulfillmentStatus = "unfulfilled" | "in_production" | "ready_to_ship" | "sh
 
 type OrderItem = {
   id: string;
-  title: string;
+  productTitle: string;
+  title?: string;
   sku?: string | null;
   quantity: number;
-  price: number; // cents
-  totalPrice: number; // cents
+  price: number;
+  totalPrice: number;
+  designThumbnail?: string | null;
   style?: { styleId: string; styleName: string } | null;
   sole?: { soleId: string; soleName: string } | null;
   size?: { sizeId: string; sizeName: string } | null;
-  panelCustomization?: Record<string, { materialName: string; colorName: string }>;
+  panelCustomization?: any;
 };
 
 type ManufacturingInfo = {
@@ -124,11 +134,13 @@ const FALLBACK_ORDER: OrderFull = {
   items: [
     {
       id: "it_1",
+      productTitle: "Premium Oxford Shoes",
       title: "Premium Oxford Shoes",
       sku: "SKU-AB12CD34",
       quantity: 1,
       price: 19999,
       totalPrice: 19999,
+      designThumbnail: null,
       style: { styleId: "cap-toe", styleName: "Cap Toe" },
       sole: { soleId: "sole-01", soleName: "Sole 01" },
       size: { sizeId: "us-8", sizeName: "US 8" },
@@ -156,6 +168,8 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [order, setOrder] = React.useState<OrderFull | null>(null);
+  const [selectedItem, setSelectedItem] = React.useState<OrderItem | null>(null);
+  const [zoomedImage, setZoomedImage] = React.useState<{ url: string; title: string } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -191,8 +205,10 @@ export default function OrderDetailPage() {
   const updateFulfillment = (f: FulfillmentStatus) => patch({ fulfillmentStatus: f });
 
   const startProduction = () =>
-    patch({ status: "in_production", fulfillmentStatus: "in_production",
-      manufacturing: { ...order!.manufacturing, productionStartDate: new Date().toISOString() } });
+    patch({
+      status: "in_production", fulfillmentStatus: "in_production",
+      manufacturing: { ...order!.manufacturing, productionStartDate: new Date().toISOString() }
+    });
 
   const markQC = () =>
     patch({ status: "quality_check", manufacturing: { ...order!.manufacturing, qualityCheckDate: new Date().toISOString() } });
@@ -204,8 +220,10 @@ export default function OrderDetailPage() {
     patch({ status: "shipped", fulfillmentStatus: "shipped" });
 
   const markDelivered = () =>
-    patch({ status: "delivered", fulfillmentStatus: "delivered",
-      shiprocket: { ...order!.shiprocket, status: "delivered", actualDelivery: new Date().toISOString() } });
+    patch({
+      status: "delivered", fulfillmentStatus: "delivered",
+      shiprocket: { ...order!.shiprocket, status: "delivered", actualDelivery: new Date().toISOString() }
+    });
 
   if (!order) return null;
 
@@ -312,7 +330,8 @@ export default function OrderDetailPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Title</TableHead>
+                      <TableHead className="w-[80px]">Image</TableHead>
+                      <TableHead>Item</TableHead>
                       <TableHead>SKU</TableHead>
                       <TableHead>Qty</TableHead>
                       <TableHead>Price</TableHead>
@@ -321,13 +340,73 @@ export default function OrderDetailPage() {
                   </TableHeader>
                   <TableBody>
                     {order.items.map((it) => (
-                      <TableRow key={it.id}>
-                        <TableCell className="font-medium">{it.title}</TableCell>
-                        <TableCell className="text-muted-foreground">{it.sku ?? "—"}</TableCell>
-                        <TableCell>{it.quantity}</TableCell>
-                        <TableCell>{formatCurrency(it.price, order.pricing.currency)}</TableCell>
-                        <TableCell>{formatCurrency(it.totalPrice, order.pricing.currency)}</TableCell>
-                      </TableRow>
+                      <React.Fragment key={it.id}>
+                        <TableRow 
+                          className="cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => setSelectedItem(it)}
+                        >
+                          <TableCell className="align-top">
+                            {it.designThumbnail ? (
+                              <div className="relative aspect-square w-16 overflow-hidden rounded-lg border bg-muted group-hover:opacity-80 transition-opacity">
+                                <img src={getAssetUrl(it.designThumbnail)} alt={it.productTitle} className="object-cover w-full h-full" />
+                              </div>
+                            ) : (
+                              <div className="flex aspect-square w-16 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
+                                <ShoppingCart className="size-6 opacity-20" />
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="font-medium align-top">
+                            <span className="text-base">{it.productTitle || it.title || "Untitled Product"}</span>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {it.style && <Badge variant="secondary" className="text-[10px]">{it.style.styleName}</Badge>}
+                              {it.sole && <Badge variant="secondary" className="text-[10px]">{it.sole.soleName}</Badge>}
+                              {it.size && <Badge variant="secondary" className="text-[10px]">{it.size.sizeName}</Badge>}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground align-top">{it.sku ?? "—"}</TableCell>
+                          <TableCell className="align-top font-medium">{it.quantity}</TableCell>
+                          <TableCell className="align-top">{formatCurrency(it.price, order.pricing.currency)}</TableCell>
+                          <TableCell className="align-top font-semibold">{formatCurrency(it.totalPrice, order.pricing.currency)}</TableCell>
+                        </TableRow>
+                        {it.panelCustomization && Object.keys(it.panelCustomization).length > 0 && (
+                          <TableRow className="bg-slate-50/50 border-t-0 hover:bg-slate-50/50">
+                            <TableCell colSpan={6} className="py-3 pl-12">
+                              <div className="flex flex-wrap gap-3 items-start">
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Detailed Configuration</span>
+                                  <div className="flex flex-wrap gap-2">
+                                    {Object.entries(it.panelCustomization).map(([panel, v]: [string, any]) => {
+                                      const label = panel.replace(/_/g, " ").replace(/-/g, " ");
+                                      const material = v.materialName || v.material || "N/A";
+                                      const color = v.colorName || v.color || "N/A";
+
+                                      return (
+                                        <div key={panel} className="flex items-center gap-2 border border-slate-200 rounded-lg p-1.5 bg-white shadow-sm min-w-[140px]">
+                                          <div className="size-8 rounded-md border shrink-0 overflow-hidden bg-slate-50">
+                                            {v.colorUrl ? (
+                                              <img src={getAssetUrl(v.colorUrl)} alt={v.colorName} className="object-cover w-full h-full" />
+                                            ) : (
+                                              <div className="flex items-center justify-center w-full h-full text-[8px] text-slate-300">N/A</div>
+                                            )}
+                                          </div>
+                                          <div className="flex flex-col min-w-0">
+                                            <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tight mb-0.5 border-b border-slate-100 pb-0.5 truncate">{label}</span>
+                                            <div className="flex flex-col">
+                                              <span className="text-[10px] font-bold text-slate-800 leading-tight truncate">{color}</span>
+                                              <span className="text-[9px] text-slate-500 font-medium leading-tight truncate">{material}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
                     ))}
                     {order.items.length === 0 && (
                       <TableRow>
@@ -338,17 +417,6 @@ export default function OrderDetailPage() {
                     )}
                   </TableBody>
                 </Table>
-              </div>
-              <Separator className="my-4" />
-              <div className="text-sm text-muted-foreground">
-                Panel customizations (first item example):{" "}
-                {order.items[0]?.panelCustomization
-                  ? Object.entries(order.items[0].panelCustomization).map(([panel, v]) => (
-                      <Badge key={panel} variant="outline" className="mr-2">
-                        {panel}: {v.materialName} / {v.colorName}
-                      </Badge>
-                    ))
-                  : "—"}
               </div>
             </CardContent>
           </Card>
@@ -460,6 +528,126 @@ export default function OrderDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Item Detail Modal */}
+      <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-2xl font-bold">{selectedItem?.productTitle || selectedItem?.title}</DialogTitle>
+            <DialogDescription>Full customization and design details for this item.</DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-8 md:grid-cols-2">
+            {/* Left: Design Image */}
+            <div className="space-y-4">
+              <div className="relative aspect-square w-full overflow-hidden rounded-2xl border bg-slate-50 shadow-inner">
+                {selectedItem?.designThumbnail ? (
+                  <img 
+                    src={getAssetUrl(selectedItem.designThumbnail)} 
+                    alt={selectedItem.productTitle} 
+                    className="object-contain w-full h-full p-4"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center w-full h-full text-muted-foreground">
+                    <ShoppingCart className="size-20 opacity-10" />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-wrap gap-2 justify-center">
+                {selectedItem?.style && <Badge variant="outline" className="px-3 py-1">Style: {selectedItem.style.styleName}</Badge>}
+                {selectedItem?.sole && <Badge variant="outline" className="px-3 py-1">Sole: {selectedItem.sole.soleName}</Badge>}
+                {selectedItem?.size && <Badge variant="outline" className="px-3 py-1">Size: {selectedItem.size.sizeName}</Badge>}
+              </div>
+
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-100 italic text-sm text-slate-600">
+                Large design preview captured at time of order.
+              </div>
+            </div>
+
+            {/* Right: Detailed Configuration */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Panel Configuration</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {selectedItem?.panelCustomization && Object.entries(selectedItem.panelCustomization).map(([panel, v]: [string, any]) => (
+                    <div 
+                      key={panel} 
+                      className="flex gap-4 border border-slate-200 rounded-xl p-3 bg-white hover:bg-slate-50 transition-colors shadow-sm items-center cursor-zoom-in group/swatch"
+                      onClick={() => v.colorUrl && setZoomedImage({ url: v.colorUrl, title: `${panel.replace(/_/g, " ")}: ${v.colorName || v.color}` })}
+                    >
+                      <div className="relative size-14 shrink-0 overflow-hidden rounded-lg border bg-slate-50 shadow-sm group-hover/swatch:ring-2 group-hover/swatch:ring-primary/20 transition-all">
+                        {v.colorUrl ? (
+                          <img 
+                            src={getAssetUrl(v.colorUrl)} 
+                            alt={v.colorName} 
+                            className="object-cover w-full h-full" 
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/placeholder/material.jpg";
+                            }}
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center w-full h-full bg-slate-100 text-[10px] text-slate-400 uppercase font-bold text-center p-1">No Image</div>
+                        )}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">
+                          {panel.replace(/_/g, " ").replace(/-/g, " ")}
+                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-900 leading-tight truncate">{v.colorName || v.color || "N/A"}</span>
+                          <span className="text-[11px] text-slate-500 font-medium leading-tight truncate mt-0.5">{v.materialName || v.material || "N/A"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {(!selectedItem?.panelCustomization || Object.keys(selectedItem.panelCustomization).length === 0) && (
+                    <div className="col-span-2 py-4 text-center text-sm text-muted-foreground bg-muted/50 rounded-xl">
+                      No panel customizations found for this item.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-xl border p-3 bg-slate-50/50">
+                  <div className="text-xs text-muted-foreground mb-1">Unit Price</div>
+                  <div className="text-lg font-bold">{formatCurrency(selectedItem?.price ?? 0, order.pricing.currency)}</div>
+                </div>
+                <div className="rounded-xl border p-3 bg-slate-50/50">
+                  <div className="text-xs text-muted-foreground mb-1">Quantity</div>
+                  <div className="text-lg font-bold">x {selectedItem?.quantity}</div>
+                </div>
+                <div className="col-span-2 rounded-xl border p-4 bg-primary/5 border-primary/10">
+                  <div className="text-xs text-primary/60 font-bold uppercase tracking-widest mb-1">Subtotal</div>
+                  <div className="text-2xl font-black text-primary">{formatCurrency(selectedItem?.totalPrice ?? 0, order.pricing.currency)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Swatch Zoom Dialog */}
+      <Dialog open={!!zoomedImage} onOpenChange={(open) => !open && setZoomedImage(null)}>
+        <DialogContent className="max-w-2xl bg-white border-none shadow-2xl p-0 overflow-hidden rounded-3xl">
+          <div className="relative aspect-square w-full bg-slate-100">
+            {zoomedImage && (
+              <img 
+                src={getAssetUrl(zoomedImage.url)} 
+                alt={zoomedImage.title} 
+                className="object-cover w-full h-full"
+              />
+            )}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-8">
+              <h3 className="text-xl font-bold text-white">{zoomedImage?.title}</h3>
+              <p className="text-white/80 text-sm mt-1">High-resolution material texture preview</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -492,11 +680,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function formatCurrency(cents: number, currency: Currency = "USD") {
+function formatCurrency(amount: number, currency: Currency | string = "USD") {
   try {
-    return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format((cents ?? 0) / 100);
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0
+    }).format(amount ?? 0);
   } catch {
-    return `$${(cents ?? 0) / 100}`;
+    return `${currency} ${amount ?? 0}`;
   }
 }
 

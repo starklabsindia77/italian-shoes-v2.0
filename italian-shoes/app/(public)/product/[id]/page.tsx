@@ -14,6 +14,7 @@ import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { getAssetUrl } from "@/lib/utils";
 import { ShoeAvatarRef } from "@/components/shoe-avatar/ShoeAvatar";
+import { Price } from "@/components/providers/CurrencyProvider";
 
 const ShoeAvatar = dynamic(
   () => import("@/components/shoe-avatar/ShoeAvatar"),
@@ -138,10 +139,14 @@ export default function DerbyBuilderClean() {
     setSelectedPanelName(e.target.value);
   };
 
-  const handleTextureChange = (panelId: string, textureUrl: string) => {
+  const handleTextureChange = (panelId: string, textureUrl: string, materialName?: string, colorName?: string) => {
     setSelectedTextureMap((prev) => ({
       ...prev,
-      [panelId]: { colorUrl: textureUrl },
+      [panelId]: { 
+        colorUrl: textureUrl,
+        materialName: materialName || "N/A",
+        colorName: colorName || "N/A"
+      },
     }));
   };
 
@@ -453,10 +458,10 @@ export default function DerbyBuilderClean() {
                 {/* Price Section */}
                 <div className="flex flex-col gap-0.5">
                   <div className="text-lg font-normal text-red-600 leading-none">
-                    ${cfg.price || 329}
+                    <Price amount={cfg.price || 329} />
                   </div>
                   <div className="text-sm font-bold text-gray-700 line-through leading-none">
-                    ${cfg.compareAtPrice || 519}
+                    <Price amount={cfg.compareAtPrice || 519} />
                   </div>
                 </div>
 
@@ -697,7 +702,9 @@ export default function DerbyBuilderClean() {
                                   setSelectedColor(color.id);
                                   handleTextureChange(
                                     selectedPanelName,
-                                    color.imageUrl
+                                    color.imageUrl,
+                                    material.materialName,
+                                    color.name
                                   );
                                 }}
                                 className={`rounded-md transition flex-shrink-0 ${selectedColor === color.id

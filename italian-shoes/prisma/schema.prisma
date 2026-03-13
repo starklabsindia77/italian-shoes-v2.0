@@ -350,6 +350,8 @@ model Order {
   subtotal       Int
   tax            Int
   shippingAmount Int
+  shippingMethodId   String?
+  shippingMethodName String?
   discount       Int
   total          Int
   currency       Currency @default(USD)
