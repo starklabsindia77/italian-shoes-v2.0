@@ -16,7 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Save, Plus, Trash2, Truck, RefreshCcw } from "lucide-react";
+import { Save, Plus, Trash2, Truck, RefreshCcw, Mail } from "lucide-react";
 
 type Currency = "USD" | "EUR" | "GBP";
 
@@ -66,6 +66,16 @@ type Settings = {
     rates: Record<string, number>;
     lastUpdated?: string | null;
   };
+  email: {
+    provider: "resend" | "smtp" | "none";
+    from: string;
+    resendApiKey: string;
+    smtpHost: string;
+    smtpPort: number;
+    smtpUser: string;
+    smtpPass: string;
+    smtpSecure: boolean;
+  };
 };
 
 const FALLBACK: Settings = {
@@ -103,6 +113,16 @@ const FALLBACK: Settings = {
     rates: { "USD": 0.012, "EUR": 0.011, "GBP": 0.0094, "INR": 1 },
     lastUpdated: new Date().toISOString(),
   },
+  email: {
+    provider: "resend",
+    from: "Italian Shoes <orders@updates.starklabs.in>",
+    resendApiKey: "",
+    smtpHost: "",
+    smtpPort: 587,
+    smtpUser: "",
+    smtpPass: "",
+    smtpSecure: true,
+  }
 };
 
 export default function SettingsPage() {
@@ -149,6 +169,7 @@ export default function SettingsPage() {
           <TabsTrigger value="shipping">Shipping</TabsTrigger>
           <TabsTrigger value="regional">Regional & Currencies</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
+          <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="roles">Roles</TabsTrigger>
         </TabsList>
 
@@ -507,6 +528,112 @@ export default function SettingsPage() {
               </div>
               <div className="md:col-span-2">
                 <Button onClick={() => save({ integrations: { ...data.integrations } })}><Save className="mr-2 size-4" />Save Razorpay Settings</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* EMAIL */}
+        <TabsContent value="email" className="mt-4">
+          <Card className="rounded-2xl">
+            <CardHeader className="pb-3">
+              <CardTitle>Email Configuration</CardTitle>
+              <CardDescription>Configure how your store sends emails to customers.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <Field label="Email Provider">
+                  <Select
+                    value={data.email.provider}
+                    onValueChange={(v: any) => setData(d => ({ ...d, email: { ...d.email, provider: v } }))}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Disabled (No Emails)</SelectItem>
+                      <SelectItem value="resend">Resend (Recommended)</SelectItem>
+                      <SelectItem value="smtp">Custom SMTP</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Send From (Email Address)">
+                  <Input 
+                    placeholder="Italian Shoes <orders@yourdomain.com>"
+                    value={data.email.from}
+                    onChange={(e) => setData(d => ({ ...d, email: { ...d.email, from: e.target.value } }))}
+                  />
+                </Field>
+              </div>
+
+              <Separator />
+
+              {data.email.provider === "resend" && (
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold flex items-center gap-2">
+                    <Badge variant="outline">Resend</Badge> Settings
+                  </h3>
+                  <Field label="Resend API Key">
+                    <Input 
+                      type="password"
+                      placeholder="re_..."
+                      value={data.email.resendApiKey}
+                      onChange={(e) => setData(d => ({ ...d, email: { ...d.email, resendApiKey: e.target.value } }))}
+                    />
+                  </Field>
+                  <p className="text-xs text-muted-foreground">
+                    Get your API key from <a href="https://resend.com" target="_blank" className="underline text-primary">resend.com</a>.
+                  </p>
+                </div>
+              )}
+
+              {data.email.provider === "smtp" && (
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold flex items-center gap-2">
+                    <Badge variant="outline">SMTP</Badge> Settings
+                  </h3>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Field label="SMTP Host">
+                      <Input 
+                        placeholder="smtp.example.com"
+                        value={data.email.smtpHost}
+                        onChange={(e) => setData(d => ({ ...d, email: { ...d.email, smtpHost: e.target.value } }))}
+                      />
+                    </Field>
+                    <Field label="SMTP Port">
+                      <Input 
+                        type="number"
+                        placeholder="587"
+                        value={String(data.email.smtpPort)}
+                        onChange={(e) => setData(d => ({ ...d, email: { ...d.email, smtpPort: Number(e.target.value || 0) } }))}
+                      />
+                    </Field>
+                    <Field label="SMTP User">
+                      <Input 
+                        placeholder="user@example.com"
+                        value={data.email.smtpUser}
+                        onChange={(e) => setData(d => ({ ...d, email: { ...d.email, smtpUser: e.target.value } }))}
+                      />
+                    </Field>
+                    <Field label="SMTP Password">
+                      <Input 
+                        type="password"
+                        placeholder="••••••••"
+                        value={data.email.smtpPass}
+                        onChange={(e) => setData(d => ({ ...d, email: { ...d.email, smtpPass: e.target.value } }))}
+                      />
+                    </Field>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch 
+                      checked={data.email.smtpSecure}
+                      onCheckedChange={(v) => setData(d => ({ ...d, email: { ...d.email, smtpSecure: v } }))}
+                    />
+                    <Label className="text-sm font-normal">Use Secure Connection (TLS/SSL)</Label>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-4">
+                <Button onClick={() => save({ email: data.email })}><Save className="mr-2 size-4" />Save Email Settings</Button>
               </div>
             </CardContent>
           </Card>

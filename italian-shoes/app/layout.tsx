@@ -5,7 +5,7 @@ import { Toaster } from "sonner";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { CurrencyProvider } from "@/components/providers/CurrencyProvider";
 import Script from "next/script";
-import { getSettings } from "@/app/api/settings/route";
+import { getSettings } from "@/lib/settings";
 import { RazorpayMagicCheckout } from "@/components/integrations/RazorpayMagicCheckout";
 
 const geistSans = Geist({

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ok, bad, notFound, server, requireAuth, requireAdmin } from "@/lib/api-helpers";
 import { OrderUpdateStatusSchema } from "@/lib/validators";
+import { EmailService } from "@/lib/email-service";
 
 // Helper to map Prisma Order to frontend OrderFull
 function mapOrderResponse(o: any) {
@@ -123,6 +124,19 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       data: updateData,
       include: { items: true, shipment: true }
     });
+
+    // 2. Send Status Update Email if status changed
+    if (d.status && d.status.toUpperCase() !== updated.status) {
+      const formatter = new Intl.NumberFormat("en-IN", { style: "currency", currency: updated.currency || "INR", maximumFractionDigits: 0 });
+      EmailService.sendOrderUpdateEmail(updated.customerEmail, {
+        orderNumber: updated.orderNumber,
+        customerName: [updated.customerFirstName, updated.customerLastName].filter(Boolean).join(" ") || "Valued Customer",
+        status: updated.status,
+        total: formatter.format(updated.total),
+        items: (updated as any).items || []
+      });
+    }
+
     return ok(mapOrderResponse(updated));
   } catch (e: any) {
     if (e?.code === "P2025") return notFound();

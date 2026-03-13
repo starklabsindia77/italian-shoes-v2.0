@@ -1,117 +1,26 @@
 // app/api/settings/route.ts
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-
-/**
- * Optional KV schema (any one of these names is supported automatically):
- * model Setting      { key String @id; value Json; updatedAt DateTime @updatedAt }
- * model Config       { key String @id; value Json; updatedAt DateTime @updatedAt }
- * model AppSetting   { key String @id; value Json; updatedAt DateTime @updatedAt }
- * model SystemSetting{ key String @id; value Json; updatedAt DateTime @updatedAt }
- *
- * If none exists, this route uses an in-memory cache (fine for dev).
- */
-
-const DEFAULTS = {
-  general: {
-    storeName: "Italian Shoes",
-    supportEmail: "support@italianshoes.com",
-    supportPhone: "+1 (555) 123-4567",
-    timezone: "Europe/Rome",
-    storefrontUrl: "https://example.com",
-    notes: "",
-  },
-  currency: { defaultCurrency: "USD" as "USD" | "EUR" | "GBP", multiCurrency: true },
-  taxes: { enabled: true, taxInclusive: false, defaultRate: 18 },
-  integrations: {
-    shiprocketEmail: "",
-    shiprocketStatus: "disconnected" as "connected" | "disconnected",
-    shiprocketStoreId: "",
-    shiprocketFasterCheckoutEnabled: false,
-    razorpayKeyId: process.env.RAZORPAY_KEY_ID || "",
-    razorpayKeySecret: "",
-    razorpayMagicCheckoutEnabled: false,
-  },
-  shipping: {
-    methods: [
-      { id: "std", name: "Standard Shipping", description: "5-7 business days", price: 15, active: true },
-      { id: "exp", name: "Express Shipping", description: "2-3 business days", price: 25, active: true },
-    ],
-  },
-  localization: {
-    supportedCountries: [
-      { code: "in", name: "India", currency: "INR", active: true },
-      { code: "us", name: "United States", currency: "USD", active: false },
-      { code: "uk", name: "United Kingdom", currency: "GBP", active: false },
-      { code: "eu", name: "European Union", currency: "EUR", active: false },
-    ],
-    rates: { "USD": 0.012, "EUR": 0.011, "GBP": 0.0094, "INR": 1 }, // Fallback rates
-    lastUpdated: new Date().toISOString(),
-  },
-};
-
-export async function getSettings() {
-  const db = await readFromDb();
-  const merged = {
-    ...DEFAULTS,
-    ...(MEMORY_CACHE ?? {}),
-    ...(db ?? {}),
-  };
-  return merged;
-}
+import { 
+  getSettings, 
+  readSettingsFromDb, 
+  writeSettingsToDb, 
+  SETTINGS_DEFAULTS 
+} from "@/lib/settings";
 
 let MEMORY_CACHE: any | null = null;
-const KEY = "app_settings";
-
-// Try to detect whichever KV model you have without typing issues
-function getKvModel(): any | null {
-  const c = prisma as any;
-  return c?.setting ?? c?.config ?? c?.appSetting ?? c?.systemSetting ?? null;
-}
-
-async function readFromDb() {
-  try {
-    const kv = getKvModel();
-    if (!kv?.findUnique) return null;
-    const row = await kv.findUnique({ where: { key: KEY } });
-    if (row && row.value) return row.value;
-  } catch {
-    // table may not exist yet
-  }
-  return null;
-}
-
-async function writeToDb(value: any) {
-  try {
-    const kv = getKvModel();
-    if (!kv?.upsert) return false;
-    await kv.upsert({
-      where: { key: KEY },
-      create: { key: KEY, value },
-      update: { value },
-    });
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export async function GET() {
-  const db = await readFromDb();
-  if (db) return NextResponse.json({ ...DEFAULTS, ...db });
-  if (MEMORY_CACHE) return NextResponse.json({ ...DEFAULTS, ...MEMORY_CACHE });
-  return NextResponse.json(DEFAULTS);
+  const db = await readSettingsFromDb();
+  if (db) return NextResponse.json({ ...SETTINGS_DEFAULTS, ...db });
+  if (MEMORY_CACHE) return NextResponse.json({ ...SETTINGS_DEFAULTS, ...MEMORY_CACHE });
+  return NextResponse.json(SETTINGS_DEFAULTS);
 }
 
 export async function PUT(req: Request) {
   const patch = await req.json().catch(() => ({}));
 
   if (patch.syncRates) {
-    const current = {
-      ...DEFAULTS,
-      ...(MEMORY_CACHE ?? {}),
-      ...((await readFromDb()) ?? {}),
-    };
+    const current = await getSettings();
     const { fetchExchangeRates } = await import("@/lib/currency");
     const newRates = await fetchExchangeRates("INR");
     const updated = {
@@ -122,20 +31,21 @@ export async function PUT(req: Request) {
         lastUpdated: new Date().toISOString(),
       },
     };
-    await writeToDb(updated);
+    await writeSettingsToDb(updated);
     MEMORY_CACHE = updated;
     return NextResponse.json(updated);
   }
 
   // merge precedence: defaults <- memory <- db <- patch
+  const db = await readSettingsFromDb();
   const merged = {
-    ...DEFAULTS,
+    ...SETTINGS_DEFAULTS,
     ...(MEMORY_CACHE ?? {}),
-    ...((await readFromDb()) ?? {}),
+    ...(db ?? {}),
     ...(patch ?? {}),
   };
 
-  const ok = await writeToDb(merged);
+  const ok = await writeSettingsToDb(merged);
   if (!ok) MEMORY_CACHE = merged; // dev fallback
 
   return NextResponse.json(merged);

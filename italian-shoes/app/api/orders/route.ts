@@ -4,6 +4,7 @@ import { OrderCreateSchema } from "@/lib/validators";
 import { s3Client } from "@/lib/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
+import { EmailService } from "@/lib/email-service";
 
 async function uploadBase64ToS3(base64Data: string, folder: string = "designs") {
   if (!base64Data || !base64Data.startsWith("data:image")) return base64Data;
@@ -100,6 +101,16 @@ export async function POST(req: Request) {
           create: itemsWithImages
         }
       } as any
+    });
+
+    // 3. Send Confirmation Email (Async, don't block response)
+    const formatter = new Intl.NumberFormat("en-IN", { style: "currency", currency: created.currency || "INR", maximumFractionDigits: 0 });
+    EmailService.sendConfirmationEmail(created.customerEmail, {
+      orderNumber: created.orderNumber,
+      customerName: [created.customerFirstName, created.customerLastName].filter(Boolean).join(" ") || "Valued Customer",
+      status: created.status,
+      total: formatter.format(created.total),
+      items: (created as any).items || []
     });
 
     return ok(created, 201);

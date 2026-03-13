@@ -30,7 +30,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { getAssetUrl } from "@/lib/utils";
-import { ArrowLeft, RefreshCcw, Save, Play, CheckCheck, PackageOpen, Truck, CheckCircle2, ShoppingCart } from "lucide-react";
+import { ArrowLeft, RefreshCcw, Save, Play, CheckCheck, PackageOpen, Truck, CheckCircle2, ShoppingCart, ArrowRight } from "lucide-react";
 
 type Currency = "USD" | "EUR" | "GBP";
 type OrderStatus =
@@ -170,6 +170,8 @@ export default function OrderDetailPage() {
   const [order, setOrder] = React.useState<OrderFull | null>(null);
   const [selectedItem, setSelectedItem] = React.useState<OrderItem | null>(null);
   const [zoomedImage, setZoomedImage] = React.useState<{ url: string; title: string } | null>(null);
+  const [localManufacturing, setLocalManufacturing] = React.useState<ManufacturingInfo | null>(null);
+  const [localShipping, setLocalShipping] = React.useState<ShippingInfo | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -178,8 +180,12 @@ export default function OrderDetailPage() {
       if (!r.ok) throw new Error();
       const data = (await r.json()) as OrderFull;
       setOrder(data ?? FALLBACK_ORDER);
+      setLocalManufacturing((data ?? FALLBACK_ORDER).manufacturing);
+      setLocalShipping((data ?? FALLBACK_ORDER).shiprocket);
     } catch {
       setOrder(FALLBACK_ORDER);
+      setLocalManufacturing(FALLBACK_ORDER.manufacturing);
+      setLocalShipping(FALLBACK_ORDER.shiprocket);
     } finally {
       setLoading(false);
     }
@@ -214,7 +220,11 @@ export default function OrderDetailPage() {
     patch({ status: "quality_check", manufacturing: { ...order!.manufacturing, qualityCheckDate: new Date().toISOString() } });
 
   const markReadyToShip = () =>
-    patch({ status: "ready_to_ship", fulfillmentStatus: "ready_to_ship" });
+    patch({
+      status: "ready_to_ship",
+      fulfillmentStatus: "ready_to_ship",
+      manufacturing: { ...order!.manufacturing, productionEndDate: new Date().toISOString() }
+    });
 
   const markShipped = () =>
     patch({ status: "shipped", fulfillmentStatus: "shipped" });
@@ -244,7 +254,10 @@ export default function OrderDetailPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={load}><RefreshCcw className="mr-2 size-4" />Refresh</Button>
-          <Button disabled={saving} onClick={() => patch({})}><Save className="mr-2 size-4" />Save</Button>
+          <Button disabled={saving} onClick={() => patch({ 
+            manufacturing: localManufacturing || undefined,
+            shiprocket: localShipping || undefined
+          })}><Save className="mr-2 size-4" />Save</Button>
         </div>
       </div>
 
@@ -455,17 +468,17 @@ export default function OrderDetailPage() {
                 <Field label="Estimated Production (days)">
                   <Input
                     type="number"
-                    value={String(order.manufacturing.estimatedProductionTime ?? 0)}
+                    value={String(localManufacturing?.estimatedProductionTime ?? 0)}
                     onChange={(e) =>
-                      patch({ manufacturing: { ...order.manufacturing, estimatedProductionTime: Number(e.target.value || 0) } })
+                      setLocalManufacturing(prev => prev ? ({ ...prev, estimatedProductionTime: Number(e.target.value || 0) }) : null)
                     }
                   />
                 </Field>
                 <Field label="Notes">
                   <Textarea
                     rows={3}
-                    value={order.manufacturing.notes ?? ""}
-                    onChange={(e) => patch({ manufacturing: { ...order.manufacturing, notes: e.target.value } })}
+                    value={localManufacturing?.notes ?? ""}
+                    onChange={(e) => setLocalManufacturing(prev => prev ? ({ ...prev, notes: e.target.value }) : null)}
                   />
                 </Field>
               </div>
@@ -483,25 +496,64 @@ export default function OrderDetailPage() {
         <TabsContent value="shipping" className="mt-4">
           <Card className="rounded-2xl">
             <CardHeader className="pb-3">
-              <CardTitle>Shipping</CardTitle>
-              <CardDescription>ShipRocket integration (fields only; wire to your API).</CardDescription>
+              <CardTitle>Shipping Details</CardTitle>
+              <CardDescription>Manage tracking information for any delivery partner.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="grid gap-4 md:grid-cols-3">
-                <Readonly label="AWB">{order.shiprocket.awbNumber ?? "—"}</Readonly>
-                <Readonly label="Courier">{order.shiprocket.courierName ?? "—"}</Readonly>
-                <Readonly label="Status">{order.shiprocket.status ?? "pending"}</Readonly>
+                <Field label="Courier Name">
+                  <Input 
+                    placeholder="e.g. BlueDart, DHL, Delhivery"
+                    value={localShipping?.courierName ?? ""}
+                    onChange={(e) => setLocalShipping(prev => prev ? ({ ...prev, courierName: e.target.value }) : null)}
+                  />
+                </Field>
+                <Field label="AWB / Tracking Number">
+                  <Input 
+                    placeholder="Enter Tracking ID"
+                    value={localShipping?.awbNumber ?? ""}
+                    onChange={(e) => setLocalShipping(prev => prev ? ({ ...prev, awbNumber: e.target.value }) : null)}
+                  />
+                </Field>
+                <Field label="Status">
+                   <Select 
+                    value={localShipping?.status ?? "pending"} 
+                    onValueChange={(v: any) => setLocalShipping(prev => prev ? ({ ...prev, status: v }) : null)}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="picked_up">Picked Up</SelectItem>
+                      <SelectItem value="in_transit">In Transit</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                      <SelectItem value="failed">Failed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
               </div>
+
+              <div className="grid gap-4 md:grid-cols-1">
+                <Field label="Tracking URL">
+                  <Input 
+                    placeholder="https://tracker.courier.com/..."
+                    value={localShipping?.trackingUrl ?? ""}
+                    onChange={(e) => setLocalShipping(prev => prev ? ({ ...prev, trackingUrl: e.target.value }) : null)}
+                  />
+                </Field>
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2">
-                <Readonly label="Tracking">
-                  {order.shiprocket.trackingUrl ? (
-                    <a className="text-primary underline" href={order.shiprocket.trackingUrl} target="_blank" rel="noreferrer">Open tracking</a>
-                  ) : "—"}
+                <Readonly label="Tracking Link">
+                  {localShipping?.trackingUrl ? (
+                    <a className="text-primary font-medium underline flex items-center gap-1" href={localShipping.trackingUrl} target="_blank" rel="noreferrer">
+                      Test Link <ArrowRight className="size-3" />
+                    </a>
+                  ) : "No URL provided"}
                 </Readonly>
-                <Readonly label="Label">
-                  {order.shiprocket.labelUrl ? (
-                    <a className="text-primary underline" href={order.shiprocket.labelUrl} target="_blank" rel="noreferrer">Open label</a>
-                  ) : "—"}
+                <Readonly label="Label Link">
+                  {localShipping?.labelUrl ? (
+                    <a className="text-primary font-medium underline" href={localShipping.labelUrl} target="_blank" rel="noreferrer">Download Shipping Label</a>
+                  ) : "No label generated"}
                 </Readonly>
               </div>
 
@@ -633,6 +685,10 @@ export default function OrderDetailPage() {
       {/* Swatch Zoom Dialog */}
       <Dialog open={!!zoomedImage} onOpenChange={(open) => !open && setZoomedImage(null)}>
         <DialogContent className="max-w-2xl bg-white border-none shadow-2xl p-0 overflow-hidden rounded-3xl">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{zoomedImage?.title || "Material Preview"}</DialogTitle>
+            <DialogDescription>High-resolution material texture preview</DialogDescription>
+          </DialogHeader>
           <div className="relative aspect-square w-full bg-slate-100">
             {zoomedImage && (
               <img 
