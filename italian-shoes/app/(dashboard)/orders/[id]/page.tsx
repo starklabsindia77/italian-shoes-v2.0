@@ -277,6 +277,7 @@ export default function OrderDetailPage() {
               <CardDescription>Statuses and totals.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-3">
+              {/* Order & Payment Status */}
               <div className="grid gap-3">
                 <Field label="Order Status">
                   <Select value={order.status} onValueChange={(v: OrderStatus) => updateStatus(v)}>
@@ -302,7 +303,39 @@ export default function OrderDetailPage() {
                 </div>
               </div>
 
-              <div className="grid gap-3">
+              {/* Customer Info */}
+              <div className="grid gap-3 p-4 rounded-xl border bg-muted/20">
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Customer Information</div>
+                <div>
+                  <div className="font-semibold text-sm">{customerName}</div>
+                  <div className="text-sm text-muted-foreground">{order.customer.email}</div>
+                  <div className="text-sm text-muted-foreground">{order.customer.phone || "No phone provided"}</div>
+                  <div className="mt-2">
+                    {order.customer.isGuest ? (
+                      <Badge variant="secondary" className="text-[10px]">Guest Checkout</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px]">Registered User</Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Shipping Address */}
+              <div className="grid gap-3 p-4 rounded-xl border bg-muted/20">
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex justify-between items-center">
+                  <span>Shipping Address</span>
+                </div>
+                {renderAddress(order.shipping, customerName)}
+              </div>
+
+              {/* Billing Address */}
+              <div className="grid gap-3 p-4 rounded-xl border bg-muted/20">
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Billing Address</div>
+                {renderAddress(order.billing, customerName)}
+              </div>
+
+              {/* Pricing Summary */}
+              <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-5 gap-3 pt-4 border-t">
                 <div className="rounded-lg border p-3">
                   <div className="text-xs text-muted-foreground">Subtotal</div>
                   <div className="text-base font-medium">{formatCurrency(order.pricing.subtotal, order.pricing.currency)}</div>
@@ -312,19 +345,16 @@ export default function OrderDetailPage() {
                   <div className="text-base font-medium">{formatCurrency(order.pricing.shipping, order.pricing.currency)}</div>
                 </div>
                 <div className="rounded-lg border p-3">
-                  <div className="text-xs text-muted-foreground">Discount</div>
-                  <div className="text-base font-medium">-{formatCurrency(order.pricing.discount, order.pricing.currency)}</div>
-                </div>
-              </div>
-
-              <div className="grid gap-3">
-                <div className="rounded-lg border p-3">
                   <div className="text-xs text-muted-foreground">Tax</div>
                   <div className="text-base font-medium">{formatCurrency(order.pricing.tax, order.pricing.currency)}</div>
                 </div>
                 <div className="rounded-lg border p-3">
-                  <div className="text-xs text-muted-foreground">Total</div>
-                  <div className="text-lg font-semibold">{formatCurrency(order.pricing.total, order.pricing.currency)}</div>
+                  <div className="text-xs text-muted-foreground">Discount</div>
+                  <div className="text-base font-medium text-destructive">-{formatCurrency(order.pricing.discount, order.pricing.currency)}</div>
+                </div>
+                <div className="rounded-lg border p-3 bg-primary/5 border-primary/20">
+                  <div className="text-xs text-primary font-bold uppercase tracking-tight">Total</div>
+                  <div className="text-xl font-bold text-primary">{formatCurrency(order.pricing.total, order.pricing.currency)}</div>
                 </div>
               </div>
             </CardContent>
@@ -757,4 +787,32 @@ function badgeForFulfillment(s: FulfillmentStatus) {
 function badgeForPayment(s: PaymentStatus) {
   const variant = s === "paid" ? "default" : s === "pending" ? "secondary" : "outline";
   return <Badge variant={variant as any}>{s.replaceAll("_", " ")}</Badge>;
+}
+
+function renderAddress(addr: any, fallbackName: string) {
+  if (!addr) return <div className="text-sm text-muted-foreground italic">No address provided</div>;
+
+  const name = addr.name || addr.firstName || fallbackName;
+  const street = addr.street || addr.address1 || addr.line1;
+  const apartment = addr.apartment || addr.address2 || addr.line2;
+  const landmark = addr.landmark || addr.near;
+  const city = addr.city;
+  const state = addr.state || addr.province || addr.region;
+  const zip = addr.zip || addr.postal_code || addr.pincode;
+  const country = addr.country;
+  const phone = addr.phone || addr.contact;
+
+  return (
+    <div className="text-sm space-y-0.5">
+      <div className="font-semibold text-slate-800">{name}</div>
+      <div className="text-slate-600">{street}</div>
+      {apartment && <div className="text-slate-600">{apartment}</div>}
+      {landmark && <div className="text-slate-500 italic text-xs">Landmark: {landmark}</div>}
+      <div className="text-slate-600">
+        {city}{state ? `, ${state}` : ""} {zip ? ` - ${zip}` : ""}
+      </div>
+      <div className="font-bold uppercase tracking-widest text-[10px] text-slate-400 mt-1">{country}</div>
+      {phone && <div className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1 font-medium">PH: {phone}</div>}
+    </div>
+  );
 }

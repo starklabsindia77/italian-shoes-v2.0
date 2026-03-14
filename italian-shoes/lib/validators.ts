@@ -211,3 +211,12 @@ export const OrderUpdateStatusSchema = z.object({
     actualDelivery: z.string().nullable().optional(),
   }).optional(),
 });
+
+// Customers
+export const CustomerUpdateSchema = z.object({
+  email: z.string().email(),
+  firstName: z.string().nullable().optional(),
+  lastName: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  isGuest: z.boolean().optional(),
+});

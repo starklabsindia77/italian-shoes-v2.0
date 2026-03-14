@@ -84,12 +84,33 @@ export async function POST(req: Request) {
       designConfig: it.designConfig ?? null
     })));
 
-    // 2. Create order in DB
+    // 2. Sync / Create Customer Profile (User table)
+    const customer = await prisma.user.upsert({
+      where: { email: d.customerEmail },
+      update: {
+        firstName: d.customerFirstName || undefined,
+        lastName: d.customerLastName || undefined,
+        phone: d.customerPhone || undefined,
+      } as any,
+      create: {
+        email: d.customerEmail,
+        firstName: d.customerFirstName || null,
+        lastName: d.customerLastName || null,
+        phone: d.customerPhone || null,
+        role: "USER",
+      } as any
+    });
+
+    // 3. Create order in DB
     const created = await prisma.order.create({
       data: {
-        orderId: d.orderId, orderNumber: d.orderNumber,
-        customerEmail: d.customerEmail, customerFirstName: d.customerFirstName ?? null,
-        customerLastName: d.customerLastName ?? null, customerPhone: d.customerPhone ?? null,
+        orderId: d.orderId, 
+        orderNumber: d.orderNumber,
+        customerId: customer.id, // Link to User record
+        customerEmail: d.customerEmail, 
+        customerFirstName: d.customerFirstName ?? null,
+        customerLastName: d.customerLastName ?? null, 
+        customerPhone: d.customerPhone ?? null,
         isGuest: d.isGuest ?? false,
         shippingAddress: d.shippingAddress, billingAddress: d.billingAddress,
         subtotal: d.subtotal, tax: d.tax, shippingAmount: d.shippingAmount, 
