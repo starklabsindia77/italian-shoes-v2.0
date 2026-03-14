@@ -37,9 +37,16 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await (prisma.user as any).findUnique({ 
+          where: { email },
+          include: { customRole: true }
+        });
         if (!user) {
           console.warn("auth/no-user", email);
+          return null;
+        }
+        if (!user.isActive) {
+          console.warn("auth/user-inactive", email);
           return null;
         }
         if (!user.passwordHash) {
@@ -58,7 +65,8 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           name: user.name ?? null,
           email: user.email,
-          role: user.role, // "ADMIN" | "USER"
+          role: user.role,
+          permissions: (user as any).customRole?.permissions || [],
         } as any;
       },
     }),
@@ -67,19 +75,21 @@ export const authOptions: NextAuthOptions = {
     // Runs on initial sign-in (with `user`) and on every subsequent request (without `user`)
     async jwt({ token, user }) {
       if (user) {
-        // first sign-in: copy role from `authorize`
         token.role = (user as any).role ?? "USER";
+        token.permissions = (user as any).permissions ?? [];
       } else {
-        // subsequent requests: ensure token.role stays in sync with DB (optional)
         if (token?.email) {
           try {
-            const dbUser = await prisma.user.findUnique({
+            const dbUser = await (prisma.user as any).findUnique({
               where: { email: token.email as string },
-              select: { role: true },
+              select: { role: true, customRole: { select: { permissions: true } } },
             });
-            if (dbUser) token.role = dbUser.role;
+            if (dbUser) {
+              token.role = (dbUser as any).role;
+              token.permissions = (dbUser as any).customRole?.permissions ?? [];
+            }
           } catch {
-            // ignore DB lookup failures
+            // ignore
           }
         }
       }
@@ -87,9 +97,9 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        // attach id + role to session.user
         (session.user as any).id = token.sub as string;
         (session.user as any).role = (token as any).role ?? "USER";
+        (session.user as any).permissions = (token as any).permissions ?? [];
       }
       return session;
     },

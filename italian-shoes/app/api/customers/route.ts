@@ -1,14 +1,17 @@
 import { prisma } from "@/lib/prisma";
-import { ok, bad, server, requireAdmin } from "@/lib/api-helpers";
+import { ok, bad, server, requireAdmin, requirePermission } from "@/lib/api-helpers";
 
 export async function GET(req: Request) {
   try {
-    await requireAdmin();
+    await requirePermission("customers.manage");
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q") || "";
     const limit = parseInt(searchParams.get("limit") || "50");
 
-    const where: any = {};
+    const where: any = {
+      role: "USER",
+      customRoleId: null,
+    };
     if (q) {
       where.OR = [
         { email: { contains: q, mode: "insensitive" } },

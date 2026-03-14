@@ -8,27 +8,29 @@ datasource db {
 }
 
 /// *
-///  * ============================
-///  * Auth (NextAuth-compatible)
-///  * ============================
+/// * ============================
+/// * Auth (NextAuth-compatible)
+/// * ============================
 model User {
-  id            String    @id @default(cuid())
+  id            String      @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?     @unique
   emailVerified DateTime?
   image         String?
   passwordHash  String?
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  customerId    String?   @unique
+  role          Role        @default(USER)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  customerId    String?     @unique
   firstName     String?
   lastName      String?
   phone         String?
-  isActive      Boolean   @default(true)
+  isActive      Boolean     @default(true)
+  customRoleId  String?
   accounts      Account[]
-  orders        Order[]   @relation("UserOrders")
+  orders        Order[]     @relation("UserOrders")
   sessions      Session[]
+  customRole    CustomRole? @relation(fields: [customRoleId], references: [id])
 }
 
 model Account {
@@ -65,10 +67,19 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model CustomRole {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  permissions Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+}
+
 /// *
-///  * ============================
-///  * Master Data
-///  * ============================
+/// * ============================
+/// * Master Data
+/// * ============================
 model Material {
   id          String          @id @unique @default(cuid())
   name        String
@@ -156,9 +167,9 @@ model Panel {
 }
 
 /// *
-///  * ============================
-///  * Product Catalog
-///  * ============================
+/// * ============================
+/// * Product Catalog
+/// * ============================
 model Product {
   id                String   @id @default(cuid())
   productId         String   @unique
@@ -184,9 +195,9 @@ model Product {
 }
 
 /// *
-///  * ============================
-///  * Orders (MTO)
-///  * ============================
+/// * ============================
+/// * Orders (MTO)
+/// * ============================
 model Order {
   id                      String            @id @default(cuid())
   orderId                 String            @unique
@@ -281,9 +292,9 @@ model Setting {
 }
 
 /// *
-///  * ============================
-///  * Enums
-///  * ============================
+/// * ============================
+/// * Enums
+/// * ============================
 enum Role {
   USER
   ADMIN

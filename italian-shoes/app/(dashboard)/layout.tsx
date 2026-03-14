@@ -36,6 +36,7 @@ import {
   Menu,
   Layers,
   Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils"; // if you don’t have this helper, see inline fallback below
@@ -71,30 +72,40 @@ type NavItem = {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  roles?: string[]; // Allowed roles (if missing, all allowed)
+  roles?: string[]; 
+  permission?: string;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Products", href: "/products", icon: Package },
-  { label: "Orders", href: "/orders", icon: ShoppingCart },
-  { label: "Materials", href: "/materials", icon: Palette },
-  { label: "Styles", href: "/styles", icon: Sparkles },
-  { label: "Soles", href: "/soles", icon: Layers },
-  { label: "Sizes", href: "/sizes", icon: Ruler },
-  { label: "Panels", href: "/panels", icon: PanelsTopLeft },
-  { label: "Customers", href: "/customers", icon: Users },
+  { label: "Overview", href: "/dashboard", icon: LayoutDashboard, permission: "dashboard.view" },
+  { label: "Products", href: "/products", icon: Package, permission: "products.manage" },
+  { label: "Orders", href: "/orders", icon: ShoppingCart, permission: "orders.view" },
+  { label: "Materials", href: "/materials", icon: Palette, permission: "products.manage" },
+  { label: "Styles", href: "/styles", icon: Sparkles, permission: "products.manage" },
+  { label: "Soles", href: "/soles", icon: Layers, permission: "products.manage" },
+  { label: "Sizes", href: "/sizes", icon: Ruler, permission: "products.manage" },
+  { label: "Panels", href: "/panels", icon: PanelsTopLeft, permission: "products.manage" },
+  { label: "Customers", href: "/customers", icon: Users, permission: "customers.manage" },
   { 
     label: "Settings", 
     href: "/settings", 
     icon: Settings,
-    roles: ["ADMIN", "MANAGER"] // STAFF cannot see general settings
+    roles: ["ADMIN", "MANAGER"],
+    permission: "settings.manage"
   },
   {
     label: "Users",
     href: "/settings/users",
     icon: Users,
-    roles: ["ADMIN"] // ONLY admin can manage users
+    roles: ["ADMIN"],
+    permission: "users.manage"
+  },
+  {
+    label: "Roles",
+    href: "/settings/roles",
+    icon: ShieldCheck,
+    roles: ["ADMIN"],
+    permission: "users.manage"
   }
 ];
 
@@ -104,16 +115,31 @@ function ClientShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: session } = useSession();
   const userRole = (session?.user as any)?.role || "USER";
+  const userPermissions = (session?.user as any)?.permissions || [];
 
   const allowedNavItems = useMemo(() => {
     return NAV_ITEMS.filter(item => {
-      if (!item.roles) return true;
-      return item.roles.includes(userRole);
-    });
-  }, [userRole]);
+      // Admin always has access
+      if (userRole === "ADMIN") return true;
 
-  const isActive = (href: string) =>
-    pathname === href || (href !== "/dashboard" && pathname?.startsWith(href));
+      // Check permission first
+      if (item.permission && userPermissions.includes(item.permission)) {
+          return true;
+      }
+
+      // Fallback to role check
+      if (item.roles && item.roles.includes(userRole)) {
+          return true;
+      }
+
+      // If no permission/roles required, allow all
+      if (!item.permission && !item.roles) return true;
+
+      return false;
+    });
+  }, [userRole, userPermissions]);
+
+  const isActive = (href: string) => pathname === href;
 
   const sidebarWidth = collapsed ? 72 : 272; // px
 

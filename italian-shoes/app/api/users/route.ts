@@ -7,11 +7,12 @@ import bcrypt from "bcryptjs";
 export async function GET() {
   try {
     await requireAdmin();
-    const users = await prisma.user.findMany({
+    const users = await (prisma.user as any).findMany({
       where: {
-        role: {
-          in: ["ADMIN", "MANAGER", "STAFF"] as any,
-        },
+        OR: [
+          { role: "ADMIN" as any },
+          { customRoleId: { not: null } as any }
+        ]
       },
       select: {
         id: true,
@@ -21,6 +22,8 @@ export async function GET() {
         phone: true,
         role: true,
         isActive: true,
+        customRoleId: true,
+        customRole: { select: { name: true } },
         createdAt: true,
       } as any,
       orderBy: { createdAt: "desc" },
@@ -44,7 +47,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email, firstName, lastName, phone, password, role } = parsed.data;
+    const { email, firstName, lastName, phone, password, role, customRoleId } = parsed.data;
 
     // Check if user already exists
     const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
@@ -62,6 +65,7 @@ export async function POST(req: Request) {
         phone,
         passwordHash,
         role,
+        customRoleId,
       } as any,
     });
 

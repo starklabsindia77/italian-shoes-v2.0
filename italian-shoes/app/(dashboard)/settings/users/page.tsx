@@ -48,14 +48,22 @@ type SubUser = {
   firstName?: string | null;
   lastName?: string | null;
   phone?: string | null;
-  role: "ADMIN" | "MANAGER" | "STAFF";
+  role: "ADMIN" | "MANAGER" | "STAFF" | "USER";
+  customRoleId?: string | null;
+  customRole?: { name: string } | null;
   isActive: boolean;
   createdAt: string;
+};
+
+type CustomRole = {
+  id: string;
+  name: string;
 };
 
 export default function UserManagementPage() {
   const { data: session } = useSession();
   const [items, setItems] = React.useState<SubUser[]>([]);
+  const [availableRoles, setAvailableRoles] = React.useState<CustomRole[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isAddOpen, setIsAddOpen] = React.useState(false);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
@@ -69,16 +77,26 @@ export default function UserManagementPage() {
     phone: "",
     password: "",
     role: "STAFF" as any,
+    customRoleId: "" as string,
     isActive: true,
   });
 
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/users", { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to fetch users");
-      const data = await res.json();
-      setItems(data);
+      const [uRes, rRes] = await Promise.all([
+        fetch("/api/users", { cache: "no-store" }),
+        fetch("/api/roles", { cache: "no-store" })
+      ]);
+      
+      if (!uRes.ok) throw new Error("Failed to fetch users");
+      const uData = await uRes.json();
+      setItems(uData);
+
+      if (rRes.ok) {
+        const rData = await rRes.json();
+        setAvailableRoles(rData);
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -121,6 +139,7 @@ export default function UserManagementPage() {
           lastName: formData.lastName,
           phone: formData.phone,
           role: formData.role,
+          customRoleId: formData.customRoleId || null,
           isActive: formData.isActive,
           password: formData.password || undefined,
         }),
@@ -162,6 +181,7 @@ export default function UserManagementPage() {
       phone: "",
       password: "",
       role: "STAFF",
+      customRoleId: "",
       isActive: true,
     });
   };
@@ -175,6 +195,7 @@ export default function UserManagementPage() {
       phone: user.phone || "",
       password: "",
       role: user.role,
+      customRoleId: user.customRoleId || "",
       isActive: user.isActive,
     });
     setIsEditOpen(true);
@@ -246,16 +267,29 @@ export default function UserManagementPage() {
                 <div className="grid gap-2">
                   <Label htmlFor="role">Role</Label>
                   <Select
-                    value={formData.role}
-                    onValueChange={(v) => setFormData({ ...formData, role: v })}
+                    value={formData.customRoleId ? `custom:${formData.customRoleId}` : formData.role}
+                    onValueChange={(v) => {
+                      if (v.startsWith("custom:")) {
+                        setFormData({ ...formData, role: "USER", customRoleId: v.split(":")[1] });
+                      } else {
+                        setFormData({ ...formData, role: v, customRoleId: "" });
+                      }
+                    }}
                   >
                     <SelectTrigger id="role">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ADMIN">Admin</SelectItem>
-                      <SelectItem value="MANAGER">Manager</SelectItem>
-                      <SelectItem value="STAFF">Staff</SelectItem>
+                      {availableRoles.length > 0 && (
+                        <>
+                          <Separator className="my-2" />
+                          <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase opacity-70">Custom Roles</div>
+                          {availableRoles.map(r => (
+                            <SelectItem key={r.id} value={`custom:${r.id}`}>{r.name}</SelectItem>
+                          ))}
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -299,7 +333,7 @@ export default function UserManagementPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>
-                        {user.role}
+                        {user.customRole?.name || user.role}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -389,8 +423,14 @@ export default function UserManagementPage() {
             <div className="grid gap-2">
               <Label htmlFor="edit-role">Role</Label>
               <Select
-                value={formData.role}
-                onValueChange={(v) => setFormData({ ...formData, role: v })}
+                value={formData.customRoleId ? `custom:${formData.customRoleId}` : formData.role}
+                onValueChange={(v) => {
+                  if (v.startsWith("custom:")) {
+                    setFormData({ ...formData, role: "USER", customRoleId: v.split(":")[1] });
+                  } else {
+                    setFormData({ ...formData, role: v, customRoleId: "" });
+                  }
+                }}
                 disabled={editingUser?.id === (session?.user as any)?.id}
               >
                 <SelectTrigger id="edit-role">
@@ -398,8 +438,15 @@ export default function UserManagementPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="MANAGER">Manager</SelectItem>
-                  <SelectItem value="STAFF">Staff</SelectItem>
+                  {availableRoles.length > 0 && (
+                    <>
+                      <Separator className="my-2" />
+                      <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase opacity-70">Custom Roles</div>
+                      {availableRoles.map(r => (
+                        <SelectItem key={r.id} value={`custom:${r.id}`}>{r.name}</SelectItem>
+                      ))}
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>

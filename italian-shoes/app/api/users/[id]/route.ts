@@ -21,7 +21,7 @@ export async function PATCH(
       );
     }
 
-    const { firstName, lastName, phone, password, role, isActive } = parsed.data;
+    const { firstName, lastName, phone, password, role, isActive, customRoleId } = parsed.data;
 
     const updateData: any = {
       firstName: firstName !== undefined ? firstName : undefined,
@@ -29,6 +29,7 @@ export async function PATCH(
       phone: phone !== undefined ? phone : undefined,
       role: role !== undefined ? role : undefined,
       isActive: isActive !== undefined ? isActive : undefined,
+      customRoleId: customRoleId !== undefined ? customRoleId : undefined,
     };
 
     if (password && password.length >= 6) {
@@ -46,6 +47,8 @@ export async function PATCH(
         phone: true,
         role: true,
         isActive: true,
+        customRoleId: true,
+        customRole: { select: { name: true } },
         createdAt: true,
       } as any,
     });

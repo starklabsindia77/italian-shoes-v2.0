@@ -34,6 +34,13 @@ export async function requireAnyRole(roles: string[]) {
   if (!roles.includes((session.user as any).role)) throw Object.assign(new Error("Forbidden"), { code: 403 });
   return session;
 }
+export async function requirePermission(perm: string) {
+  const session = await requireAuth();
+  const u = session.user as any;
+  if (u.role === "ADMIN") return session;
+  if (u.permissions?.includes(perm)) return session;
+  throw Object.assign(new Error("Forbidden"), { code: 403 });
+}
 
 export function getSearchParams(req: Request) {
   const url = new URL(req.url);

@@ -6,13 +6,13 @@ import {
   writeSettingsToDb, 
   SETTINGS_DEFAULTS 
 } from "@/lib/settings";
-import { requireAnyRole, server } from "@/lib/api-helpers";
+import { requirePermission, server } from "@/lib/api-helpers";
 
 let MEMORY_CACHE: any | null = null;
 
 export async function GET() {
   try {
-    await requireAnyRole(["ADMIN", "MANAGER"]);
+    await requirePermission("settings.manage");
     const db = await readSettingsFromDb();
     if (db) return NextResponse.json({ ...SETTINGS_DEFAULTS, ...db });
     if (MEMORY_CACHE) return NextResponse.json({ ...SETTINGS_DEFAULTS, ...MEMORY_CACHE });
@@ -24,7 +24,7 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   try {
-    await requireAnyRole(["ADMIN", "MANAGER"]);
+    await requirePermission("settings.manage");
     const patch = await req.json().catch(() => ({}));
 
     if (patch.syncRates) {

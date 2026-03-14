@@ -170,7 +170,6 @@ export default function SettingsPage() {
           <TabsTrigger value="regional">Regional & Currencies</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
           <TabsTrigger value="email">Email</TabsTrigger>
-          <TabsTrigger value="roles">Roles</TabsTrigger>
         </TabsList>
 
         {/* GENERAL */}
@@ -638,32 +637,6 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* ROLES (stub) */}
-        <TabsContent value="roles" className="mt-4">
-          <Card className="rounded-2xl">
-            <CardHeader className="pb-3">
-              <CardTitle>Roles & Permissions</CardTitle>
-              <CardDescription>Define admin & staff permissions (UI stub).</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                This section is a placeholder. You can wire it to <code>/api/settings/roles</code> and manage
-                role-based access with your auth solution.
-              </p>
-              <Separator className="my-4" />
-              <div className="grid gap-2">
-                <div className="rounded-lg border p-3">
-                  <div className="text-sm font-medium">Admin</div>
-                  <div className="text-xs text-muted-foreground">Full access</div>
-                </div>
-                <div className="rounded-lg border p-3">
-                  <div className="text-sm font-medium">Staff</div>
-                  <div className="text-xs text-muted-foreground">Products, Orders</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
         {/* REGIONAL & CURRENCIES */}
         <TabsContent value="regional" className="mt-4">
           <Card className="rounded-2xl">

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"; // Refreshing TS context
-import { ok, bad, server, pagination, getSearchParams, requireAuth } from "@/lib/api-helpers";
+import { ok, bad, server, pagination, getSearchParams, requireAuth, requirePermission } from "@/lib/api-helpers";
 import { OrderCreateSchema } from "@/lib/validators";
 import { s3Client } from "@/lib/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
@@ -34,9 +34,19 @@ async function uploadBase64ToS3(base64Data: string, folder: string = "designs") 
 
 export async function GET(req: Request) {
   try {
-    await requireAuth(); // users can list their own via q?email= or admins can see all (add admin guard if you want)
+    const session = await requireAuth();
+    const u = session.user as any;
     const sp = getSearchParams(req);
     const email = sp.get("email") ?? undefined;
+
+    // Permissions check
+    const hasOrderView = u.role === "ADMIN" || u.permissions?.includes("orders.view");
+    if (!hasOrderView) {
+        // Only allow viewing own orders if no permission
+        if (!email || email !== u.email) {
+            return bad("Forbidden", 403);
+        }
+    }
     const status = sp.get("status") ?? undefined;
     const { skip, limit } = pagination(req);
     const where: any = email ? { customerEmail: email } : {};

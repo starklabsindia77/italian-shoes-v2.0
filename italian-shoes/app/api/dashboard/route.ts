@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { requireAdmin, server } from "@/lib/api-helpers";
+import { requirePermission, server } from "@/lib/api-helpers";
 import { getDashboardMetrics } from "@/lib/dashboard-service";
 
 export async function GET() {
   try {
-    await requireAdmin();
+    await requirePermission("dashboard.view");
     const data = await getDashboardMetrics();
     return NextResponse.json(data);
   } catch (e) {
