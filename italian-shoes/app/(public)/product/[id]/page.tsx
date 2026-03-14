@@ -356,6 +356,12 @@ export default function DerbyBuilderClean() {
     Record<string, any>
   >({});
 
+  useEffect(() => {
+    if (!selectedPanelName && objectList?.length > 0) {
+      setSelectedPanelName(objectList[0].name);
+    }
+  }, [objectList, selectedPanelName]);
+
   const handleBeforeAdd = async () => {
     if (shoeAvatarRef.current) {
       const screenshot = shoeAvatarRef.current.captureScreenshot();
@@ -690,25 +696,26 @@ export default function DerbyBuilderClean() {
                               }
                             }
 
+                            const colorKey = `${material.materialId}-${color.id}`;
                             return (
                               <div
-                                key={color.id}
+                                key={colorKey}
                                 onClick={() => {
-                                  setSelectedColor(color.id);
+                                  setSelectedColor(colorKey);
                                   handleTextureChange(
                                     selectedPanelName,
                                     color.imageUrl
                                   );
                                 }}
-                                className={`rounded-md transition flex-shrink-0 ${selectedColor === color.id
+                                className={`rounded-md overflow-hidden transition flex-shrink-0 ${selectedColor === colorKey
                                   ? "border-red-500 ring-1 ring-red-100"
                                   : "border-gray-200"
                                   }`}
                               >
                                 <img
-                                  src={color.imageUrl}
+                                  src={getAssetUrl(color.imageUrl)}
                                   alt={color.name}
-                                  className="object-contain w-12 h-12"
+                                  className="object-cover w-12 h-12 block"
                                 />
                               </div>
                             );

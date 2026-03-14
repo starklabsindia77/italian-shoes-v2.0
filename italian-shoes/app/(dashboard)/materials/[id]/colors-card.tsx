@@ -9,11 +9,11 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2, PaintBucket, Upload } from "lucide-react";
+import { getAssetUrl } from "@/lib/utils";
 
 type MaterialColor = {
   id: string;
   name: string;
-  hexCode?: string | null;
   imageUrl?: string | null;
   isActive: boolean;
   sortOrder?: number | null;
@@ -85,7 +85,7 @@ export function ColorsCard({ materialId }: { materialId: string }) {
     const created = await toast.promise(run(), { loading: "Adding color…", success: "Color added", error: "Failed to add" });
     // Fix: Ensure created is of type MaterialColor by asserting unknown first
     setItems((x) => [...x, created as unknown as MaterialColor]);
-    setName(""); setImageUrl(""); // keep hex/active as-is for quick adding
+    setName(""); setImageUrl(""); // keep active as-is for quick adding
   };
 
   const toggleActive = async (row: MaterialColor, next: boolean) => {
@@ -127,9 +127,9 @@ export function ColorsCard({ materialId }: { materialId: string }) {
           </div>
 
           <div className="grid gap-2">
-            <Label>Image URL (optional)</Label>
+            <Label>Image</Label>
             <div className="flex gap-2">
-              <Input placeholder="/images/colors/white.png" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+              <Input placeholder="Upload image..." value={imageUrl} readOnly />
               <div className="relative">
                 <input
                   type="file"
@@ -182,7 +182,7 @@ export function ColorsCard({ materialId }: { materialId: string }) {
                   <TableCell className="font-medium">{c.name}</TableCell>
 
                   <TableCell className="text-muted-foreground">
-                    {c.imageUrl ? <a href={c.imageUrl} target="_blank" className="underline" rel="noreferrer">Open</a> : "—"}
+                    {c.imageUrl ? <a href={getAssetUrl(c.imageUrl)} target="_blank" className="underline" rel="noreferrer">Open</a> : "—"}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-between rounded-md border p-1 pl-2">

@@ -156,10 +156,15 @@ const Avatar: React.FC<AvatarProps> = ({
           const mat = o.material as THREE.MeshStandardMaterial;
 
           // Leather-like tuning
-          mat.envMapIntensity = 1.2;
-          mat.roughness = 0.45;
-          mat.metalness = 0.1;
-          mat.needsUpdate = true;
+          mat.metalness = 0;
+mat.roughness = 0.3;        // leather shine balance
+mat.envMapIntensity = 2.6;   // reflection strength
+(mat as any).reflectivity = 0.6;
+// subtle premium leather layer
+(mat as any).clearcoat = 0.55;
+(mat as any).clearcoatRoughness = 0.32;
+
+mat.needsUpdate = true;
 
           const texConfig = selectedTextureMap?.[o.name];
           if (texConfig?.normalUrl) {
@@ -252,6 +257,7 @@ const Avatar: React.FC<AvatarProps> = ({
         );
         tex.flipY = false;
         tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 16;
         tex.wrapS = THREE.RepeatWrapping;
         tex.wrapT = THREE.RepeatWrapping;
         cache.set(url, tex);
@@ -471,7 +477,7 @@ const ShoeAvatar = React.forwardRef<ShoeAvatarRef, AvatarProps>(
               try {
                 gl.outputColorSpace = THREE.SRGBColorSpace;
                 gl.toneMapping = THREE.ACESFilmicToneMapping;
-                gl.toneMappingExposure = 1.5;
+                gl.toneMappingExposure = 1.15;
 
                 const renderer = gl as THREE.WebGLRenderer;
                 renderer.shadowMap.enabled = true;
@@ -505,9 +511,9 @@ const ShoeAvatar = React.forwardRef<ShoeAvatarRef, AvatarProps>(
               }
             }}
           >
-            <ambientLight intensity={0.2} />
+            <ambientLight intensity={0.3} />
             <directionalLight
-              position={[5, 8, 5]}
+              position={[2, 6, 5]}
               intensity={1.6}
               castShadow
               shadow-mapSize-width={2048}
