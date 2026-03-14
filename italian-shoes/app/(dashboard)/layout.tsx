@@ -71,6 +71,7 @@ type NavItem = {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
+  roles?: string[]; // Allowed roles (if missing, all allowed)
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -83,8 +84,18 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Sizes", href: "/sizes", icon: Ruler },
   { label: "Panels", href: "/panels", icon: PanelsTopLeft },
   { label: "Customers", href: "/customers", icon: Users },
-  // { label: "Analytics", href: "/analytics", icon: BarChart3 },
-  { label: "Settings", href: "/settings", icon: Settings },
+  { 
+    label: "Settings", 
+    href: "/settings", 
+    icon: Settings,
+    roles: ["ADMIN", "MANAGER"] // STAFF cannot see general settings
+  },
+  {
+    label: "Users",
+    href: "/settings/users",
+    icon: Users,
+    roles: ["ADMIN"] // ONLY admin can manage users
+  }
 ];
 
 function ClientShell({ children }: { children: React.ReactNode }) {
@@ -92,6 +103,14 @@ function ClientShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: session } = useSession();
+  const userRole = (session?.user as any)?.role || "USER";
+
+  const allowedNavItems = useMemo(() => {
+    return NAV_ITEMS.filter(item => {
+      if (!item.roles) return true;
+      return item.roles.includes(userRole);
+    });
+  }, [userRole]);
 
   const isActive = (href: string) =>
     pathname === href || (href !== "/dashboard" && pathname?.startsWith(href));
@@ -132,7 +151,7 @@ function ClientShell({ children }: { children: React.ReactNode }) {
             <ScrollArea className="flex-1">
               <nav className="py-3">
                 <ul className="grid gap-1 px-2">
-                  {NAV_ITEMS.map((item) => {
+                  {allowedNavItems.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.href);
                     return (
@@ -195,7 +214,7 @@ function ClientShell({ children }: { children: React.ReactNode }) {
               <ScrollArea className="h-[calc(100dvh-4rem)]">
                 <nav className="py-3">
                   <ul className="grid gap-1 px-2">
-                    {NAV_ITEMS.map((item) => {
+                    {allowedNavItems.map((item) => {
                       const Icon = item.icon;
                       const active = isActive(item.href);
                       return (

@@ -220,3 +220,36 @@ export const CustomerUpdateSchema = z.object({
   phone: z.string().nullable().optional(),
   isGuest: z.boolean().optional(),
 });
+export const AdminProfileUpdateSchema = z.object({
+  firstName: z.string().nullable().optional(),
+  lastName: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal('')),
+}).refine((data) => {
+  if (data.newPassword && data.newPassword.length > 0 && !data.currentPassword) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Current password is required to set a new password",
+  path: ["currentPassword"],
+});
+
+export const UserCreateSchema = z.object({
+  email: z.string().email(),
+  firstName: z.string().nullable().optional(),
+  lastName: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.enum(["ADMIN", "MANAGER", "STAFF"]),
+});
+
+export const UserUpdateSchema = z.object({
+  firstName: z.string().nullable().optional(),
+  lastName: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  password: z.string().min(6).optional().or(z.literal('')),
+  role: z.enum(["ADMIN", "MANAGER", "STAFF"]).optional(),
+  isActive: z.boolean().optional(),
+});

@@ -11,7 +11,12 @@ export function notFound(message = "Not Found") { return bad(message, 404); }
 export function forbidden(message = "Forbidden") { return bad(message, 403); }
 export function server(e: any) {
   console.error(e);
-  return NextResponse.json({ error: e?.message ?? "Server Error" }, { status: 500 });
+  try {
+    const fs = require('fs');
+    fs.appendFileSync('/tmp/api-error.log', `[${new Date().toISOString()}] ERROR: ${e?.message}\n${e?.stack}\n\n`);
+  } catch (err) {}
+  const status = e?.code && typeof e.code === "number" ? e.code : 500;
+  return NextResponse.json({ error: e?.message ?? "Server Error" }, { status });
 }
 
 export async function requireAuth() {
@@ -22,6 +27,11 @@ export async function requireAuth() {
 export async function requireAdmin() {
   const session = await requireAuth();
   if ((session.user as any).role !== "ADMIN") throw Object.assign(new Error("Forbidden"), { code: 403 });
+  return session;
+}
+export async function requireAnyRole(roles: string[]) {
+  const session = await requireAuth();
+  if (!roles.includes((session.user as any).role)) throw Object.assign(new Error("Forbidden"), { code: 403 });
   return session;
 }
 

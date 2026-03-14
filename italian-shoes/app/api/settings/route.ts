@@ -6,47 +6,58 @@ import {
   writeSettingsToDb, 
   SETTINGS_DEFAULTS 
 } from "@/lib/settings";
+import { requireAnyRole, server } from "@/lib/api-helpers";
 
 let MEMORY_CACHE: any | null = null;
 
 export async function GET() {
-  const db = await readSettingsFromDb();
-  if (db) return NextResponse.json({ ...SETTINGS_DEFAULTS, ...db });
-  if (MEMORY_CACHE) return NextResponse.json({ ...SETTINGS_DEFAULTS, ...MEMORY_CACHE });
-  return NextResponse.json(SETTINGS_DEFAULTS);
+  try {
+    await requireAnyRole(["ADMIN", "MANAGER"]);
+    const db = await readSettingsFromDb();
+    if (db) return NextResponse.json({ ...SETTINGS_DEFAULTS, ...db });
+    if (MEMORY_CACHE) return NextResponse.json({ ...SETTINGS_DEFAULTS, ...MEMORY_CACHE });
+    return NextResponse.json(SETTINGS_DEFAULTS);
+  } catch (e) {
+    return server(e);
+  }
 }
 
 export async function PUT(req: Request) {
-  const patch = await req.json().catch(() => ({}));
+  try {
+    await requireAnyRole(["ADMIN", "MANAGER"]);
+    const patch = await req.json().catch(() => ({}));
 
-  if (patch.syncRates) {
-    const current = await getSettings();
-    const { fetchExchangeRates } = await import("@/lib/currency");
-    const newRates = await fetchExchangeRates("INR");
-    const updated = {
-      ...current,
-      localization: {
-        ...current.localization,
-        rates: newRates,
-        lastUpdated: new Date().toISOString(),
-      },
+    if (patch.syncRates) {
+      const current = await getSettings();
+      const { fetchExchangeRates } = await import("@/lib/currency");
+      const newRates = await fetchExchangeRates("INR");
+      const updated = {
+        ...current,
+        localization: {
+          ...current.localization,
+          rates: newRates,
+          lastUpdated: new Date().toISOString(),
+        },
+      };
+      await writeSettingsToDb(updated);
+      MEMORY_CACHE = updated;
+      return NextResponse.json(updated);
+    }
+
+    // merge precedence: defaults <- memory <- db <- patch
+    const db = await readSettingsFromDb();
+    const merged = {
+      ...SETTINGS_DEFAULTS,
+      ...(MEMORY_CACHE ?? {}),
+      ...(db ?? {}),
+      ...(patch ?? {}),
     };
-    await writeSettingsToDb(updated);
-    MEMORY_CACHE = updated;
-    return NextResponse.json(updated);
+
+    const ok = await writeSettingsToDb(merged);
+    if (!ok) MEMORY_CACHE = merged; // dev fallback
+
+    return NextResponse.json(merged);
+  } catch (e) {
+    return server(e);
   }
-
-  // merge precedence: defaults <- memory <- db <- patch
-  const db = await readSettingsFromDb();
-  const merged = {
-    ...SETTINGS_DEFAULTS,
-    ...(MEMORY_CACHE ?? {}),
-    ...(db ?? {}),
-    ...(patch ?? {}),
-  };
-
-  const ok = await writeSettingsToDb(merged);
-  if (!ok) MEMORY_CACHE = merged; // dev fallback
-
-  return NextResponse.json(merged);
 }

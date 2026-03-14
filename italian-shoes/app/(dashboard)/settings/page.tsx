@@ -428,7 +428,7 @@ export default function SettingsPage() {
 
         {/* INTEGRATIONS */}
         <TabsContent value="integrations" className="mt-4 space-y-6">
-          <Card className="rounded-2xl">
+          {/* <Card className="rounded-2xl">
             <CardHeader className="pb-3">
               <CardTitle>ShipRocket Integration</CardTitle>
               <CardDescription>Manage your shipping and Faster Checkout with ShipRocket.</CardDescription>
@@ -486,12 +486,12 @@ export default function SettingsPage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           <Card className="rounded-2xl">
             <CardHeader className="pb-3">
-              <CardTitle>Razorpay Magic Checkout</CardTitle>
-              <CardDescription>Enable one-click checkout with Razorpay Magic.</CardDescription>
+              <CardTitle>Razorpay Payment Gateway</CardTitle>
+              <CardDescription>Enable Razorpay Payment Gateway.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-2">
               <Field label="Razorpay Key ID">
@@ -511,8 +511,7 @@ export default function SettingsPage() {
               </Field>
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div>
-                  <div className="text-sm font-medium">Enable Magic Checkout</div>
-                  <div className="text-xs text-muted-foreground">Pre-fill addresses and checkout faster.</div>
+                  <div className="text-sm font-medium">Enable Razorpay Payment Gateway</div>
                 </div>
                 <Switch
                   checked={data.integrations.razorpayMagicCheckoutEnabled}
@@ -556,7 +555,7 @@ export default function SettingsPage() {
                   </Select>
                 </Field>
                 <Field label="Send From (Email Address)">
-                  <Input 
+                  <Input
                     placeholder="Italian Shoes <orders@yourdomain.com>"
                     value={data.email.from}
                     onChange={(e) => setData(d => ({ ...d, email: { ...d.email, from: e.target.value } }))}
@@ -572,7 +571,7 @@ export default function SettingsPage() {
                     <Badge variant="outline">Resend</Badge> Settings
                   </h3>
                   <Field label="Resend API Key">
-                    <Input 
+                    <Input
                       type="password"
                       placeholder="re_..."
                       value={data.email.resendApiKey}
@@ -592,14 +591,14 @@ export default function SettingsPage() {
                   </h3>
                   <div className="grid gap-4 md:grid-cols-2">
                     <Field label="SMTP Host">
-                      <Input 
+                      <Input
                         placeholder="smtp.example.com"
                         value={data.email.smtpHost}
                         onChange={(e) => setData(d => ({ ...d, email: { ...d.email, smtpHost: e.target.value } }))}
                       />
                     </Field>
                     <Field label="SMTP Port">
-                      <Input 
+                      <Input
                         type="number"
                         placeholder="587"
                         value={String(data.email.smtpPort)}
@@ -607,14 +606,14 @@ export default function SettingsPage() {
                       />
                     </Field>
                     <Field label="SMTP User">
-                      <Input 
+                      <Input
                         placeholder="user@example.com"
                         value={data.email.smtpUser}
                         onChange={(e) => setData(d => ({ ...d, email: { ...d.email, smtpUser: e.target.value } }))}
                       />
                     </Field>
                     <Field label="SMTP Password">
-                      <Input 
+                      <Input
                         type="password"
                         placeholder="••••••••"
                         value={data.email.smtpPass}
@@ -623,7 +622,7 @@ export default function SettingsPage() {
                     </Field>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Switch 
+                    <Switch
                       checked={data.email.smtpSecure}
                       onCheckedChange={(v) => setData(d => ({ ...d, email: { ...d.email, smtpSecure: v } }))}
                     />

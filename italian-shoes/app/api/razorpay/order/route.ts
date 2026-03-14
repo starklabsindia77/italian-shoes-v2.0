@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
-import { getSettings } from "@/app/api/settings/route";
+import { getSettings } from "@/lib/settings";
 
 export async function POST(req: Request) {
     try {

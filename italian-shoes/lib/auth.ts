@@ -110,7 +110,16 @@ export async function requireUser() {
 export async function requireAdmin() {
   const session = await getServerAuthSession();
   if (!session || (session.user as any).role !== "ADMIN") {
-    throw new Error("Unauthorized");
+    throw Object.assign(new Error("Unauthorized"), { code: 401 });
+  }
+  return session;
+}
+
+/** Throw if the user does not have one of the required roles */
+export async function requireAnyRole(roles: string[]) {
+  const session = await getServerAuthSession();
+  if (!session || !roles.includes((session.user as any).role)) {
+    throw Object.assign(new Error("Forbidden"), { code: 403 });
   }
   return session;
 }
