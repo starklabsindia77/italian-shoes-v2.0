@@ -305,7 +305,7 @@ function ClientShell({ children }: { children: React.ReactNode }) {
               {/* Footer */}
               <footer className="border-t bg-background">
                 <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-4 py-4 text-xs text-muted-foreground">
-                  <span>© {new Date().getFullYear()} Italian Shoes — Admin</span>
+                  <span suppressHydrationWarning>© {new Date().getFullYear()} Italian Shoes — Admin</span>
                   <span>
                     <Link href="/health" className="hover:underline">
                       System Health
@@ -330,11 +330,13 @@ function ClientShell({ children }: { children: React.ReactNode }) {
    - If you already use next-themes / ThemeProvider, replace this with your component.
 ===================================================================================== */
 function ThemeToggle() {
-  const [isDark, setIsDark] = useState<boolean>(() =>
-    typeof document !== "undefined"
-      ? document.documentElement.classList.contains("dark")
-      : false
-  );
+  const [mounted, setMounted] = React.useState(false);
+  const [isDark, setIsDark] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+    setIsDark(document.documentElement.classList.contains("dark"));
+  }, []);
 
   // Flip the 'dark' class on <html>
   const toggle = () => {
@@ -347,6 +349,14 @@ function ThemeToggle() {
       localStorage.setItem("theme", next ? "dark" : "light");
     } catch { }
   };
+
+  if (!mounted) {
+    return (
+      <Button variant="outline" size="sm" className="h-8 opacity-0">
+        Theme
+      </Button>
+    );
+  }
 
   return (
     <Button variant="outline" size="sm" onClick={toggle} className="h-8">

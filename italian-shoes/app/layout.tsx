@@ -3,9 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { CurrencyProvider } from "@/components/providers/CurrencyProvider";
 import Script from "next/script";
-
-
+import { getSettings } from "@/lib/settings";
+import { RazorpayMagicCheckout } from "@/components/integrations/RazorpayMagicCheckout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,9 +42,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { getSettings } from "@/app/api/settings/route";
-import { RazorpayMagicCheckout } from "@/components/integrations/RazorpayMagicCheckout";
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -63,11 +61,13 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionProvider>
-          <div className="min-h-screen flex flex-col">
-            <main className="flex-grow">
-              {children}
-            </main>
-          </div>
+          <CurrencyProvider>
+            <div className="min-h-screen flex flex-col">
+              <main className="flex-grow">
+                {children}
+              </main>
+            </div>
+          </CurrencyProvider>
           {/* 👇 Required for sonner toasts */}
           <Toaster richColors position="top-center" />
 

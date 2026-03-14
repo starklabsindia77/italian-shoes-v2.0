@@ -108,6 +108,12 @@ model User {
 
   role Role @default(USER)
 
+  // Customer Profile Fields (Synced from Orders)
+  customerId    String?   @unique // Public ID e.g. CUST-1001
+  firstName     String?
+  lastName      String?
+  phone         String?
+
   accounts Account[]
   sessions Session[]
   orders   Order[]   @relation("UserOrders")
@@ -350,6 +356,8 @@ model Order {
   subtotal       Int
   tax            Int
   shippingAmount Int
+  shippingMethodId   String?
+  shippingMethodName String?
   discount       Int
   total          Int
   currency       Currency @default(USD)

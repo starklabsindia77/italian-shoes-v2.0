@@ -11,28 +11,63 @@ import { ContactForm } from "@/components/checkout/ContactForm";
 import { Shield, Lock, ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/lib/stores/cart-store";
 import { formatCurrency } from "@/lib/utils";
+import { Price, useCurrency } from "@/components/providers/CurrencyProvider";
 import Link from "next/link";
 import Script from "next/script";
 import { toast } from "sonner";
 
 const Checkout = () => {
+  const { currency: selectedCurrency } = useCurrency();
   const [settings, setSettings] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [selectedShipping, setSelectedShipping] = useState<{ name: string; price: number }>({ name: "Standard", price: 15 });
+  const [selectedShipping, setSelectedShipping] = useState<{ id?: string; name: string; price: number }>({ name: "Standard", price: 0 });
 
-  const { items, getTotalPrice } = useCartStore();
+  const [contactData, setContactData] = useState({ email: "", newsletter: false });
+  const [shippingData, setShippingData] = useState({
+    firstName: "", lastName: "", address: "", apartment: "", city: "", state: "", zip: "", country: "in", phone: ""
+  });
+
+  const { items, getTotalPrice, clearCart } = useCartStore();
 
   useEffect(() => {
     fetch("/api/settings")
       .then((res) => res.json())
-      .then((data) => setSettings(data))
+      .then((data) => {
+        setSettings(data);
+        // Set default shipping if available
+        const activeMethods = data?.shipping?.methods?.filter((m: any) => m.active) || [];
+        if (activeMethods.length > 0) {
+          setSelectedShipping(activeMethods[0]);
+        }
+      })
       .catch((err) => console.error("Failed to load settings", err));
   }, []);
 
   const subtotal = getTotalPrice();
-  const tax = subtotal * 0.08;
-  const total = subtotal + selectedShipping.price + tax;
+  
+  // Tax calculation based on settings
+  const isTaxEnabled = settings?.taxes?.enabled ?? true;
+  const isTaxInclusive = settings?.taxes?.taxInclusive ?? false;
+  const taxRate = isTaxEnabled ? (settings?.taxes?.defaultRate ?? 0) / 100 : 0;
+  
+  let tax = 0;
+  let total = subtotal;
+
+  if (isTaxEnabled) {
+    if (isTaxInclusive) {
+      // If inclusive, tax is already in subtotal
+      tax = subtotal - (subtotal / (1 + taxRate));
+      total = subtotal;
+    } else {
+      // If exclusive, add tax to subtotal 
+      tax = subtotal * taxRate;
+      total = subtotal + tax;
+    }
+  }
+
+  // Add shipping price
+  total += selectedShipping.price;
 
   if (items.length === 0) {
     return (
@@ -53,7 +88,10 @@ const Checkout = () => {
     );
   }
 
-  const handleShippingSelect = (method: { name: string; price: number }) => setSelectedShipping(method);
+  const handleContactChange = (key: string, value: any) => setContactData(prev => ({ ...prev, [key]: value }));
+  const handleShippingChange = (key: string, value: any) => setShippingData(prev => ({ ...prev, [key]: value }));
+
+  const handleShippingSelect = (method: { id?: string; name: string; price: number }) => setSelectedShipping(method);
 
   const handleCompleteOrder = async () => {
     if (isProcessing) return;
@@ -66,7 +104,7 @@ const Checkout = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: total,
-          currency: "INR",
+          currency: selectedCurrency,
         }),
       });
 
@@ -91,10 +129,56 @@ const Checkout = () => {
         name: settings?.general?.storeName || "Italian Shoes",
         description: "Order Payment",
         order_id: orderData.id,
-        handler: async function (response: any) {
-          toast.success("Payment Successful! Order ID: " + response.razorpay_order_id);
-          // Here you would typically save the order to your DB and redirect
-          window.location.href = "/orders/success";
+        handler: async function (paymentResponse: any) {
+          try {
+            // 3. Save order to DB
+            const orderPayload = {
+              orderId: paymentResponse.razorpay_order_id,
+              orderNumber: "ORD-" + Date.now().toString().slice(-6),
+              customerEmail: contactData.email,
+              customerFirstName: shippingData.firstName,
+              customerLastName: shippingData.lastName,
+              customerPhone: shippingData.phone,
+              isGuest: true,
+              shippingAddress: shippingData,
+              billingAddress: shippingData, // Same as shipping for now
+              subtotal: Math.round(subtotal),
+              tax: Math.round(tax),
+              shippingAmount: Math.round(selectedShipping.price),
+              shippingMethodId: selectedShipping.id || "std",
+              shippingMethodName: selectedShipping.name,
+              discount: 0,
+              total: Math.round(total),
+              currency: selectedCurrency,
+              items: items.map(it => ({
+                productId: it.productId,
+                productTitle: it.title,
+                quantity: it.quantity,
+                price: Math.round(it.price),
+                totalPrice: Math.round(it.price * it.quantity),
+                designThumbnail: it.image || null,
+                designConfig: it.config || null,
+                styleId: it.style?.id || null,
+                soleId: it.sole?.id || null,
+                sizeId: typeof it.size === "string" ? it.size : it.size?.id || null,
+                panelCustomization: it.config || {},
+              }))
+            };
+
+            const saveResponse = await fetch("/api/orders", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(orderPayload),
+            });
+
+            if (!saveResponse.ok) throw new Error("Payment succeeded but failed to save order details.");
+
+            toast.success("Order placed successfully!");
+            clearCart();
+            window.location.href = "/orders/success";
+          } catch (err: any) {
+            toast.error(err.message || "Failed to save order.");
+          }
         },
         prefill: {
           name: "", // You could get this from your shipping form state
@@ -160,7 +244,7 @@ const Checkout = () => {
                 <Badge variant="secondary" className="text-xs">Step 1</Badge>
               </CardHeader>
               <CardContent>
-                <ContactForm />
+                <ContactForm data={contactData} onChange={handleContactChange} />
               </CardContent>
             </Card>
 
@@ -170,7 +254,7 @@ const Checkout = () => {
                 <Badge variant="secondary" className="text-xs">Step 2</Badge>
               </CardHeader>
               <CardContent>
-                <ShippingForm />
+                <ShippingForm data={shippingData} onChange={handleShippingChange} />
               </CardContent>
             </Card>
 
@@ -179,29 +263,26 @@ const Checkout = () => {
                 <CardTitle className="text-lg font-semibold">Shipping Method</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div
-                  onClick={() => handleShippingSelect({ name: "Standard", price: 15 })}
-                  className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition ${selectedShipping.name === "Standard" ? "border-blue-600 bg-blue-50" : "hover:border-gray-400"
-                    }`}
-                >
-                  <div>
-                    <div className="font-medium text-gray-900">Standard Shipping</div>
-                    <div className="text-sm text-gray-600">5-7 business days</div>
+                {(settings?.shipping?.methods?.filter((m: any) => m.active) || []).map((method: any) => (
+                  <div
+                    key={method.id}
+                    onClick={() => handleShippingSelect(method)}
+                    className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition ${selectedShipping.id === method.id ? "border-blue-600 bg-blue-50" : "hover:border-gray-400"
+                      }`}
+                  >
+                    <div>
+                      <div className="font-medium text-gray-900">{method.name}</div>
+                      <div className="text-sm text-gray-600">{method.description}</div>
+                    </div>
+                    <div className="font-semibold text-gray-900"><Price amount={method.price} /></div>
                   </div>
-                  <div className="font-semibold text-gray-900">{formatCurrency(15)}</div>
-                </div>
+                ))}
 
-                <div
-                  onClick={() => handleShippingSelect({ name: "Express", price: 25 })}
-                  className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition ${selectedShipping.name === "Express" ? "border-blue-600 bg-blue-50" : "hover:border-gray-400"
-                    }`}
-                >
-                  <div>
-                    <div className="font-medium text-gray-900">Express Shipping</div>
-                    <div className="text-sm text-gray-600">2-3 business days</div>
-                  </div>
-                  <div className="font-semibold text-gray-900">{formatCurrency(25)}</div>
-                </div>
+                {(!settings?.shipping?.methods || settings.shipping.methods.filter((m: any) => m.active).length === 0) && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No shipping methods available at the moment.
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -219,7 +300,14 @@ const Checkout = () => {
           </div>
 
           <div className="lg:sticky lg:top-8 lg:self-start space-y-4">
-            <OrderSummary items={items} subtotal={subtotal} shipping={selectedShipping.price} tax={tax} total={total} />
+            <OrderSummary 
+              items={items} 
+              subtotal={subtotal} 
+              shipping={selectedShipping.price} 
+              tax={tax} 
+              total={total} 
+              isTaxInclusive={isTaxInclusive} 
+            />
             <div className="p-4 bg-white border rounded-lg flex items-center gap-2 text-sm text-gray-600">
               <Lock className="w-4 h-4" />
               <span>Your information is secure and encrypted</span>

@@ -3,6 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { formatCurrency } from "@/lib/utils";
+import { Price } from "@/components/providers/CurrencyProvider";
 
 interface OrderItem {
   id: string;
@@ -24,9 +25,10 @@ interface OrderSummaryProps {
   shipping: number;
   tax: number;
   total: number;
+  isTaxInclusive?: boolean;
 }
 
-export function OrderSummary({ items, subtotal, shipping, tax, total }: OrderSummaryProps) {
+export function OrderSummary({ items, subtotal, shipping, tax, total, isTaxInclusive = false }: OrderSummaryProps) {
   return (
     <Card className="bg-checkout-card border-checkout-section-border shadow-sm">
       <CardHeader className="pb-4">
@@ -75,7 +77,7 @@ export function OrderSummary({ items, subtotal, shipping, tax, total }: OrderSum
               </div>
               <div className="text-right flex-shrink-0">
                 <div className="font-semibold text-checkout-text-primary text-sm lg:text-base">
-                  {formatCurrency(item.price * item.quantity)}
+                  <Price amount={item.price * item.quantity} />
                 </div>
               </div>
             </div>
@@ -88,22 +90,22 @@ export function OrderSummary({ items, subtotal, shipping, tax, total }: OrderSum
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-checkout-text-secondary">Subtotal</span>
-            <span className="text-checkout-text-primary">{formatCurrency(subtotal)}</span>
+            <span className="text-checkout-text-primary font-medium"><Price amount={subtotal} /></span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-checkout-text-secondary">Shipping</span>
-            <span className="text-checkout-text-primary">{formatCurrency(shipping)}</span>
+            <span className="text-checkout-text-primary font-medium">{shipping === 0 ? "Free" : <Price amount={shipping} />}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-checkout-text-secondary">Tax</span>
-            <span className="text-checkout-text-primary">{formatCurrency(tax)}</span>
+            <span className="text-checkout-text-secondary">Tax {isTaxInclusive && '(Included)'}</span>
+            <span className="text-checkout-text-primary font-medium"><Price amount={tax} /></span>
           </div>
 
           <Separator className="bg-checkout-section-border" />
 
           <div className="flex justify-between text-lg font-semibold">
             <span className="text-checkout-text-primary">Total</span>
-            <span className="text-checkout-text-primary">{formatCurrency(total)}</span>
+            <span className="text-checkout-text-primary"><Price amount={total} /></span>
           </div>
         </div>
       </CardContent>
