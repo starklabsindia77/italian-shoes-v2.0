@@ -298,8 +298,6 @@ model Setting {
 enum Role {
   USER
   ADMIN
-  MANAGER
-  STAFF
 }
 
 enum Currency {

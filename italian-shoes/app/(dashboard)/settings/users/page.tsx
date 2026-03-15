@@ -48,7 +48,7 @@ type SubUser = {
   firstName?: string | null;
   lastName?: string | null;
   phone?: string | null;
-  role: "ADMIN" | "MANAGER" | "STAFF" | "USER";
+  role: "ADMIN" | "USER";
   customRoleId?: string | null;
   customRole?: { name: string } | null;
   isActive: boolean;
@@ -61,7 +61,7 @@ type CustomRole = {
 };
 
 export default function UserManagementPage() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const [items, setItems] = React.useState<SubUser[]>([]);
   const [availableRoles, setAvailableRoles] = React.useState<CustomRole[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -76,7 +76,7 @@ export default function UserManagementPage() {
     lastName: "",
     phone: "",
     password: "",
-    role: "STAFF" as any,
+    role: "USER" as any,
     customRoleId: "" as string,
     isActive: true,
   });
@@ -152,6 +152,13 @@ export default function UserManagementPage() {
       setIsEditOpen(false);
       setEditingUser(null);
       resetForm();
+
+      // If the edited user is the current user, refresh the session
+      if (session?.user?.email === editingUser.email) {
+        // @ts-ignore - update is available in next-auth v4+
+        await update();
+      }
+
       load();
     } catch (error: any) {
       toast.error(error.message);
@@ -180,7 +187,7 @@ export default function UserManagementPage() {
       lastName: "",
       phone: "",
       password: "",
-      role: "STAFF",
+      role: "USER",
       customRoleId: "",
       isActive: true,
     });

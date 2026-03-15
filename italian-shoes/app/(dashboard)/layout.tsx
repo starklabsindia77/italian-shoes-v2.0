@@ -90,7 +90,7 @@ const NAV_ITEMS: NavItem[] = [
     label: "Settings", 
     href: "/settings", 
     icon: Settings,
-    roles: ["ADMIN", "MANAGER"],
+    roles: ["ADMIN"],
     permission: "settings.manage"
   },
   {

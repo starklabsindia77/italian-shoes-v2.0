@@ -77,20 +77,20 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = (user as any).role ?? "USER";
         token.permissions = (user as any).permissions ?? [];
-      } else {
-        if (token?.email) {
-          try {
-            const dbUser = await (prisma.user as any).findUnique({
-              where: { email: token.email as string },
-              select: { role: true, customRole: { select: { permissions: true } } },
-            });
-            if (dbUser) {
-              token.role = (dbUser as any).role;
-              token.permissions = (dbUser as any).customRole?.permissions ?? [];
-            }
-          } catch {
-            // ignore
+      } else if (token?.email) {
+        // Fetch fresh data from DB on every token check to ensure permissions are up to date
+        // This solves the latency issue when an Admin modifies a user's role/permissions
+        try {
+          const dbUser = await (prisma.user as any).findUnique({
+            where: { email: token.email as string },
+            select: { role: true, customRole: { select: { permissions: true } } },
+          });
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.permissions = (dbUser as any).customRole?.permissions ?? [];
           }
+        } catch (e) {
+          console.error("JWT sync error:", e);
         }
       }
       return token;
